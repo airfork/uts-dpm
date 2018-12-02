@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/airfork/webScrape"
+	"github.com/gorilla/mux"
 
 	"github.com/airfork/dpm_sql/mail"
 	"github.com/airfork/dpm_sql/models"
@@ -531,4 +533,244 @@ func (c Controller) callAutoSubmit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.Redirect(w, r, "/", http.StatusFound)
+}
+
+// sendApprovalLogic sends all unapproved DPMS to the admin requesting the page
+// Helper function for SendApprovalDPM
+func (c Controller) sendApprovalLogic(w http.ResponseWriter, r *http.Request) {
+	// If can't find user/user not logged in, redirect to login page
+	u, err := c.getUser(w, r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		fmt.Println(err)
+		return
+	}
+	// Only admins can do this
+	if !u.Admin {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// Redirect is still on temporary password
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+	// Variables need for loop
+	var firstname, lastname, block, location, date, startTime, endTime, dpmType, points, notes, created, supFirst, supLast, id string
+	// Variable containing the id of the supervisor who submitted each dpm
+	var supID int16
+	// Query that gets most of the relevant information about each non-approved dpm
+	stmt := `SELECT id, createid, firstname, lastname, block, location, date, starttime, endtime, dpmtype, points, notes, created FROM dpms WHERE approved=false AND ignored=false ORDER BY created DESC`
+	// Query that gets the name of the supervisor that submitted each dpm
+	supQuery := `SELECT firstname, lastname FROM users WHERE id=$1`
+	ds := make([]models.DPMApprove, 0)
+	rows, err := c.db.Query(stmt)
+	defer rows.Close()
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	var dd models.DPMApprove
+	for rows.Next() {
+		// Get variables from the row
+		err = rows.Scan(&id, &supID, &firstname, &lastname, &block, &location, &date, &startTime, &endTime, &dpmType, &points, &notes, &created)
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		// Ensure that positive points start with a '+'
+		// Positive DPMS get autoapproved, and I am querying for DPMS where approved equals false
+		// This code should not run, until I add to ability to make approved dpms non-approved
+		if string(points[0]) != "-" {
+			points = "+" + points
+		}
+		// Find sup who submitted this DPM
+		err = c.db.QueryRow(supQuery, supID).Scan(&supFirst, &supLast)
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		// Create DPMApprove struct to pass into slice
+		dd = models.DPMApprove{
+			ID:        id,
+			Name:      firstname + " " + lastname,
+			SupName:   supFirst + " " + supLast,
+			Block:     block,
+			Location:  location,
+			Date:      date,
+			StartTime: startTime,
+			EndTime:   endTime,
+			DPMType:   dpmType,
+			Points:    points,
+			Notes:     notes,
+			Created:   created,
+		}
+		ds = append(ds, dd)
+	}
+	// Turn slice into JSON and respond with it
+	j, err := json.Marshal(ds)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(j)
+}
+
+// sendDriverLogic handles sending simplified DPMs to drivers
+func (c Controller) sendDriverLogic(w http.ResponseWriter, r *http.Request) {
+	// If can't find user/user not logged in, redirect to login page
+	u, err := c.getUser(w, r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		fmt.Println(err)
+		return
+	}
+	stmt := `SELECT firstname, lastname, block, location, date, starttime, endtime, dpmtype, points, notes FROM dpms WHERE userid=$1 AND approved=true AND ignored=false ORDER BY created DESC`
+	ds := make([]models.DPMDriver, 0)
+	rows, err := c.db.Queryx(stmt, u.ID)
+	defer rows.Close()
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	var dd models.DPMDriver
+	for rows.Next() {
+		err = rows.StructScan(&dd)
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		if string(dd.Points[0]) != "-" {
+			dd.Points = "+" + dd.Points
+		}
+		ds = append(ds, dd)
+	}
+	// Turn slice into JSON and respond with it
+	j, err := json.Marshal(ds)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(j)
+}
+
+// approveDPMLogic handles logic for approving a DPM
+func (c Controller) approveDPMLogic(w http.ResponseWriter, r *http.Request) {
+	u, err := c.getUser(w, r)
+	// Validate user
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		fmt.Println(err)
+		return
+	}
+	// Only admins can do this
+	if !u.Admin {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// Redirect if still on temporary password
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+	// Temporary struct to hold response from client
+	type approveDPM struct {
+		Points string
+		Name   string
+	}
+	a := approveDPM{}
+	// Get JSON from request body
+	decoder := json.NewDecoder(r.Body)
+	// Parse JSON to get points value
+	err = decoder.Decode(&a)
+	if err != nil {
+		out := fmt.Sprintln("Something went wrong, please try again")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(out))
+		return
+	}
+	// Parse the URL and get the id from the URL
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Update specified DPM to make approved equal to true
+	update := `UPDATE dpms SET approved=true WHERE id=$1`
+	_, err = c.db.Exec(update, id)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println(err)
+		return
+	}
+	// Split name based on spaces
+	ns := strings.Split(a.Name, " ")
+	// Get first name
+	first := bm.Sanitize(ns[0])
+	last := ""
+	// Join indexes after 0 into last name string and sanitize
+	// If last name exists, set it to the remainder of slice joined together
+	if len(ns) > 1 {
+		ns = append(ns[:0], ns[1:]...)
+		last = bm.Sanitize(strings.Join(ns, " "))
+	}
+	// Convert points into int16
+	points32, err := strconv.Atoi(a.Points)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println(err)
+		return
+	}
+	points := int16(points32)
+	// Update user's point balance to reflect the new points
+	update = `UPDATE users set points=points + $1 WHERE firstname=$2 AND lastname=$3`
+	_, err = c.db.Exec(update, points, first, last)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println(err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (c Controller) denyDPMLogic(w http.ResponseWriter, r *http.Request) {
+	u, err := c.getUser(w, r)
+	// Validate user
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		fmt.Println(err)
+		return
+	}
+	// Only admins can do this
+	if !u.Admin {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// Redirect if still on temporary password
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+	// Parse URL for id of DPM
+	vars := mux.Vars(r)
+	// Convert id to int
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Update specified DPM to set ignored to false and set approved to false for extra redundancy
+	update := `UPDATE dpms SET approved=false, ignored=true WHERE id=$1`
+	_, err = c.db.Exec(update, id)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println(err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }

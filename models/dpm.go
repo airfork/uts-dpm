@@ -34,6 +34,7 @@ type DPM struct {
 	Notes     string `json:"notes"`     // Any extra notes about the DPM
 	Created   string `json:"created"`   // Time DPM was created
 	Approved  bool   `json:"approved"`  // If the DPM is approved or not
+	Ignored   bool   `json:"ignored"`   // If the DPM has been seen but ignored
 }
 
 // DPMDriver is used for sending dpm info to the client when they

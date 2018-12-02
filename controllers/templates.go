@@ -49,7 +49,7 @@ func (c Controller) showIndexTemp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Get point value for each approved DPM the user has
-	stmt := `SELECT points FROM dpms WHERE userid=$1 AND approved=true ORDER BY created DESC`
+	stmt := `SELECT points FROM dpms WHERE userid=$1 AND approved=true AND ignored=false ORDER BY created DESC`
 	ss := make([]string, 0)
 	// Make query
 	rows, err := c.db.Query(stmt, sender.ID)
@@ -309,7 +309,7 @@ func (c Controller) RenderApprovals(w http.ResponseWriter, r *http.Request) {
 	if !u.Changed {
 		http.Redirect(w, r, "/change", http.StatusFound)
 	}
-	stmt := `SELECT firstname, lastname, points FROM dpms WHERE approved=false ORDER BY created DESC`
+	stmt := `SELECT firstname, lastname, points FROM dpms WHERE approved=false AND ignored=false ORDER BY created DESC`
 	rows, err := c.db.Queryx(stmt)
 	if err != nil {
 		fmt.Println(err)

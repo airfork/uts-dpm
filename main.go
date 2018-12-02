@@ -31,8 +31,8 @@ func init() {
 }
 
 func main() {
-	c := controller.NewController(getSession(), store, tpl)
 	r := mux.NewRouter()
+	c := controller.NewController(getSession(), store, tpl)
 	// Creates some timeout rules for connections
 	// Using the regular http.ListenAndServe does not set any timeout values, and this is a bad thing
 	srv := http.Server{
@@ -48,6 +48,8 @@ func main() {
 	r.HandleFunc("/dpm/auto", c.AutogenDPM).Methods("GET", "POST")
 	r.HandleFunc("/approve", c.RenderApprovals).Methods("GET")
 	r.HandleFunc("/dpm/approve", c.SendApprovalDPMS).Methods("GET")
+	r.HandleFunc("/dpm/approve/{id}", c.ApproveDPM).Methods("POST")
+	r.HandleFunc("/dpm/deny/{id}", c.DenyDPM).Methods("POST")
 	r.HandleFunc("/users", c.User).Methods("POST")
 	r.HandleFunc("/users", c.Users).Methods("GET")
 	r.HandleFunc("/users/create", c.ShowUserCreate)

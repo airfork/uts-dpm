@@ -22,7 +22,6 @@ request.onload = () => {
             // Each object is mapped by index to dpm data
             // Do find dpm data based on index of clicked dpm
             var list = dataList[objectList.indexOf(this)];
-            console.log(list);
             timeObj = timeAndDateFormat(list.startTime, list.endTime, list.date);
             modal.innerHTML = 
              `<p>Driver: ${list.name}</p>
@@ -39,7 +38,7 @@ request.onload = () => {
             <button>Deny</button>`;
             // Select two buttons and give them event listeners
             let buttons = document.querySelectorAll('button');
-            addButtonLogic(buttons, this, list.id);
+            addButtonLogic(buttons, this, list.id, list.points, list.name);
             // Make backdrop, modal, and buttons visible
             backdrop.classList.add('popup');
             modal.classList.add('popup');
@@ -96,21 +95,47 @@ function createdFormat(createdDate) {
     return fullDate;
 }
 
-function addButtonLogic(buttons, dpm, id) {
+function addButtonLogic(buttons, dpm, id, points, name) {
+    points = (points[0] == '+' ? points.substring(1) : points);
     buttons[0].onclick = () => {
-        console.log(id);
         dpm.style.display = 'none';
+        approve(id, points, name);
         clearModal();
     }
     buttons[1].onclick = () => {
-        console.log(id);
         dpm.style.display = 'none';
+        deny(id);
         clearModal();
     }
 }
 
+// Clears modal of all of its contents
 function clearModal() {
     backdrop.classList.remove('popup');
     modal.classList.remove('popup');
     modal.innerHTML = '';
+}
+
+// Approve sends AJAX request in order to approve a DPM
+function approve(id, points, name) {
+    // Set post request URL and set headers
+    let request = new XMLHttpRequest();
+    request.open('POST', `/dpm/approve/${id}`, true);
+    request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    // Create object to hold name and points values for the DPM
+    temp = {};
+    temp.points = points;
+    temp.name = name;
+    // Stringify the object in order to send it to the server
+    out = JSON.stringify(temp);
+    request.send(out);
+}
+
+// Deny sends AJAX request in order to deny a DPM
+function deny(id) {
+    // Set post request URL and set headers
+    let request = new XMLHttpRequest();
+    request.open('POST', `/dpm/deny/${id}`, true);
+    request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    request.send();
 }
