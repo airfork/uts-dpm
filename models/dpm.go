@@ -66,3 +66,19 @@ type DPMRes struct {
 	ID        string
 	Points    string
 }
+
+// DPMApprove is used for sending to admin's approval page
+type DPMApprove struct {
+	ID        string `json:"id"`        // ID of DPM
+	Name      string `json:"name"`      // Full name of the driver
+	SupName   string `json:"supName"`   // Name of the supervisor that submitted this DPM
+	Block     string `json:"block"`     // Block number
+	Location  string `json:"location"`  // Location
+	Date      string `json:"date"`      // Data DPM is issued for
+	StartTime string `json:"startTime"` // Start time for the DPM
+	EndTime   string `json:"endTime"`   // End time for the DPM
+	DPMType   string `json:"dpmtype"`   // Type of DPM
+	Points    string `json:"points"`    // Number of points DPM is worth
+	Notes     string `json:"notes"`     // Any extra notes about the DPM
+	Created   string `json:"created"`   // Time DPM was created
+}

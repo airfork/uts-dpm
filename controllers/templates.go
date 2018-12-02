@@ -28,6 +28,12 @@ type Auto struct {
 	DPMS []models.DPMDriver
 }
 
+// Approval holds first and lastname as well as the point value for each non approved DPM in the db
+type Approval struct {
+	Name   string
+	Points string
+}
+
 // Renders the index page
 func (c Controller) showIndexTemp(w http.ResponseWriter, r *http.Request) {
 	// Validate user
@@ -42,15 +48,19 @@ func (c Controller) showIndexTemp(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/change", http.StatusFound)
 		return
 	}
+	// Get point value for each approved DPM the user has
 	stmt := `SELECT points FROM dpms WHERE userid=$1 AND approved=true ORDER BY created DESC`
 	ss := make([]string, 0)
-	rows, err := c.db.Queryx(stmt, sender.ID)
+	// Make query
+	rows, err := c.db.Query(stmt, sender.ID)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	// Make sure to close rows
 	defer rows.Close()
+	// Iterate over rows
 	for rows.Next() {
 		var points string
 		err = rows.Scan(&points)
@@ -59,21 +69,24 @@ func (c Controller) showIndexTemp(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		// Make sure positive point values have '+' in front
 		if string(points[0]) != "-" {
 			points = "+" + points
 		}
 		ss = append(ss, points)
 	}
-	// Render index.gohtml template
+	// Struct to allow navbar to only show tabs user is allowed to see
 	n := Navbar{
 		Admin:     sender.Admin,
 		Sup:       sender.Sup,
 		Analysist: sender.Analysist,
 	}
+	// Struct to hold navbar struct and the slice of point values
 	in := Index{
 		Nav:    n,
 		Points: ss,
 	}
+	// Render index.gohtml template
 	err = c.tpl.ExecuteTemplate(w, "index.gohtml", in)
 	if err != nil {
 		out := fmt.Sprintln("Uh-Oh")
@@ -282,6 +295,7 @@ func (c Controller) renderAutoGen(w http.ResponseWriter, r *http.Request) {
 
 // RenderApprovals gives data to and renders the approvals template
 func (c Controller) RenderApprovals(w http.ResponseWriter, r *http.Request) {
+
 	u, err := c.getUser(w, r)
 	// Validate user
 	if err != nil {
@@ -295,24 +309,45 @@ func (c Controller) RenderApprovals(w http.ResponseWriter, r *http.Request) {
 	if !u.Changed {
 		http.Redirect(w, r, "/change", http.StatusFound)
 	}
-	stmt := `SELECT * FROM dpms WHERE approved=false`
+	stmt := `SELECT firstname, lastname, points FROM dpms WHERE approved=false ORDER BY created DESC`
 	rows, err := c.db.Queryx(stmt)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	dpms := make([]models.DPM, 0)
 	defer rows.Close()
+	list := make([]Approval, 0)
+	// Variables for use in the loop
+	var points, firstname, lastname string
+	// Iterate over returned rows
 	for rows.Next() {
-		var d models.DPM
-		err = rows.StructScan(&d)
+		// Place returned values in variables
+		err = rows.Scan(&firstname, &lastname, &points)
 		if err != nil {
 			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		dpms = append(dpms, d)
+		// Make sure points has '+' in front for positive values
+		if string(points[0]) != "-" {
+			points = "+" + points
+		}
+		// Create struct to pass into slice
+		a := Approval{
+			Name:   firstname + " " + lastname,
+			Points: points,
+		}
+		list = append(list, a)
 	}
-	fmt.Println(dpms)
+	// Render approvals template and pass in data
+	err = c.tpl.ExecuteTemplate(w, "approvals.gohtml", list)
+	if err != nil {
+		out := fmt.Sprintln("Something went wrong, please try again")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(out))
+		return
+	}
+	return
 }

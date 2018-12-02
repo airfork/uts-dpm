@@ -15,7 +15,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var tpl = template.Must(template.ParseFiles("views/index.gohtml", "views/dpm.gohtml", "views/login.gohtml", "views/changePass.gohtml", "views/createUser.gohtml", "views/resetPassword.gohtml", "views/autogen.gohtml", "views/autogenErr.gohtml"))
+// var tpl = template.Must(template.ParseFiles("views/index.gohtml", "views/dpm.gohtml", "views/login.gohtml", "views/changePass.gohtml", "views/createUser.gohtml", "views/resetPassword.gohtml", "views/autogen.gohtml", "views/autogenErr.gohtml"))
+var tpl = template.Must(template.ParseGlob("views/*.gohtml"))
 var store = sessions.NewCookieStore(
 	[]byte(os.Getenv("SESSION_KEY")),
 	[]byte(os.Getenv("ENCRYPTION_KEY")))
@@ -45,7 +46,8 @@ func main() {
 	r.HandleFunc("/dpm", c.ShowDPM).Methods("GET")
 	r.HandleFunc("/dpm/all", c.SendDriverDPM)
 	r.HandleFunc("/dpm/auto", c.AutogenDPM).Methods("GET", "POST")
-	r.HandleFunc("/dpm/approve", c.RenderApprovals).Methods("GET")
+	r.HandleFunc("/approve", c.RenderApprovals).Methods("GET")
+	r.HandleFunc("/dpm/approve", c.SendApprovalDPMS).Methods("GET")
 	r.HandleFunc("/users", c.User).Methods("POST")
 	r.HandleFunc("/users", c.Users).Methods("GET")
 	r.HandleFunc("/users/create", c.ShowUserCreate)

@@ -5,7 +5,7 @@ let objectList = [];
 
 // Send AJAX call to server, to get DPM data
 let request = new XMLHttpRequest();
-request.open('GET', '/dpm/all', true);
+request.open('GET', '/dpm/approve', true);
 request.onload = () => {
   if (request.status >= 200 && request.status < 400) {
     // Success!
@@ -19,13 +19,14 @@ request.onload = () => {
         // Push item to object list so I know which dpm is being clicked
         objectList.push(item);
         item.onclick = function() {
-            console.log(dataList[objectList.indexOf(this)]);
             // Each object is mapped by index to dpm data
             // Do find dpm data based on index of clicked dpm
             var list = dataList[objectList.indexOf(this)];
-            timeObj = timeAndDateFormat(list.startTime, list.endTime, list.date)
-            modal.innerHTML = `
-            <p>Name: ${list.firstName} ${list.lastName}</p>
+            console.log(list);
+            timeObj = timeAndDateFormat(list.startTime, list.endTime, list.date);
+            modal.innerHTML = 
+             `<p>Driver: ${list.name}</p>
+            <p>Supervisor: ${list.supName}
             <p>Points: ${list.points}</p>
             <p>${list.dpmtype}</p>
             <p>Block: ${list.block}</p>
@@ -33,8 +34,13 @@ request.onload = () => {
             <p>Date: ${timeObj.date}</p>
             <p>Time: ${timeObj.startTime}-${timeObj.endTime}</p>
             <p>Notes: ${list.notes}</p>
-            `;
-            // Make backdrop and modal visible
+            <p>Created: ${createdFormat(list.created)}</p>
+            <button>Approve</button>
+            <button>Deny</button>`;
+            // Select two buttons and give them event listeners
+            let buttons = document.querySelectorAll('button');
+            addButtonLogic(buttons, this, list.id);
+            // Make backdrop, modal, and buttons visible
             backdrop.classList.add('popup');
             modal.classList.add('popup');
         }
@@ -77,4 +83,34 @@ function timeAndDateFormat(startTime, endTime, date) {
     t.startTime = fulltime;
     t.endTime = fullEndTime;
     return t;
+}
+
+// Format the created field into more user friendly format
+function createdFormat(createdDate) {
+    year = createdDate.substring(0, 4);
+    month = createdDate.substring(5, 7);
+    day = createdDate.substring(8, 10);
+    startHour = createdDate.substring(11, 13);
+    startMinute = createdDate.substring(14, 16);
+    fullDate = `${month}/${day}/${year} @ ${startHour}${startMinute}`;
+    return fullDate;
+}
+
+function addButtonLogic(buttons, dpm, id) {
+    buttons[0].onclick = () => {
+        console.log(id);
+        dpm.style.display = 'none';
+        clearModal();
+    }
+    buttons[1].onclick = () => {
+        console.log(id);
+        dpm.style.display = 'none';
+        clearModal();
+    }
+}
+
+function clearModal() {
+    backdrop.classList.remove('popup');
+    modal.classList.remove('popup');
+    modal.innerHTML = '';
 }

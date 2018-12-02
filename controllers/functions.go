@@ -483,46 +483,6 @@ func (c Controller) resetPassword(w http.ResponseWriter, r *http.Request) {
 	c.resetPasswordMessage(w, out)
 }
 
-// SendDriverDPM creates a slightly altered DPM and sends it to the client
-// as part of ajax call so that they can view more detailed info about
-// their DPMs
-func (c Controller) SendDriverDPM(w http.ResponseWriter, r *http.Request) {
-	// If can't find user/user not logged in, redirect to login page
-	u, err := c.getUser(w, r)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		fmt.Println(err)
-		return
-	}
-	stmt := `SELECT firstname, lastname, block, location, date, starttime, endtime, dpmtype, points, notes FROM dpms WHERE userid=$1 AND approved=true ORDER BY created DESC`
-	ds := make([]models.DPMDriver, 0)
-	rows, err := c.db.Queryx(stmt, u.ID)
-	defer rows.Close()
-	if err != nil {
-		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	var dd models.DPMDriver
-	for rows.Next() {
-		err = rows.StructScan(&dd)
-		if err != nil {
-			fmt.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		if string(dd.Points[0]) != "-" {
-			dd.Points = "+" + dd.Points
-		}
-		ds = append(ds, dd)
-	}
-	// Turn slice into JSON and respond with it
-	j, err := json.Marshal(ds)
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(j)
-}
-
 func (c Controller) callAutoSubmit(w http.ResponseWriter, r *http.Request) {
 	// Get user and validate
 	sender, err := c.getUser(w, r)
