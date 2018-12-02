@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+
+  <!-- Uncomment when wanting to view styling locally -->
+
+  <!-- <link rel="stylesheet" type="text/css" href="../assets/css/main.css" />
+  <link rel="stylesheet" type="text/css" href="../assets/css/shared.css" /> -->
+
+  <!-- Uncomment when wanting to serve files -->
+  <link rel="stylesheet" type="text/css" href="/assets/css/main.css" />
+  <link rel="stylesheet" type="text/css" href="/assets/css/shared.css" />
+   <!-- Load an icon library to show a hamburger menu (bars) on small screens -->
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <title>DPM</title>
+</head>
+<body>
+  <div class="backdrop"></div>
+  <div class="modal">
+  </div>
+  <div class="topnav" id="myTopnav">
+      <a href="/" class="active--nav">Home</a>
+      {{if or .Nav.Sup .Nav.Admin}} 
+      <a href="/dpm">DPM</a>
+      <a href="/dpm/auto">Autogen</a> 
+      {{end}}
+      {{if or .Nav.Analysist .Nav.Admin}} <a href="/">Data</a> {{end}}
+      {{if .Nav.Admin}}
+      <a href="/dpm/approve">Approvals</a>
+      <a href="/">Users</a>
+      {{end}}
+      <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+          <i class="fa fa-bars"></i>
+      </a>
+  </div>
+  <section class="main-section">
+    <div class="main-div">
+      {{range .Points}}
+        <div class="dpm">
+          {{.}}
+        </div>
+      {{end}}
+    </div>
+  </section>
+  <!-- Uncomment if wanting to view JS locally -->
+  <!-- <script src="../assets/js/shared.js"></script> -->
+
+  <!-- Uncomment if wanting to serve js -->
+  <script src="/assets/js/shared.js"></script>
+  <script src="/assets/js/main.js"></script>
+</body>
+</html>

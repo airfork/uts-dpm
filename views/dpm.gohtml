@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>DPM</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/dpm.css">
+    <link rel="stylesheet" href="../assets/css/shared.css">
+    <!-- Load an icon library to show a hamburger menu (bars) on small screens -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+    <div class="topnav" id="myTopnav">
+        <a href="/">Home</a>
+        {{if or .Sup .Admin}} 
+        <a href="/dpm" class="active--nav">DPM</a>
+        <a href="/dpm/auto">Autogen</a> 
+        {{end}}
+        {{if or .Analysist .Admin}} <a href="/">Data</a> {{end}}
+        {{if .Admin}}
+        <a href="/dpm/approve">Approvals</a>
+        <a href="/">Users</a>
+        {{end}}
+        <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+          <i class="fa fa-bars"></i>
+        </a>
+    </div>
+    <section>
+        <div class="main-div">
+            <form class="item auto_form" autocomplete="off">
+                <div class="autocomplete">
+                    <input class="input" id="name_input" type="text" placeholder="Name" maxlength="96">
+                </div>
+            </form>
+            <input class="input item" id="block_input" type="text" placeholder="Block" maxlength="4">
+            <input class="input item" id="location_input" type="text" placeholder="Location" maxlength="3">
+            <input class="input item" id="date_input" type="date" placeholder="Date">
+            <input class="input item" id="startTime_input" type="time" placeholder="Start Time">
+            <input class="input item" id="endTime_input" type="time" placeholder="Start Time">
+            <div class="divide"></div>
+            <h4 class="type active item" id="typeG">Type G: Good! (+1 Point Each)</h4>
+            <input type="number" id="qty" placeholder="QTY" maxlength="2">
+            <h4 class="type item">Type G: Voluntary Clinic/Road Test Passed (+2 Points)</h4>
+            <h4 class="type item">Type G: 200 Hours Safe (+2 Points)</h4>
+            <h4 class="type item">Type L: 1-5 Minutes Late to OFF (-2 Points)</h4>
+            <h4 class="type item">Type A: 1-5 Minutes Late to BLK (-5 Points)</h4>
+            <h4 class="type item">Type A: Improper Shutdown (-5 Points)</h4>
+            <h4 class="type item">Type A: Off-Route, No Stops Missed (-5 Points)</h4>
+            <h4 class="type item">Type A: Out of Uniform (-5 Points)</h4>
+            <h4 class="type item">Type A: Improper Radio Procedure (-5 Points)</h4>
+            <h4 class="type item">Type A: Improper Bus Log (-5 Points)</h4>
+            <h4 class="type item">Type A: Timesheet/Improper Book Change (-5 Points)</h4>
+            <h4 class="type item">Type A: 6-15 Minutes Late to Blk (-7 Points)</h4>
+            <h4 class="type item">Type B: Off Route, Stops Missed (-7 Points)</h4>
+            <h4 class="type item">Type B: Passenger Inconvenience (-10 Points)</h4>
+            <h4 class="type item">Type B: Moving Downed Bus (-10 Points)</h4>
+            <h4 class="type item">Type B: Improper 10-50 Procedure (-10 Points)</h4>
+            <h4 class="type item">Type B: 16+ Minutes Late (-10 Points)</h4>
+            <h4 class="type item">Type B: Failed Ride-Along/Road Test (-10 Points)</h4>
+            <h4 class="type item">Type C: Failure to Report 10-50 (-15 Points)</h4>
+            <h4 class="type item">Type C: Insubordination (-15 Points)</h4>
+            <h4 class="type item">Type C: Safety Offense (-15 Points)</h4>
+            <h4 class="type item">Type C: Preventable Accident 1,2 (-15 Points)</h4>
+            <h4 class="type item">Type D: DNS/Did Not Show (-15 Points)</h4>
+            <h4 class="type item">Type D: Preventable Accident 3,4 (-20 Points)</h4>
+            <h4 class="type item">Type A: Custom (-5 Points)</h4>
+            <h4 class="type item">Type B: Custom (-10 Points)</h4>
+            <h4 class="type item">Type C: Custom (-15 Points)</h4>
+            <input class="input item" id="notes_input" type="text" placeholder="Notes">
+            <button class="submit item">Submit</button>
+        </div>
+    </section>
+    
+    <script src="../assets/js/dpm.js"async defer></script>
+    <script src="../assets/js/autocomplete.js"async defer></script>
+    <script src="../assets/js/shared.js"async defer></script>
+</body>
+</html>
