@@ -41,7 +41,7 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 		Addr:         ":8080",
-		Handler:      csrf.Protect([]byte("very-secret-string"), csrf.Secure(false))(r),
+		Handler:      csrf.Protect([]byte(os.Getenv("CSRF_KEY")), csrf.Secure(false))(r),
 	}
 	r.HandleFunc("/", c.Index)
 	r.HandleFunc("/dpm", c.CreateDPM).Methods("POST")
