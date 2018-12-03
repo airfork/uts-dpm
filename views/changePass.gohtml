@@ -34,14 +34,14 @@ Thanks very much!-->
         
             <div class="form__field">
                 <label for="login__password"><svg class="icon"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#lock"></use></svg><span class="hidden">Password</span></label>
-                <input id="login__password" type="password" class="form__input" placeholder=" New Password" required>
+                <input id="login__password" name="pass1" type="password" class="form__input" placeholder=" New Password" required>
             </div>
             
             <div class="form__field">
                 <label for="login__password"><svg class="icon"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#lock"></use></svg><span class="hidden">Confirm Password</span></label>
-                <input id="login__password" type="password" name="newPassword" class="form__input" placeholder="Confirm Password" required>
+                <input id="login__password" type="password" name="pass2" class="form__input" placeholder="Confirm Password" required>
             </div>
-        
+            {{.csrf}}
             <div class="form__field">
                 <input type="submit" value="Change Password">
             </div>

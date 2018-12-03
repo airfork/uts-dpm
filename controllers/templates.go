@@ -2,9 +2,11 @@ package dpm
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 
 	"github.com/airfork/dpm_sql/models"
+	csrf "github.com/gorilla/csrf"
 
 	"github.com/airfork/webScrape"
 )
@@ -14,6 +16,7 @@ type Navbar struct {
 	Admin     bool
 	Sup       bool
 	Analysist bool
+	CSRF      template.HTML
 }
 
 // Index holds info for rendering the driver's index page
@@ -26,12 +29,19 @@ type Index struct {
 type Auto struct {
 	Nav  Navbar
 	DPMS []models.DPMDriver
+	Csrf template.HTML
 }
 
 // Approval holds first and lastname as well as the point value for each non approved DPM in the db
 type Approval struct {
 	Name   string
 	Points string
+}
+
+// ApprovalCSRF is a struct holding a list of approvals as well as a csrf input template field
+type ApprovalCSRF struct {
+	List []Approval
+	CSRF template.HTML
 }
 
 // Renders the index page
@@ -118,6 +128,7 @@ func (c Controller) renderDPM(w http.ResponseWriter, r *http.Request) {
 		Admin:     sender.Admin,
 		Sup:       sender.Sup,
 		Analysist: sender.Analysist,
+		CSRF:      csrf.TemplateField(r),
 	}
 	// Render html
 	err = c.tpl.ExecuteTemplate(w, "dpm.gohtml", n)
@@ -150,7 +161,7 @@ func (c Controller) renderCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//Render createuser template
-	err = c.tpl.ExecuteTemplate(w, "createUser.gohtml", nil)
+	err = c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"csrf": csrf.TemplateField(r)})
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
@@ -168,7 +179,7 @@ func (c Controller) renderLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Render login template
-	err = c.tpl.ExecuteTemplate(w, "login.gohtml", nil)
+	err = c.tpl.ExecuteTemplate(w, "login.gohtml", map[string]interface{}{"csrf": csrf.TemplateField(r)})
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
@@ -195,7 +206,7 @@ func (c Controller) renderChangeUserPassword(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	// Render changepass template
-	err = c.tpl.ExecuteTemplate(w, "changePass.gohtml", nil)
+	err = c.tpl.ExecuteTemplate(w, "changePass.gohtml", map[string]interface{}{"csrf": csrf.TemplateField(r)})
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
@@ -225,7 +236,7 @@ func (c Controller) renderResetPassword(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	// Render changepass template
-	err = c.tpl.ExecuteTemplate(w, "resetPassword.gohtml", nil)
+	err = c.tpl.ExecuteTemplate(w, "resetPassword.gohtml", map[string]interface{}{"csrf": csrf.TemplateField(r)})
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
@@ -280,6 +291,7 @@ func (c Controller) renderAutoGen(w http.ResponseWriter, r *http.Request) {
 	d := Auto{
 		Nav:  n,
 		DPMS: dpms,
+		Csrf: csrf.TemplateField(r),
 	}
 	// Render autogen template and pass in data
 	err = c.tpl.ExecuteTemplate(w, "autogen.gohtml", d)
@@ -340,8 +352,12 @@ func (c Controller) RenderApprovals(w http.ResponseWriter, r *http.Request) {
 		}
 		list = append(list, a)
 	}
+	container := ApprovalCSRF{
+		List: list,
+		CSRF: csrf.TemplateField(r),
+	}
 	// Render approvals template and pass in data
-	err = c.tpl.ExecuteTemplate(w, "approvals.gohtml", list)
+	err = c.tpl.ExecuteTemplate(w, "approvals.gohtml", container)
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)

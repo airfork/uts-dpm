@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorilla/csrf"
+
 	"github.com/airfork/dpm_sql/models"
 	"github.com/gorilla/securecookie"
 	"golang.org/x/crypto/bcrypt"
@@ -152,9 +154,9 @@ func (c Controller) cookieSignIn(w http.ResponseWriter, r *http.Request) (string
 	return sk, nil
 }
 
-func (c Controller) loginError(w http.ResponseWriter, message string) {
+func (c Controller) loginError(w http.ResponseWriter, r *http.Request, message string) {
 	// Render login template
-	err := c.tpl.ExecuteTemplate(w, "login.gohtml", map[string]string{"message": message})
+	err := c.tpl.ExecuteTemplate(w, "login.gohtml", map[string]interface{}{"message": message, "csrf": csrf.TemplateField(r)})
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
@@ -165,9 +167,9 @@ func (c Controller) loginError(w http.ResponseWriter, message string) {
 	return
 }
 
-func (c Controller) changePasswordError(w http.ResponseWriter, message string) {
+func (c Controller) changePasswordError(w http.ResponseWriter, r *http.Request, message string) {
 	// Render login template
-	err := c.tpl.ExecuteTemplate(w, "changePass.gohtml", map[string]string{"message": message})
+	err := c.tpl.ExecuteTemplate(w, "changePass.gohtml", map[string]interface{}{"message": message, "csrf": csrf.TemplateField(r)})
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
@@ -178,9 +180,9 @@ func (c Controller) changePasswordError(w http.ResponseWriter, message string) {
 	return
 }
 
-func (c Controller) resetPasswordMessage(w http.ResponseWriter, message string) {
+func (c Controller) resetPasswordMessage(w http.ResponseWriter, r *http.Request, message string) {
 	// Render login template
-	err := c.tpl.ExecuteTemplate(w, "resetPassword.gohtml", map[string]string{"message": message})
+	err := c.tpl.ExecuteTemplate(w, "resetPassword.gohtml", map[string]interface{}{"message": message, "csrf": csrf.TemplateField(r)})
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
@@ -191,9 +193,9 @@ func (c Controller) resetPasswordMessage(w http.ResponseWriter, message string) 
 	return
 }
 
-func (c Controller) createUserMessage(w http.ResponseWriter, message string) {
+func (c Controller) createUserMessage(w http.ResponseWriter, r *http.Request, message string) {
 	// Render login template
-	err := c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]string{"message": message})
+	err := c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"message": message, "csrf": csrf.TemplateField(r)})
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)

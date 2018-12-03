@@ -233,7 +233,7 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 	// Only give error if not testing
 	if err == nil && !test {
 		out := "The username name you are trying to register is already in use, please try a different username."
-		c.createUserMessage(w, out)
+		c.createUserMessage(w, r, out)
 		return
 	}
 	// Generate 16 character random password for the user and send it to them
@@ -281,11 +281,11 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 	// In case admin misses the small checkbox
 	if u.FullTime {
 		out := "Fulltime driver has been added to the database!"
-		c.createUserMessage(w, out)
+		c.createUserMessage(w, r, out)
 		return
 	}
 	out := "Part time driver has been added to the database"
-	c.createUserMessage(w, out)
+	c.createUserMessage(w, r, out)
 }
 
 // Logs in the user
@@ -300,7 +300,7 @@ func (c Controller) logInUser(w http.ResponseWriter, r *http.Request) {
 	// If they do not exist, complain
 	if err != nil {
 		out := "Username or password was incorrect, please try again."
-		c.loginError(w, out)
+		c.loginError(w, r, out)
 		return
 	}
 	// Validate password
@@ -308,7 +308,7 @@ func (c Controller) logInUser(w http.ResponseWriter, r *http.Request) {
 	// If passwords do not match, render template with message
 	if err != nil {
 		out := "Username or password was incorrect, please try again."
-		c.loginError(w, out)
+		c.loginError(w, r, out)
 		return
 	}
 	// Create a session for the user
@@ -347,15 +347,28 @@ func (c Controller) changeUserPassword(w http.ResponseWriter, r *http.Request) {
 		c.renderLogin(w, r)
 		return
 	}
-	// Get new and original password
-	new := r.FormValue("newPassword")
+	// Get old password and make sure it matches what is in the database
 	og := r.FormValue("originalPass")
 	// Ensure new password matches what's in db
 	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(og))
 	// If passwords do not match, inform user
 	if err != nil {
 		out := "Please ensure that you are inputting your old password correctly."
-		c.changePasswordError(w, out)
+		c.changePasswordError(w, r, out)
+		return
+	}
+	// Get both copies of new password and ensure they are the same
+	pass1 := r.FormValue("pass1")
+	pass2 := r.FormValue("pass2")
+	if pass1 != pass2 {
+		out := "Please ensure that your new passwords match."
+		c.changePasswordError(w, r, out)
+		return
+	}
+	// If user enters temporary password for their new password, complain
+	if pass1 == og {
+		out := "Please make your new password different from your temporary one"
+		c.changePasswordError(w, r, out)
 		return
 	}
 	// Create a new session for the user
@@ -367,7 +380,7 @@ func (c Controller) changeUserPassword(w http.ResponseWriter, r *http.Request) {
 	}
 	u.SessionKey = sk
 	// Hash their new password and store it in struct
-	hash, err := bcrypt.GenerateFromPassword([]byte(new), bcrypt.MinCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(pass1), bcrypt.MinCost)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -441,7 +454,7 @@ func (c Controller) resetPassword(w http.ResponseWriter, r *http.Request) {
 	// Send message back stating this
 	if sender.Username == username {
 		out := "Please do not try to reset your own password."
-		c.resetPasswordMessage(w, out)
+		c.resetPasswordMessage(w, r, out)
 		return
 	}
 	u := &models.User{}
@@ -452,7 +465,7 @@ func (c Controller) resetPassword(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 		out := "Could not find user with that username in the database."
-		c.resetPasswordMessage(w, out)
+		c.resetPasswordMessage(w, r, out)
 		return
 	}
 	// Generate 16 character random password for the user and send it to them
@@ -482,7 +495,7 @@ func (c Controller) resetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 	// Display success message
 	out := "User password successfully reset"
-	c.resetPasswordMessage(w, out)
+	c.resetPasswordMessage(w, r, out)
 }
 
 func (c Controller) callAutoSubmit(w http.ResponseWriter, r *http.Request) {

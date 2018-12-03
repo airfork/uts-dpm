@@ -44,6 +44,7 @@
         {{end}}
         {{end}}
             <form action="/dpm/auto" method="POST">
+                {{.Csrf}}
                 <button>Submit</button>
             </form>
         </div>

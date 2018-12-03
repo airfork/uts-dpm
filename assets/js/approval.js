@@ -1,3 +1,6 @@
+// Get the last input box on the page, which holds a csrf token, and store it
+let inputs = document.querySelectorAll('input');
+const csrf = inputs[inputs.length - 1].value;
 let backdrop = document.querySelector('.backdrop');
 let modal =  document.querySelector('.modal');
 let dataList = [];
@@ -121,7 +124,9 @@ function approve(id, points, name) {
     // Set post request URL and set headers
     let request = new XMLHttpRequest();
     request.open('POST', `/dpm/approve/${id}`, true);
+    // Set JSON and CSRF token headers
     request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    request.setRequestHeader('X-CSRF-Token', csrf);
     // Create object to hold name and points values for the DPM
     temp = {};
     temp.points = points;
@@ -136,6 +141,8 @@ function deny(id) {
     // Set post request URL and set headers
     let request = new XMLHttpRequest();
     request.open('POST', `/dpm/deny/${id}`, true);
+    // Set JSON and CSRF token headers
     request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    request.setRequestHeader('X-CSRF-Token', csrf);
     request.send();
 }

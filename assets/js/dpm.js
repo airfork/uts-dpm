@@ -1,3 +1,6 @@
+// Get the last input box on the page, which holds a csrf token, and store it
+let inputs = document.querySelectorAll('input');
+const csrf = inputs[inputs.length - 1].value;
 // Selects all the DPM types and adds an event listener to them
 document.querySelectorAll('.type').forEach((item) => {
     // On click, remove active class from whatever element has it
@@ -114,6 +117,8 @@ function submitLogic() {
 function sendDPM(jOBJ) {
     let request = new XMLHttpRequest();
     request.open('POST', '/dpm', true);
+    // Set JSON header as well as the CSRF token header, both very important
     request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    request.setRequestHeader('X-CSRF-Token', csrf);
     request.send(jOBJ);
 }

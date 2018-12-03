@@ -34,13 +34,14 @@
   </div>
   <section class="main-section">
     <div class="main-div">
-      {{range .}}
+      {{range .List}}
         <div class="dpm">
             <p>{{.Name}}</p>
             <p>{{.Points}}</p>
         </div>
       {{end}}
     </div>
+    {{.CSRF}}
   </section>
   <!-- Uncomment if wanting to view JS locally -->
   <!-- <script src="../assets/js/shared.js"></script> -->

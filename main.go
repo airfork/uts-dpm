@@ -9,6 +9,7 @@ import (
 	"time"
 
 	controller "github.com/airfork/dpm_sql/controllers"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/jmoiron/sqlx"
@@ -25,7 +26,7 @@ func init() {
 	// Sets all cookies stored in this cookie store to have these values
 	store.Options = &sessions.Options{
 		Path:     "/",
-		MaxAge:   86400 * 7, // Max age of one week
+		MaxAge:   86400, // Max age of one day
 		HttpOnly: true,
 	}
 }
@@ -40,11 +41,12 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 		Addr:         ":8080",
+		Handler:      csrf.Protect([]byte("very-secret-string"), csrf.Secure(false))(r),
 	}
 	r.HandleFunc("/", c.Index)
 	r.HandleFunc("/dpm", c.CreateDPM).Methods("POST")
 	r.HandleFunc("/dpm", c.ShowDPM).Methods("GET")
-	r.HandleFunc("/dpm/all", c.SendDriverDPM)
+	r.HandleFunc("/dpm/all", c.SendDriverDPM).Methods("GET")
 	r.HandleFunc("/dpm/auto", c.AutogenDPM).Methods("GET", "POST")
 	r.HandleFunc("/approve", c.RenderApprovals).Methods("GET")
 	r.HandleFunc("/dpm/approve", c.SendApprovalDPMS).Methods("GET")
@@ -52,7 +54,7 @@ func main() {
 	r.HandleFunc("/dpm/deny/{id}", c.DenyDPM).Methods("POST")
 	r.HandleFunc("/users", c.User).Methods("POST")
 	r.HandleFunc("/users", c.Users).Methods("GET")
-	r.HandleFunc("/users/create", c.ShowUserCreate)
+	r.HandleFunc("/users/create", c.ShowUserCreate).Methods("GET")
 	r.HandleFunc("/users/reset", c.Reset).Methods("POST", "GET")
 	r.HandleFunc("/login", c.Login).Methods("POST", "GET")
 	r.HandleFunc("/logout", c.Logout)

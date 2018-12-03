@@ -32,9 +32,8 @@ func (c Controller) Index(w http.ResponseWriter, r *http.Request) {
 	c.showIndexTemp(w, r)
 }
 
-// CreateDPM for now, just prints out what I get from JS
-// Will eventually create a DPM and insert it into the database
-// Handles POST requests tp "/dpm"
+// CreateDPM handles the creation of DPM objects and their insertion to the db
+// Handles POST requests to "/dpm"
 func (c Controller) CreateDPM(w http.ResponseWriter, r *http.Request) {
 	c.createDPMLogic(w, r)
 }
