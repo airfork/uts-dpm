@@ -22,13 +22,15 @@
 <body>
   <div class="topnav" id="myTopnav">
       <a href="/">Home</a>
-      {{if or .Nav.Sup .Nav.Admin}} 
+      {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}} 
       <a href="/dpm">DPM</a>
       <a href="/dpm/auto" class="active--nav">Autogen</a> 
       {{end}}
-      {{if or .Nav.Analysist .Nav.Admin}} <a href="/">Data</a> {{end}}
-      {{if .Nav.Admin}}
-      <a href="/approve">Approvals</a>
+      {{if or .Nav.Analyst .Nav.Admin}} 
+      <a href="/">Data</a> 
+       <a href="/approve">Approvals</a>
+      {{end}}
+      {{if or .Nav.Admin}}
       <a href="/">Users</a>
       {{end}}
       <a href="javascript:void(0);" class="icon" onclick="myFunction()">

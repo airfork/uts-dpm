@@ -3,6 +3,7 @@ package models
 // User defines what a user should look like
 type User struct {
 	ID         int16  `json:"id"`          // User ID in the database, unique
+	ManagerID  int16  `json:"managerID"`   // ID of the drivers manager
 	Username   string `json:"username"`    // Username of user, unique
 	Password   string `json:"password"`    // Hash of password + plus salt
 	FirstName  string `json:"firstName"`   // First name of the user
@@ -11,7 +12,7 @@ type User struct {
 	Changed    bool   `json:"changed"`     // Have they changed their initial password?
 	Admin      bool   `json:"admin"`       // Admin priveleges?
 	Sup        bool   `json:"sup"`         // Supervisor priveleges?
-	Analysist  bool   `json:"analysist"`   // Analysist priveleges
+	Analyst    bool   `json:"analyst"`     // Analyst priveleges
 	Points     int16  `json:"points"`      // How many points a driver has
 	SessionKey string `json:"session_key"` // Session key that tracks if the user is signed in or not
 	Added      string `json:"added"`       // Time user was added to the system

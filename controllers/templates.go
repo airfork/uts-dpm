@@ -1,6 +1,7 @@
 package dpm
 
 import (
+	"database/sql"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -13,10 +14,10 @@ import (
 
 // Navbar holds info for templates on what navbar tabs should be displayed
 type Navbar struct {
-	Admin     bool
-	Sup       bool
-	Analysist bool
-	CSRF      template.HTML
+	Admin   bool
+	Sup     bool
+	Analyst bool
+	CSRF    template.HTML
 }
 
 // Index holds info for rendering the driver's index page
@@ -42,6 +43,7 @@ type Approval struct {
 type ApprovalCSRF struct {
 	List []Approval
 	CSRF template.HTML
+	Nav  Navbar
 }
 
 // Renders the index page
@@ -84,9 +86,9 @@ func (c Controller) renderIndexPage(w http.ResponseWriter, r *http.Request) {
 	}
 	// Struct to allow navbar to only show tabs user is allowed to see
 	n := Navbar{
-		Admin:     sender.Admin,
-		Sup:       sender.Sup,
-		Analysist: sender.Analysist,
+		Admin:   sender.Admin,
+		Sup:     sender.Sup,
+		Analyst: sender.Analyst,
 	}
 	// Struct to hold navbar struct and the slice of point values
 	in := Index{
@@ -113,7 +115,7 @@ func (c Controller) renderDPM(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
-	if !sender.Admin && !sender.Sup {
+	if !sender.Admin && !sender.Sup && !sender.Analyst {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -122,10 +124,10 @@ func (c Controller) renderDPM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	n := Navbar{
-		Admin:     sender.Admin,
-		Sup:       sender.Sup,
-		Analysist: sender.Analysist,
-		CSRF:      csrf.TemplateField(r),
+		Admin:   sender.Admin,
+		Sup:     sender.Sup,
+		Analyst: sender.Analyst,
+		CSRF:    csrf.TemplateField(r),
 	}
 	// Render html
 	err = c.tpl.ExecuteTemplate(w, "dpm.gohtml", n)
@@ -255,8 +257,8 @@ func (c Controller) renderAutoGen(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
-	// Only admins and sups can autogen
-	if !u.Admin && !u.Sup {
+	// No regular users can access this
+	if !u.Admin && !u.Sup && !u.Analyst {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -266,9 +268,9 @@ func (c Controller) renderAutoGen(w http.ResponseWriter, r *http.Request) {
 	}
 	// Assign values to navbar struct
 	n := Navbar{
-		Admin:     u.Admin,
-		Sup:       u.Sup,
-		Analysist: u.Analysist,
+		Admin:   u.Admin,
+		Sup:     u.Sup,
+		Analyst: u.Analyst,
 	}
 	// Call autogen and get slice out
 	dpms, err := autodpm.AutoGen()
@@ -316,15 +318,33 @@ func (c Controller) RenderApprovals(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
-	if !u.Admin {
+	if !u.Admin && !u.Analyst {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	if !u.Changed {
 		http.Redirect(w, r, "/change", http.StatusFound)
 	}
-	stmt := `SELECT firstname, lastname, points FROM dpms WHERE approved=false AND ignored=false ORDER BY created DESC`
-	rows, err := c.db.Queryx(stmt)
+	var (
+		stmt string
+		rows *sql.Rows
+	)
+	// If user is analyst, a different query is needed
+	if u.Analyst {
+		// Get name and point value of each dpm whose manager is this person
+		stmt = `SELECT a.firstname, a.lastname, a.points FROM dpms a
+		JOIN users b ON b.id=a.userid
+		WHERE approved=false AND ignored=false AND managerid=$1 ORDER BY created DESC`
+	} else {
+		// Query that gets name and point value for each dpm
+		stmt = `SELECT firstname, lastname, points FROM dpms WHERE approved=false AND ignored=false ORDER BY created DESC`
+	}
+	// If they are an analyst, I need to pass their id into the query
+	if u.Analyst {
+		rows, err = c.db.Query(stmt, u.ID)
+	} else {
+		rows, err = c.db.Query(stmt)
+	}
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -354,9 +374,17 @@ func (c Controller) RenderApprovals(w http.ResponseWriter, r *http.Request) {
 		}
 		list = append(list, a)
 	}
+	// Create navbar struct in order to render html header tabs correctly
+	n := Navbar{
+		Admin:   u.Admin,
+		Sup:     u.Sup,
+		Analyst: u.Analyst,
+	}
+	// container contains all the information the client needs
 	container := ApprovalCSRF{
 		List: list,
 		CSRF: csrf.TemplateField(r),
+		Nav:  n,
 	}
 	// Render approvals template and pass in data
 	err = c.tpl.ExecuteTemplate(w, "approvals.gohtml", container)

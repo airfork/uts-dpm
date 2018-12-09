@@ -1,6 +1,7 @@
 package dpm
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -24,7 +25,8 @@ func (c Controller) createDPMLogic(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
-	if !sender.Admin && !sender.Sup {
+	// No regular users can do this
+	if !sender.Admin && !sender.Sup && !sender.Analyst {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -51,14 +53,14 @@ func (c Controller) createDPMLogic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Ensure that the user has access to this function
-	stmt := `SELECT admin, sup FROM users WHERE id=$1`
+	stmt := `SELECT admin, sup, analyst FROM users WHERE id=$1`
 	var (
 		admin    bool
 		sup      bool
+		analyst  bool
 		username string
 	)
-	err = c.db.QueryRow(stmt, dpm.CreateID).Scan(&admin, &sup)
-	// If this
+	err = c.db.QueryRow(stmt, dpm.CreateID).Scan(&admin, &sup, &analyst)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -75,9 +77,9 @@ func (c Controller) createDPMLogic(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	// If they are not a sup or admin, they do not
+	// If they are a regular user, they do not
 	// have permission to create a dpm
-	if !admin && !sup {
+	if !admin && !sup && !analyst {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -105,8 +107,8 @@ func (c Controller) getAllUsers(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
-	// user needs to be admin or sup to do this
-	if !sender.Admin && !sender.Sup {
+	// No regular users can do this
+	if !sender.Admin && !sender.Sup && !sender.Analyst {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -218,7 +220,7 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 		Changed:    false,
 		Admin:      false,
 		Sup:        false,
-		Analysist:  false,
+		Analyst:    false,
 		SessionKey: gotp.RandomSecret(16), // Temp value for session, never valid
 		Points:     0,
 		Added:      time.Now().Format("2006-1-02 15:04:05"),
@@ -252,6 +254,7 @@ func (c Controller) logInUser(w http.ResponseWriter, r *http.Request) {
 	err := c.db.QueryRowx("SELECT * FROM users WHERE username=$1 LIMIT 1", user).StructScan(u)
 	// If they do not exist, complain
 	if err != nil {
+		fmt.Println(err)
 		out := "Username or password was incorrect, please try again."
 		c.loginError(w, r, out)
 		return
@@ -260,6 +263,7 @@ func (c Controller) logInUser(w http.ResponseWriter, r *http.Request) {
 	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(pass))
 	// If passwords do not match, render template with message
 	if err != nil {
+		fmt.Println(err)
 		out := "Username or password was incorrect, please try again."
 		c.loginError(w, r, out)
 		return
@@ -267,6 +271,7 @@ func (c Controller) logInUser(w http.ResponseWriter, r *http.Request) {
 	// Create a session for the user
 	sk, err := c.cookieSignIn(w, r)
 	if err != nil {
+		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Something went wrong, pleae try again."))
 		return
@@ -277,12 +282,12 @@ func (c Controller) logInUser(w http.ResponseWriter, r *http.Request) {
 	update := `UPDATE users SET sessionkey=$1 WHERE id=$2`
 	_, err = c.db.Exec(update, u.SessionKey, u.ID)
 	if err != nil {
+		fmt.Println(err)
 		out := fmt.Sprintln("Something went wrong")
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(out))
 		return
 	}
-
 	// If signing in with temporary password, make user change it
 	if !u.Changed {
 		http.Redirect(w, r, "/change", http.StatusFound)
@@ -459,8 +464,8 @@ func (c Controller) callAutoSubmit(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
-	// Only admins and sups can do this
-	if !sender.Admin && !sender.Sup {
+	// No regular users can do this
+	if !sender.Admin && !sender.Sup && !sender.Analyst {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -493,9 +498,9 @@ func (c Controller) callAutoSubmit(w http.ResponseWriter, r *http.Request) {
 			Err string
 		}
 		n := Navbar{
-			Admin:     sender.Admin,
-			Sup:       sender.Sup,
-			Analysist: sender.Analysist,
+			Admin:   sender.Admin,
+			Sup:     sender.Sup,
+			Analyst: sender.Analyst,
 		}
 		auto := autoErr{n, err.Error()}
 		err = c.tpl.ExecuteTemplate(w, "autogenErr.gohtml", auto)
@@ -521,8 +526,8 @@ func (c Controller) sendApprovalLogic(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	// Only admins can do this
-	if !u.Admin {
+	// Only admins and analysts can do this
+	if !u.Admin && !u.Analyst {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -532,15 +537,29 @@ func (c Controller) sendApprovalLogic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Variables need for loop
-	var firstname, lastname, block, location, date, startTime, endTime, dpmType, points, notes, created, supFirst, supLast, id string
+	var stmt, firstname, lastname, block, location, date, startTime, endTime, dpmType, points, notes, created, supFirst, supLast, id string
 	// Variable containing the id of the supervisor who submitted each dpm
 	var supID int16
-	// Query that gets most of the relevant information about each non-approved dpm
-	stmt := `SELECT id, createid, firstname, lastname, block, location, date, starttime, endtime, dpmtype, points, notes, created FROM dpms WHERE approved=false AND ignored=false ORDER BY created DESC`
+	var rows *sql.Rows
+	// If analyst, there is a more complicated query to get the dpms
+	if u.Analyst {
+		stmt = `SELECT a.id, a.createid, a.firstname, a.lastname, a.block, a.location, a.date, a.starttime, a.endtime, a.dpmtype, a.points, a.notes, a.created FROM dpms a
+		JOIN users b ON b.id=a.userid
+		WHERE approved=false AND ignored=false AND managerid=$1 ORDER BY created DESC`
+		//Admin case
+	} else {
+		// Query that gets most of the relevant information about each non-approved dpm
+		stmt = `SELECT id, createid, firstname, lastname, block, location, date, starttime, endtime, dpmtype, points, notes, created FROM dpms WHERE approved=false AND ignored=false ORDER BY created DESC`
+	}
 	// Query that gets the name of the supervisor that submitted each dpm
 	supQuery := `SELECT firstname, lastname FROM users WHERE id=$1`
 	ds := make([]models.DPMApprove, 0)
-	rows, err := c.db.Query(stmt)
+	// If they are an analyst, I need to pass their id into the query
+	if u.Analyst {
+		rows, err = c.db.Query(stmt, u.ID)
+	} else {
+		rows, err = c.db.Query(stmt)
+	}
 	defer rows.Close()
 	if err != nil {
 		fmt.Println(err)
@@ -640,8 +659,8 @@ func (c Controller) approveDPMLogic(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	// Only admins can do this
-	if !u.Admin {
+	// Only admins and analyst can do this
+	if !u.Admin && !u.Analyst {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -674,6 +693,34 @@ func (c Controller) approveDPMLogic(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+	var secondID, managerid int
+	// All this does is check that this dpm id relates to a real dpm
+	stmt := `SELECT id FROM dpms WHERE id=$1`
+	err = c.db.QueryRow(stmt, id).Scan(&secondID)
+	// If this fails, assume the ID is not valid and abort
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Println(err)
+		return
+	}
+	// If analyst, make sure they have access to this dpm
+	if u.Analyst {
+		// Select the manager ID for the driver who owns this DPM
+		stmt := `SELECT managerid FROM users a
+		JOIN dpms b ON a.id=b.userid
+		WHERE b.id=$1;`
+		err = c.db.QueryRow(stmt, id).Scan(&managerid)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Println(err)
+			return
+		}
+		// If ids do not match, abort
+		if managerid != int(u.ID) {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 	}
 	// Update specified DPM to make approved equal to true
 	update := `UPDATE dpms SET approved=true WHERE id=$1`
@@ -713,6 +760,7 @@ func (c Controller) approveDPMLogic(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// denyDPMLogic handles logic for denying a dpm
 func (c Controller) denyDPMLogic(w http.ResponseWriter, r *http.Request) {
 	u, err := c.getUser(w, r)
 	// Validate user
@@ -721,8 +769,8 @@ func (c Controller) denyDPMLogic(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	// Only admins can do this
-	if !u.Admin {
+	// Only admins and analysts can do this
+	if !u.Admin && !u.Analyst {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -739,6 +787,34 @@ func (c Controller) denyDPMLogic(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+	var secondID, managerid int
+	// All this does is check that this dpm id relates to a real dpm
+	stmt := `SELECT id FROM dpms WHERE id=$1`
+	err = c.db.QueryRow(stmt, id).Scan(&secondID)
+	// If this fails, assume the ID is not valid and abort
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Println(err)
+		return
+	}
+	// If analyst, make sure they have access to this dpm
+	if u.Analyst {
+		// Select the manager ID for the driver who owns this DPM
+		stmt := `SELECT managerid FROM users a
+		JOIN dpms b ON a.id=b.userid
+		WHERE b.id=$1;`
+		err = c.db.QueryRow(stmt, id).Scan(&managerid)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Println(err)
+			return
+		}
+		// If ids do not match, abort
+		if managerid != int(u.ID) {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 	}
 	// Update specified DPM to set ignored to false and set approved to false for extra redundancy
 	update := `UPDATE dpms SET approved=false, ignored=true WHERE id=$1`

@@ -14,13 +14,15 @@
 <body>
     <div class="topnav" id="myTopnav">
         <a href="/">Home</a>
-        {{if or .Sup .Admin}} 
+        {{if or .Sup .Admin .Analyst}} 
         <a href="/dpm" class="active--nav">DPM</a>
         <a href="/dpm/auto">Autogen</a> 
         {{end}}
-        {{if or .Analysist .Admin}} <a href="/">Data</a> {{end}}
-        {{if .Admin}}
+        {{if or .Analyst .Admin}} 
+        <a href="/">Data</a>
         <a href="/approve">Approvals</a>
+        {{end}}
+        {{if .Admin}}
         <a href="/">Users</a>
         {{end}}
         <a href="javascript:void(0);" class="icon" onclick="myFunction()">
