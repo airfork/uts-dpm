@@ -45,7 +45,7 @@ type ApprovalCSRF struct {
 }
 
 // Renders the index page
-func (c Controller) showIndexTemp(w http.ResponseWriter, r *http.Request) {
+func (c Controller) renderIndexPage(w http.ResponseWriter, r *http.Request) {
 	// Validate user
 	sender, err := c.getUser(w, r)
 	// If not signed in, redirect them
@@ -58,8 +58,9 @@ func (c Controller) showIndexTemp(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/change", http.StatusFound)
 		return
 	}
-	// Get point value for each approved DPM the user has
-	stmt := `SELECT points FROM dpms WHERE userid=$1 AND approved=true AND ignored=false ORDER BY created DESC`
+	// Get the type of each DPM a user has
+	// Need to get approved DPMs that are not being ignored
+	stmt := `SELECT dpmtype FROM dpms WHERE userid=$1 AND approved=true AND ignored=false ORDER BY created DESC`
 	ss := make([]string, 0)
 	// Make query
 	rows, err := c.db.Query(stmt, sender.ID)
@@ -71,19 +72,15 @@ func (c Controller) showIndexTemp(w http.ResponseWriter, r *http.Request) {
 	// Make sure to close rows
 	defer rows.Close()
 	// Iterate over rows
+	var dpmtype string
 	for rows.Next() {
-		var points string
-		err = rows.Scan(&points)
+		err = rows.Scan(&dpmtype)
 		if err != nil {
 			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		// Make sure positive point values have '+' in front
-		if string(points[0]) != "-" {
-			points = "+" + points
-		}
-		ss = append(ss, points)
+		ss = append(ss, dpmtype)
 	}
 	// Struct to allow navbar to only show tabs user is allowed to see
 	n := Navbar{
@@ -202,7 +199,7 @@ func (c Controller) renderChangeUserPassword(w http.ResponseWriter, r *http.Requ
 	// Disallows non admin users who have changed their password from seeing this page
 	// This makes it so users can only change their password if an admin makes the request
 	if u.Changed && !u.Admin {
-		c.showIndexTemp(w, r)
+		c.renderIndexPage(w, r)
 		return
 	}
 	// Render changepass template
@@ -267,11 +264,22 @@ func (c Controller) renderAutoGen(w http.ResponseWriter, r *http.Request) {
 	if !u.Changed {
 		http.Redirect(w, r, "/change", http.StatusFound)
 	}
+	// Assign values to navbar struct
+	n := Navbar{
+		Admin:     u.Admin,
+		Sup:       u.Sup,
+		Analysist: u.Analysist,
+	}
 	// Call autogen and get slice out
 	dpms, err := autodpm.AutoGen()
 	// If error, render the autogenErr template stating this
 	if err != nil {
-		err = c.tpl.ExecuteTemplate(w, "autogenErr.gohtml", nil)
+		type autoErr struct {
+			Nav Navbar
+			Err string
+		}
+		auto := autoErr{n, err.Error()}
+		err = c.tpl.ExecuteTemplate(w, "autogenErr.gohtml", auto)
 		if err != nil {
 			out := fmt.Sprintln("Something went wrong, please try again")
 			fmt.Println(err)
@@ -280,12 +288,6 @@ func (c Controller) renderAutoGen(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		return
-	}
-	// Assign values to navbar struct
-	n := Navbar{
-		Admin:     u.Admin,
-		Sup:       u.Sup,
-		Analysist: u.Analysist,
 	}
 	// Assign values to auto struct to be parsed in the template file
 	d := Auto{

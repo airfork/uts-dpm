@@ -53,7 +53,6 @@ func (c Controller) createDPMLogic(w http.ResponseWriter, r *http.Request) {
 	// Ensure that the user has access to this function
 	stmt := `SELECT admin, sup FROM users WHERE id=$1`
 	var (
-		full     bool
 		admin    bool
 		sup      bool
 		username string
@@ -65,11 +64,11 @@ func (c Controller) createDPMLogic(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	// Gets full time status and username, not actually needed unless this is a negative DPM, but it also serves the
+	// Gets username, not actually needed for anything, but it serves the
 	// role of checking to see if the first and last name in the database match the id being provided
 	// This prevents DPMS from being created with non matching user ids and name fields
-	stmt = `SELECT fulltime, username FROM users WHERE id=$1 AND firstname=$2 AND lastname=$3 LIMIT 1`
-	err = c.db.QueryRow(stmt, dpm.UserID, dpm.FirstName, dpm.LastName).Scan(&full, &username)
+	stmt = `SELECT username FROM users WHERE id=$1 AND firstname=$2 AND lastname=$3 LIMIT 1`
+	err = c.db.QueryRow(stmt, dpm.UserID, dpm.FirstName, dpm.LastName).Scan(&username)
 	// If err, assume it is because a descrepancy between what's in the db and the info provided
 	if err != nil {
 		fmt.Println(err)
@@ -83,63 +82,17 @@ func (c Controller) createDPMLogic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Prepare query string
-	dpmIn := `INSERT INTO dpms (createid, userid, firstname, lastname, block, date, starttime, endtime, dpmtype, points, notes, created, location, approved) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`
-	pointUpdate := `UPDATE users SET points=points + $1 WHERE id=$2`
-	// If points are positive can just insert into database without
-	if dpm.Points >= 0 {
-		_, err = c.db.Exec(dpmIn, dpm.CreateID, dpm.UserID, dpm.FirstName, dpm.LastName, dpm.Block, dpm.Date, dpm.StartTime, dpm.EndTime, dpm.DPMType, dpm.Points, dpm.Notes, dpm.Created, dpm.Location, true)
-		if err != nil {
-			fmt.Println("Positive DPM failure")
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Println(err)
-			return
-		}
-		// Update driver point balance
-		_, err = c.db.Exec(pointUpdate, dpm.Points, dpm.UserID)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Println(err)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-	// If negative points need to handle the case for part timers,
-	// They get emailed, and fultimers, whose dpms need to get approved
+	dpmIn := `INSERT INTO dpms (createid, userid, firstname, lastname, block, date, starttime, endtime, dpmtype, points, notes, created, location, approved) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, false)`
+	// Insert unapproved dpm into databas
+	_, err = c.db.Exec(dpmIn, dpm.CreateID, dpm.UserID, dpm.FirstName, dpm.LastName, dpm.Block, dpm.Date, dpm.StartTime, dpm.EndTime, dpm.DPMType, dpm.Points, dpm.Notes, dpm.Created, dpm.Location)
 	if err != nil {
-		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	// If not fulltimer, send email about naegative dpm
-	// And insert dpm into database
-	if !full {
-		// Insert DPM into db
-		_, err = c.db.Exec(dpmIn, dpm.CreateID, dpm.UserID, dpm.FirstName, dpm.LastName, dpm.Block, dpm.Date, dpm.StartTime, dpm.EndTime, dpm.DPMType, dpm.Points, dpm.Notes, dpm.Created, dpm.Location, true)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Println(err)
-			return
-		}
-		// Update point balance
-		_, err = c.db.Exec(pointUpdate, dpm.Points, dpm.UserID)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Println(err)
-			return
-		}
-		go mail.NegativeDPMEmail(username, dpm.DPMType)
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-	// Driver is fulltime, insert dpm into database but set approved to false
-	_, err = c.db.Exec(dpmIn, dpm.CreateID, dpm.UserID, dpm.FirstName, dpm.LastName, dpm.Block, dpm.Date, dpm.StartTime, dpm.EndTime, dpm.DPMType, dpm.Points, dpm.Notes, dpm.Created, dpm.Location, false)
-	if err != nil {
+		fmt.Println("DPM failure")
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Println(err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+	return
 }
 
 // This gets all the users, their ids, and the id of the user requesting this
@@ -535,7 +488,17 @@ func (c Controller) callAutoSubmit(w http.ResponseWriter, r *http.Request) {
 	err = autodpm.AutoSubmit(c.db, dpms, sender.ID)
 	// If error, render the autogenErr template stating this
 	if err != nil {
-		err = c.tpl.ExecuteTemplate(w, "autogenErr.gohtml", nil)
+		type autoErr struct {
+			Nav Navbar
+			Err string
+		}
+		n := Navbar{
+			Admin:     sender.Admin,
+			Sup:       sender.Sup,
+			Analysist: sender.Analysist,
+		}
+		auto := autoErr{n, err.Error()}
+		err = c.tpl.ExecuteTemplate(w, "autogenErr.gohtml", auto)
 		if err != nil {
 			out := fmt.Sprintln("Something went wrong, please try again")
 			fmt.Println(err)

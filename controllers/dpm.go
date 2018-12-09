@@ -29,7 +29,7 @@ func NewController(db *sqlx.DB, store *sessions.CookieStore, tpl *template.Templ
 // Index loads the main page
 // Handles all type of requests to "/"
 func (c Controller) Index(w http.ResponseWriter, r *http.Request) {
-	c.showIndexTemp(w, r)
+	c.renderIndexPage(w, r)
 }
 
 // CreateDPM handles the creation of DPM objects and their insertion to the db
