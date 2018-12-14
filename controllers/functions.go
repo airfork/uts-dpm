@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/airfork/webScrape"
@@ -825,4 +827,151 @@ func (c Controller) denyDPMLogic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+// usersCSV gets data from the users table and creates a csv file
+func (c Controller) usersCSV(w http.ResponseWriter, r *http.Request) {
+	u, err := c.getUser(w, r)
+	// Validate user
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		fmt.Println(err)
+		return
+	}
+	// Only admins and analysts can do this
+	if !u.Admin && !u.Analyst {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// Redirect if still on temporary password
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+
+	// Create a bunch of variables to extract row date into
+	var (
+		id        int16
+		username  string
+		firstname string
+		lastname  string
+		admin     bool
+		sup       bool
+		analyst   bool
+		fulltime  bool
+		points    int16
+		managerid int16
+	)
+	// String that will eventually hold all the csv data
+	// RIght now, I am creating the headers for the csv file
+	final := "ID,Username,Firstname,Lastname,Admin,Sup,Analyst,Fulltime,Points,Managerid\n"
+	// Query database for required info
+	stmt := `SELECT id, username, firstname, lastname, admin, sup, analyst, fulltime, points, managerid FROM users`
+	rows, err := c.db.Query(stmt)
+	defer rows.Close()
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	for rows.Next() {
+		// Extract data into variables
+		rows.Scan(&id, &username, &firstname, &lastname, &admin, &sup, &analyst, &fulltime, &points, &managerid)
+		// Create a string with all the data separated by commas for the csv
+		out := fmt.Sprintf("%v,%s,%s,%s,%v,%v,%v,%v,%v,%v\n", id, username, firstname, lastname, admin, sup, analyst, fulltime, points, managerid)
+		// Append created string to final string
+		final += out
+	}
+	// Create a mutex lock so file writing does not cause problems
+	var mu sync.Mutex
+	// Lock this process so only one write happens at a time
+	mu.Lock()
+	defer mu.Unlock()
+	// Write file
+	d1 := []byte(final)
+	err = ioutil.WriteFile("user.csv", d1, 0644)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+// dpmCSV creates a csv file with all the data from the dpms table
+func (c Controller) dpmCSV(w http.ResponseWriter, r *http.Request) {
+	u, err := c.getUser(w, r)
+	// Validate user
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		fmt.Println(err)
+		return
+	}
+	// Only admins and analysts can do this
+	if !u.Admin && !u.Analyst {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// Redirect if still on temporary password
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+	// Create a bunch of variables to extract row date into
+	var (
+		id        int16
+		createid  int16
+		userid    int16
+		firstname string
+		lastname  string
+		block     string
+		date      string
+		dpmtype   string
+		points    int16
+		notes     string
+		created   string
+		approved  bool
+		location  string
+		startTime string
+		endtime   string
+		ignored   bool
+	)
+
+	// String that will eventually hold all the csv data
+	// RIght now, I am creating the headers for the csv file
+	final := "ID,Createid,Userid,Firstname,Lastname,Block,Date,Type,Points,Notes,Created,Approved,Location,Start Time,End Time,Ignored\n"
+	// Select everything from this table
+	stmt := `SELECT * FROM dpms`
+	rows, err := c.db.Query(stmt)
+	defer rows.Close()
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	for rows.Next() {
+		// Scan row data into variables
+		rows.Scan(&id, &createid, &userid, &firstname, &lastname, &block, &date, &dpmtype, &points, &notes, &created, &approved, &location, &startTime, &endtime, &ignored)
+		// Format date, created, startTime, and endTime into a more user friendly data format
+		date = formatDate(date)
+		created = formatCreatedDate(date)
+		startTime = startTime[11:13] + startTime[14:16]
+		endtime = endtime[11:13] + endtime[14:16]
+		// Create string with all the values separated by commas
+		out := fmt.Sprintf("%v,%v,%v,%s,%s,%s,%s,%s,%v,%s,%s,%v,%s,%s,%s,%v\n", id, createid, userid, firstname, lastname, block, date, dpmtype, points, notes, created, approved, location, startTime, endtime, ignored)
+		// Append created string to final string
+		final += out
+	}
+	// Create a mutex lock so file writing does not cause problems
+	var mu sync.Mutex
+	// Lock this process so only one write happens at a time
+	mu.Lock()
+	defer mu.Unlock()
+	// Write file
+	d1 := []byte(final)
+	err = ioutil.WriteFile("dpm.csv", d1, 0644)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }

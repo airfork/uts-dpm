@@ -29,7 +29,7 @@
       <a href="/dpm/auto">Autogen</a> 
       {{end}}
       {{if or .Nav.Analyst .Nav.Admin}} 
-      <a href="/">Data</a>
+      <a href="/data">Data</a>
       <a href="/approve">Approvals</a> 
       {{end}}
       {{if .Nav.Admin}}
@@ -41,7 +41,7 @@
   </div>
   <section class="main-section">
     <div class="main-div">
-      {{range .Points}}
+      {{range .Types}}
         <div class="dpm">
           {{.}}
         </div>

@@ -205,3 +205,26 @@ func (c Controller) createUserMessage(w http.ResponseWriter, r *http.Request, me
 	}
 	return
 }
+
+// formatDate takes in a pqsl date string and converts it into a more friendly format
+func formatDate(date string) string {
+	// 2018-11-29T00:00:00Z
+	if len(date) != 20 {
+		return date
+	}
+	year := date[0:4]
+	month := date[5:7]
+	day := date[8:10]
+	return fmt.Sprintf("%s-%s-%s\n", month, day, year)
+}
+
+// formatCreatedDate takes in pqsl timestamp and turns into user friendly format
+func formatCreatedDate(date string) string {
+	year := date[0:4]
+	month := date[5:7]
+	day := date[8:10]
+	hour := date[11:13]
+	minute := date[14:16]
+	second := date[17:19]
+	return fmt.Sprintf("%s-%s-%s %s:%s:%s\n", month, day, year, hour, minute, second)
+}

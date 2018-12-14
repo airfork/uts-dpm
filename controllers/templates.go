@@ -22,8 +22,8 @@ type Navbar struct {
 
 // Index holds info for rendering the driver's index page
 type Index struct {
-	Nav    Navbar
-	Points []string
+	Nav   Navbar
+	Types []string
 }
 
 // Auto holds info for rendering the autogen template
@@ -92,8 +92,8 @@ func (c Controller) renderIndexPage(w http.ResponseWriter, r *http.Request) {
 	}
 	// Struct to hold navbar struct and the slice of point values
 	in := Index{
-		Nav:    n,
-		Points: ss,
+		Nav:   n,
+		Types: ss,
 	}
 	// Render index.gohtml template
 	err = c.tpl.ExecuteTemplate(w, "index.gohtml", in)
@@ -265,6 +265,7 @@ func (c Controller) renderAutoGen(w http.ResponseWriter, r *http.Request) {
 	// If user has not changed off temp password, redirect
 	if !u.Changed {
 		http.Redirect(w, r, "/change", http.StatusFound)
+		return
 	}
 	// Assign values to navbar struct
 	n := Navbar{
@@ -311,7 +312,6 @@ func (c Controller) renderAutoGen(w http.ResponseWriter, r *http.Request) {
 
 // RenderApprovals gives data to and renders the approvals template
 func (c Controller) RenderApprovals(w http.ResponseWriter, r *http.Request) {
-
 	u, err := c.getUser(w, r)
 	// Validate user
 	if err != nil {
@@ -324,6 +324,7 @@ func (c Controller) RenderApprovals(w http.ResponseWriter, r *http.Request) {
 	}
 	if !u.Changed {
 		http.Redirect(w, r, "/change", http.StatusFound)
+		return
 	}
 	var (
 		stmt string
@@ -388,6 +389,37 @@ func (c Controller) RenderApprovals(w http.ResponseWriter, r *http.Request) {
 	}
 	// Render approvals template and pass in data
 	err = c.tpl.ExecuteTemplate(w, "approvals.gohtml", container)
+	if err != nil {
+		out := fmt.Sprintln("Something went wrong, please try again")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(out))
+		return
+	}
+	return
+}
+
+// renderDataPage renders the data page template
+func (c Controller) renderDataPage(w http.ResponseWriter, r *http.Request) {
+	u, err := c.getUser(w, r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+	if !u.Admin && !u.Analyst {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+	}
+	n := Navbar{
+		Admin:   u.Admin,
+		Sup:     u.Sup,
+		Analyst: u.Analyst,
+	}
+	// Render data page and pass in data
+	err = c.tpl.ExecuteTemplate(w, "data.gohtml", n)
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)

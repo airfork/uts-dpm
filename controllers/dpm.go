@@ -132,3 +132,18 @@ func (c Controller) ApproveDPM(w http.ResponseWriter, r *http.Request) {
 func (c Controller) DenyDPM(w http.ResponseWriter, r *http.Request) {
 	c.denyDPMLogic(w, r)
 }
+
+// DataPage just renders the data page
+func (c Controller) DataPage(w http.ResponseWriter, r *http.Request) {
+	c.renderDataPage(w, r)
+}
+
+// GetUserCSV creates a csv file from the users table
+func (c Controller) GetUserCSV(w http.ResponseWriter, r *http.Request) {
+	c.usersCSV(w, r)
+}
+
+// GetDPMCSV creates a csv file from the dpm table
+func (c Controller) GetDPMCSV(w http.ResponseWriter, r *http.Request) {
+	c.dpmCSV(w, r)
+}
