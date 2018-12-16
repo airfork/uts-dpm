@@ -39,7 +39,7 @@ func main() {
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
-		Addr:         ":8080",
+		Addr:         ":80",
 		Handler:      csrf.Protect([]byte(os.Getenv("CSRF_KEY")), csrf.Secure(false))(r),
 	}
 	r.HandleFunc("/", c.Index)
@@ -64,7 +64,7 @@ func main() {
 	r.PathPrefix("/views/").Handler(http.StripPrefix("/views/", http.FileServer(http.Dir("views/"))))
 	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir("assets/"))))
 	http.Handle("/", r)
-	fmt.Println("Server started on port 8080")
+	fmt.Println("Server started on port 80")
 	log.Fatal(srv.ListenAndServe())
 }
 
