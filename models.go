@@ -1,7 +1,7 @@
-package models
+package main
 
 // User defines what a user should look like
-type User struct {
+type user struct {
 	ID         int16  `json:"id"`          // User ID in the database, unique
 	ManagerID  int16  `json:"managerID"`   // ID of the drivers manager
 	Username   string `json:"username"`    // Username of user, unique
@@ -19,7 +19,7 @@ type User struct {
 }
 
 // DPM holds all the information about a submitted DPM
-type DPM struct {
+type dpm struct {
 	ID        int16  `json:"id"`        // ID of the DPM in the database, unique
 	CreateID  int16  `json:"createID"`  // UserID relates to user ID of person who created the DPM
 	UserID    int16  `json:"userID"`    // User who is being written the ID
@@ -40,7 +40,7 @@ type DPM struct {
 
 // DPMDriver is used for sending dpm info to the client when they
 // want to view their dpms
-type DPMDriver struct {
+type dpmDriver struct {
 	FirstName string `json:"firstName"` // First name of the user
 	LastName  string `json:"lastName"`  // Last name of the user
 	Block     string `json:"block"`     // Block number
@@ -55,7 +55,7 @@ type DPMDriver struct {
 
 // DPMRes is solely for getting response from client. Not all the required information exists client side
 // the full DPM struct to be used
-type DPMRes struct {
+type dpmRes struct {
 	Name      string // Inputed name, needs to be split into first and Last
 	Block     string
 	Location  string
@@ -70,7 +70,7 @@ type DPMRes struct {
 }
 
 // DPMApprove is used for sending to admin's approval page
-type DPMApprove struct {
+type dpmApprove struct {
 	ID        string `json:"id"`        // ID of DPM
 	Name      string `json:"name"`      // Full name of the driver
 	SupName   string `json:"supName"`   // Name of the supervisor that submitted this DPM

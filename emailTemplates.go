@@ -1,4 +1,4 @@
-package mail
+package main
 
 import (
 	"os"
@@ -8,7 +8,7 @@ import (
 var gmail = os.Getenv("GMAIL_APP")
 
 // SendTempPass sends user an email with temporary password for initial login to site
-func SendTempPass(email, tempPass string) {
+func sendTempPass(email, tempPass string) {
 	s := newSender("airfork@gmail.com", gmail)
 	//The receiver needs to be in slice as the receive supports multiple receiver
 	receiver := []string{email}
@@ -41,7 +41,7 @@ func SendTempPass(email, tempPass string) {
 
 // SendAdminTempPass sends user an email with temporary password
 // This is for when an admin resets their password
-func SendAdminTempPass(email, tempPass string) {
+func sendAdminTempPass(email, tempPass string) {
 	s := newSender("airfork@gmail.com", gmail)
 	//The receiver needs to be in slice as the receive supports multiple receiver
 	receiver := []string{email}
@@ -73,7 +73,7 @@ func SendAdminTempPass(email, tempPass string) {
 }
 
 // SendPassChangeMail sends user an email notifying them that their password has been changed
-func SendPassChangeMail(email string) {
+func sendPassChangeMail(email string) {
 	s := newSender("airfork@gmail.com", gmail)
 	//The receiver needs to be in slice as the receive supports multiple receiver
 	receiver := []string{email}

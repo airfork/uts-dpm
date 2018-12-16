@@ -1,4 +1,4 @@
-package dpm
+package main
 
 import (
 	"database/sql"
@@ -11,11 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/airfork/webScrape"
 	"github.com/gorilla/mux"
 
-	"github.com/airfork/dpm_sql/mail"
-	"github.com/airfork/dpm_sql/models"
 	"github.com/xlzd/gotp"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -38,7 +35,7 @@ func (c Controller) createDPMLogic(w http.ResponseWriter, r *http.Request) {
 	}
 	// Get JSON from request body
 	decoder := json.NewDecoder(r.Body)
-	var d models.DPMRes
+	var d dpmRes
 	// Parse JSON into DPMRes struct
 	err = decoder.Decode(&d)
 	if err != nil {
@@ -178,13 +175,13 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/change", http.StatusFound)
 		return
 	}
-	u := &models.User{}
-	user := bm.Sanitize(r.FormValue("email"))
+	u := &user{}
+	username := bm.Sanitize(r.FormValue("email"))
 	var test bool
-	if user == "testing@testing.com" {
+	if username == "testing@testing.com" {
 		test = true
 	}
-	err = c.db.QueryRowx("SELECT * FROM users WHERE username=$1 LIMIT 1", user).StructScan(u)
+	err = c.db.QueryRowx("SELECT * FROM users WHERE username=$1 LIMIT 1", username).StructScan(u)
 	// If no error, that means user with that username already exists
 	// Render template mentioning this
 	// Only give error if not testing
@@ -198,7 +195,7 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 	// Create go routine to handle sending the email
 	// Only send email if not testing
 	if !test {
-		go mail.SendTempPass(user, pass)
+		go sendTempPass(username, pass)
 	}
 	// Get password hash
 	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.MinCost)
@@ -213,8 +210,8 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 		fulltime = true
 	}
 	// Create user struct from form data
-	u = &models.User{
-		Username:   user,
+	u = &user{
+		Username:   username,
 		Password:   string(hash),
 		FirstName:  bm.Sanitize(r.FormValue("firstName")), // Sanitize first name
 		LastName:   bm.Sanitize(r.FormValue("lastName")),  // Sanitize last name
@@ -248,7 +245,7 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 // Logs in the user
 func (c Controller) logInUser(w http.ResponseWriter, r *http.Request) {
 	// Struct for later use
-	u := &models.User{}
+	u := &user{}
 	// Get user input
 	user := r.FormValue("username")
 	pass := r.FormValue("password")
@@ -359,7 +356,7 @@ func (c Controller) changeUserPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Send password change email
-	go mail.SendPassChangeMail(u.Username)
+	go sendPassChangeMail(u.Username)
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
@@ -417,7 +414,7 @@ func (c Controller) resetPassword(w http.ResponseWriter, r *http.Request) {
 		c.resetPasswordMessage(w, r, out)
 		return
 	}
-	u := &models.User{}
+	u := &user{}
 	// Get user's id, username, and sessionkey from db
 	stmt := `SELECT id, username, sessionkey FROM users WHERE username=$1 LIMIT 1`
 	err = c.db.QueryRowx(stmt, username).StructScan(u)
@@ -431,7 +428,7 @@ func (c Controller) resetPassword(w http.ResponseWriter, r *http.Request) {
 	// Generate 16 character random password for the user and send it to them
 	pass := gotp.RandomSecret(16)
 	// Send email telling user than an admin has reset your password
-	go mail.SendAdminTempPass(u.Username, pass)
+	go sendAdminTempPass(u.Username, pass)
 	// Get password hash
 	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.MinCost)
 	if err != nil {
@@ -479,7 +476,7 @@ func (c Controller) callAutoSubmit(w http.ResponseWriter, r *http.Request) {
 	// Regenerate DPMS
 	// This is ineffecient because I already generate these when the user submits a get to /dpm/all
 	// The reason why I generate again is to help protect against the unlikely odds of someone changing data on their end and sending it back to me to submit
-	dpms, err := autodpm.AutoGen()
+	dpms, err := autoGen()
 	// If error, render the autogenErr template stating this
 	if err != nil {
 		err = c.tpl.ExecuteTemplate(w, "autogenErr.gohtml", nil)
@@ -492,7 +489,7 @@ func (c Controller) callAutoSubmit(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	err = autodpm.AutoSubmit(c.db, dpms, sender.ID)
+	err = autoSubmit(c.db, dpms, sender.ID)
 	// If error, render the autogenErr template stating this
 	if err != nil {
 		type autoErr struct {
@@ -555,7 +552,7 @@ func (c Controller) sendApprovalLogic(w http.ResponseWriter, r *http.Request) {
 	}
 	// Query that gets the name of the supervisor that submitted each dpm
 	supQuery := `SELECT firstname, lastname FROM users WHERE id=$1`
-	ds := make([]models.DPMApprove, 0)
+	ds := make([]dpmApprove, 0)
 	// If they are an analyst, I need to pass their id into the query
 	if u.Analyst {
 		rows, err = c.db.Query(stmt, u.ID)
@@ -568,7 +565,7 @@ func (c Controller) sendApprovalLogic(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	var dd models.DPMApprove
+	var dd dpmApprove
 	for rows.Next() {
 		// Get variables from the row
 		err = rows.Scan(&id, &supID, &firstname, &lastname, &block, &location, &date, &startTime, &endTime, &dpmType, &points, &notes, &created)
@@ -591,7 +588,7 @@ func (c Controller) sendApprovalLogic(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// Create DPMApprove struct to pass into slice
-		dd = models.DPMApprove{
+		dd = dpmApprove{
 			ID:        id,
 			Name:      firstname + " " + lastname,
 			SupName:   supFirst + " " + supLast,
@@ -624,7 +621,7 @@ func (c Controller) sendDriverLogic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	stmt := `SELECT firstname, lastname, block, location, date, starttime, endtime, dpmtype, points, notes FROM dpms WHERE userid=$1 AND approved=true AND ignored=false ORDER BY created DESC`
-	ds := make([]models.DPMDriver, 0)
+	ds := make([]dpmDriver, 0)
 	rows, err := c.db.Queryx(stmt, u.ID)
 	defer rows.Close()
 	if err != nil {
@@ -632,7 +629,7 @@ func (c Controller) sendDriverLogic(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	var dd models.DPMDriver
+	var dd dpmDriver
 	for rows.Next() {
 		err = rows.StructScan(&dd)
 		if err != nil {
@@ -849,7 +846,7 @@ func (c Controller) usersCSV(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create a bunch of variables to extract row date into
+	// Create a bunch of variables to extract row data into
 	var (
 		id        int16
 		username  string
@@ -937,7 +934,7 @@ func (c Controller) dpmCSV(w http.ResponseWriter, r *http.Request) {
 	)
 
 	// String that will eventually hold all the csv data
-	// RIght now, I am creating the headers for the csv file
+	// Right now, I am creating the headers for the csv file
 	final := "ID,Createid,Userid,Firstname,Lastname,Block,Date,Type,Points,Notes,Created,Approved,Location,Start Time,End Time,Ignored\n"
 	// Select everything from this table
 	stmt := `SELECT * FROM dpms`

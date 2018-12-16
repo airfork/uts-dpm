@@ -1,4 +1,4 @@
-package dpm
+package main
 
 import (
 	"database/sql"
@@ -6,10 +6,7 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/airfork/dpm_sql/models"
 	csrf "github.com/gorilla/csrf"
-
-	"github.com/airfork/webScrape"
 )
 
 // Navbar holds info for templates on what navbar tabs should be displayed
@@ -29,7 +26,7 @@ type Index struct {
 // Auto holds info for rendering the autogen template
 type Auto struct {
 	Nav  Navbar
-	DPMS []models.DPMDriver
+	DPMS []dpmDriver
 	Csrf template.HTML
 }
 
@@ -274,7 +271,7 @@ func (c Controller) renderAutoGen(w http.ResponseWriter, r *http.Request) {
 		Analyst: u.Analyst,
 	}
 	// Call autogen and get slice out
-	dpms, err := autodpm.AutoGen()
+	dpms, err := autoGen()
 	// If error, render the autogenErr template stating this
 	if err != nil {
 		type autoErr struct {

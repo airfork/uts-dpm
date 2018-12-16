@@ -1,4 +1,4 @@
-package dpm
+package main
 
 import (
 	"fmt"
@@ -9,7 +9,6 @@ import (
 
 	"github.com/gorilla/csrf"
 
-	"github.com/airfork/dpm_sql/models"
 	"github.com/gorilla/securecookie"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -45,7 +44,7 @@ var typeMap = map[string]int16{
 }
 
 // Creates a DPM from the shortened version taken from client
-func generateDPM(d *models.DPMRes) *models.DPM {
+func generateDPM(d *dpmRes) *dpm {
 	// Slice of name inputted
 	// Done to handle multiple name last names
 	ns := strings.Split(d.Name, " ")
@@ -84,7 +83,7 @@ func generateDPM(d *models.DPMRes) *models.DPM {
 		}
 		points = int16(id64)
 	}
-	dpm := &models.DPM{
+	dpm := &dpm{
 		CreateID:  createID,
 		UserID:    userID,
 		FirstName: first,
@@ -103,8 +102,8 @@ func generateDPM(d *models.DPMRes) *models.DPM {
 }
 
 // This function returns the userID based on the session ID
-func (c Controller) getUser(w http.ResponseWriter, r *http.Request) (*models.User, error) {
-	u := &models.User{}
+func (c Controller) getUser(w http.ResponseWriter, r *http.Request) (*user, error) {
+	u := &user{}
 	// Find cookie, if no cookie, they are not logged in
 	_, err := r.Cookie("dpm_cookie")
 	if err != nil {

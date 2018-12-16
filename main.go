@@ -8,7 +8,6 @@ import (
 	"os"
 	"time"
 
-	controller "github.com/airfork/dpm_sql/controllers"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -33,7 +32,7 @@ func init() {
 
 func main() {
 	r := mux.NewRouter()
-	c := controller.NewController(getSession(), store, tpl)
+	c := NewController(getSession(), store, tpl)
 	// Creates some timeout rules for connections
 	// Using the regular http.ListenAndServe does not set any timeout values, and this is a bad thing
 	srv := http.Server{
@@ -71,7 +70,7 @@ func main() {
 
 // Connect to database and return a pointer to than connection
 func getSession() *sqlx.DB {
-	connStr := "user=tunji dbname=bedrock password=" + os.Getenv("PSQL_PASS") + " sslmode=verify-full"
+	connStr := "user=tunji dbname=balloon password=" + os.Getenv("PSQL_PASS") + " sslmode=verify-full"
 	db, err := sqlx.Open("postgres", connStr)
 	if err != nil {
 		panic(err)

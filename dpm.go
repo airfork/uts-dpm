@@ -1,4 +1,4 @@
-package dpm
+package main
 
 import (
 	"html/template"
