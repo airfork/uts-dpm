@@ -269,7 +269,7 @@ func returnFile(w http.ResponseWriter, r *http.Request, filename string) {
 func redirect(w http.ResponseWriter, r *http.Request) bool {
 	// Check url and make sure that it is coming from the right domain
 	url := r.Host
-	if url == "thawing-garden-44847.herokuapp.com/" {
+	if url == "thawing-garden-44847.herokuapp.com" {
 		http.Redirect(w, r, "https://www.airfork.icu/login", http.StatusMovedPermanently)
 		return true
 	}
