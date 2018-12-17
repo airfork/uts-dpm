@@ -71,9 +71,9 @@ func main() {
 
 // Connect to database and return a pointer to than connection
 func getSession() *sqlx.DB {
-	connStr := "user=tunji dbname=balloon password=" + os.Getenv("PSQL_PASS") + " sslmode=verify-full"
-	// db, err := sqlx.Open("postgres", os.Getenv("DATABASE_URL"))
-	db, err := sqlx.Open("postgres", connStr)
+	// connStr := "user=tunji dbname=balloon password=" + os.Getenv("PSQL_PASS") + " sslmode=verify-full"
+	db, err := sqlx.Open("postgres", os.Getenv("DATABASE_URL"))
+	// db, err := sqlx.Open("postgres", connStr)
 	if err != nil {
 		panic(err)
 	}
