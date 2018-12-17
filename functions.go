@@ -177,6 +177,21 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 	}
 	u := &user{}
 	username := bm.Sanitize(r.FormValue("email"))
+	firstname := bm.Sanitize(r.FormValue("firstName"))
+	lastname := bm.Sanitize(r.FormValue("lastName"))
+	// Ensure username and firstname are not empty
+	// Ideally these are not necessary as they are required fields, along with lastname which I am not checking for here
+	if username == "" {
+		out := "Username cannot be empty."
+		c.createUserMessage(w, r, out)
+		return
+	}
+	if firstname == "" {
+		out := "Please provide a first name"
+		c.createUserMessage(w, r, out)
+		return
+	}
+	// Test credentials
 	var test bool
 	if username == "testing@testing.com" {
 		test = true
@@ -213,8 +228,8 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 	u = &user{
 		Username:   username,
 		Password:   string(hash),
-		FirstName:  bm.Sanitize(r.FormValue("firstName")), // Sanitize first name
-		LastName:   bm.Sanitize(r.FormValue("lastName")),  // Sanitize last name
+		FirstName:  firstname, // Sanitize first name
+		LastName:   lastname,  // Sanitize last name
 		FullTime:   fulltime,
 		Changed:    false,
 		Admin:      false,
@@ -977,4 +992,68 @@ func (c Controller) dpmCSV(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	returnFile(w, r, "dpm.csv")
+}
+
+// findUser tries to find a user in the database matching the input
+func (c Controller) findUser(w http.ResponseWriter, r *http.Request) {
+	u, err := c.getUser(w, r)
+	// Validate user
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		fmt.Println(err)
+		return
+	}
+	// Only admins can do this
+	if !u.Admin {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// Redirect if still on temporary password
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+	foundUser := user{}
+	// Get name from form
+	name := r.FormValue("name")
+	// Split name into first and last, if applicabale
+	ns := strings.Split(name, " ")
+	// Sanitize first name and put it in the format "%firstname%"
+	first := fmt.Sprintf("%%%s%%", bm.Sanitize(ns[0]))
+	last := ""
+	// Join indexes after 0 into last name string and sanitize
+	// If last name exists, form a different query
+	if len(ns) > 1 {
+		ns = append(ns[:0], ns[1:]...)
+		// Sanitize last name and put it in the format "%lastname%"
+		last = fmt.Sprintf("%%%s%%", bm.Sanitize(strings.Join(ns, " ")))
+		// Try to find user based on first and last name
+		stmt := `SELECT * FROM users WHERE firstname LIKE $1 AND lastname LIKE $2 LIMIT 1`
+		err = c.db.QueryRowx(stmt, first, last).StructScan(&foundUser)
+		// If error is not nil, assume user does not exist and redirect
+		if err != nil {
+			fmt.Println(err)
+			// Remove the %'s and render template
+			first = strings.Replace(first, "%", "", -1)
+			last = strings.Replace(last, "%", "", -1)
+			c.createUserFill(w, r, first, last)
+			return
+		}
+	} else { // Handle first name only
+		stmt := `SELECT * FROM users WHERE firstname LIKE $1 LIMIT 1`
+		err = c.db.QueryRowx(stmt, first).StructScan(&foundUser)
+		// If error is not nil, assume user does not exist and send them to create user page
+		if err != nil {
+			fmt.Println(err)
+			// Remove the %'s and render template
+			first = strings.Replace(first, "%", "", -1)
+			c.createUserFill(w, r, first, last)
+			return
+		}
+	}
+	sfu := fmt.Sprintln(foundUser)
+	// For now, just write out user
+	w.WriteHeader(http.StatusFound)
+	w.Write([]byte(sfu))
+	return
 }

@@ -41,16 +41,29 @@ Thanks very much!-->
                 <label for="login__username"><svg class="icon"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#user"></use></svg><span class="hidden">Email</span></label>
                 <input id="login__username" type="text" name="email" class="form__input" placeholder="Email" required>
             </div>
-
+            {{if .firstname}}
+            <div class="form__field">
+                <label for="login__username"><svg class="icon"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#user"></use></svg><span class="hidden">First Name</span></label>
+                <input id="login__username" type="text" name="firstName" class="form__input" placeholder="First Name" value={{.firstname}} required>
+            </div>
+            {{else}}
             <div class="form__field">
                 <label for="login__username"><svg class="icon"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#user"></use></svg><span class="hidden">First Name</span></label>
                 <input id="login__username" type="text" name="firstName" class="form__input" placeholder="First Name" required>
             </div>
+            {{end}}
         
+            {{if .lastname}}
+            <div class="form__field">
+                <label for="login__username"><svg class="icon"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#user"></use></svg><span class="hidden">Last Name</span></label>
+                <input id="login__username" type="text" name="lastName" class="form__input" placeholder="Last Name" value={{.lastname}} required>
+            </div>
+            {{else}}
             <div class="form__field">
                 <label for="login__username"><svg class="icon"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#user"></use></svg><span class="hidden">Last Name</span></label>
                 <input id="login__username" type="text" name="lastName" class="form__input" placeholder="Last Name" required>
-            </div>        
+            </div>
+            {{end}}
             {{.csrf}}
             <div class="form__field">
                 <input type="submit" value="Create User">

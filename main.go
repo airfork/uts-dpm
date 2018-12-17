@@ -32,7 +32,7 @@ func init() {
 
 func main() {
 	r := mux.NewRouter()
-	c := NewController(getSession(), store, tpl)
+	c := newController(getSession(), store, tpl)
 	// Creates some timeout rules for connections
 	// Using the regular http.ListenAndServe does not set any timeout values, and this is a bad thing
 	srv := http.Server{
@@ -40,28 +40,28 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 		Addr:         ":" + os.Getenv("PORT"),
-		Handler:      csrf.Protect([]byte(os.Getenv("CSRF_KEY")), csrf.Secure(true))(r),
+		Handler:      csrf.Protect([]byte(os.Getenv("CSRF_KEY")), csrf.Secure(false))(r),
 	}
-	r.HandleFunc("/", c.Index)
-	r.HandleFunc("/dpm", c.CreateDPM).Methods("POST")
-	r.HandleFunc("/dpm", c.ShowDPM).Methods("GET")
-	r.HandleFunc("/dpm/all", c.SendDriverDPM).Methods("GET")
-	r.HandleFunc("/dpm/auto", c.AutogenDPM).Methods("GET", "POST")
-	r.HandleFunc("/approve", c.RenderApprovals).Methods("GET")
-	r.HandleFunc("/dpm/approve", c.SendApprovalDPMS).Methods("GET")
-	r.HandleFunc("/dpm/approve/{id}", c.ApproveDPM).Methods("POST")
-	r.HandleFunc("/dpm/deny/{id}", c.DenyDPM).Methods("POST")
-	r.HandleFunc("/users", c.User).Methods("POST")
-	r.HandleFunc("/users", c.Users).Methods("GET")
-	r.HandleFunc("/users/create", c.ShowUserCreate).Methods("GET")
-	r.HandleFunc("/users/reset", c.Reset).Methods("POST", "GET")
-	r.HandleFunc("/users/find", c.findForm).Methods("GET")
-	r.HandleFunc("/login", c.Login).Methods("POST", "GET")
-	r.HandleFunc("/logout", c.Logout)
-	r.HandleFunc("/change", c.ChangePass).Methods("POST", "GET")
-	r.HandleFunc("/data", c.DataPage).Methods("GET")
-	r.HandleFunc("/data/users", c.GetUserCSV).Methods("GET")
-	r.HandleFunc("/data/dpms", c.GetDPMCSV).Methods("GET")
+	r.HandleFunc("/", c.index)
+	r.HandleFunc("/dpm", c.createDPM).Methods("POST")
+	r.HandleFunc("/dpm", c.showDPM).Methods("GET")
+	r.HandleFunc("/dpm/all", c.sendDriverDPM).Methods("GET")
+	r.HandleFunc("/dpm/auto", c.autogenDPM).Methods("GET", "POST")
+	r.HandleFunc("/approve", c.renderApprovals).Methods("GET")
+	r.HandleFunc("/dpm/approve", c.sendApprovalDPMS).Methods("GET")
+	r.HandleFunc("/dpm/approve/{id}", c.approveDPM).Methods("POST")
+	r.HandleFunc("/dpm/deny/{id}", c.denyDPM).Methods("POST")
+	r.HandleFunc("/users", c.user).Methods("POST")
+	r.HandleFunc("/users", c.users).Methods("GET")
+	r.HandleFunc("/users/create", c.showUserCreate).Methods("GET")
+	r.HandleFunc("/users/reset", c.reset).Methods("POST", "GET")
+	r.HandleFunc("/users/find", c.findForm).Methods("GET", "POST")
+	r.HandleFunc("/login", c.login).Methods("POST", "GET")
+	r.HandleFunc("/logout", c.logout)
+	r.HandleFunc("/change", c.changePass).Methods("POST", "GET")
+	r.HandleFunc("/data", c.dataPage).Methods("GET")
+	r.HandleFunc("/data/users", c.getUserCSV).Methods("GET")
+	r.HandleFunc("/data/dpms", c.getDPMCSV).Methods("GET")
 	r.PathPrefix("/views/").Handler(http.StripPrefix("/views/", http.FileServer(http.Dir("views/"))))
 	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir("assets/"))))
 	http.Handle("/", r)
@@ -71,9 +71,9 @@ func main() {
 
 // Connect to database and return a pointer to than connection
 func getSession() *sqlx.DB {
-	// connStr := "user=tunji dbname=balloon password=" + os.Getenv("PSQL_PASS") + " sslmode=verify-full"
-	db, err := sqlx.Open("postgres", os.Getenv("DATABASE_URL"))
-	// db, err := sqlx.Open("postgres", connStr)
+	connStr := "user=tunji dbname=balloon password=" + os.Getenv("PSQL_PASS") + " sslmode=verify-full"
+	// db, err := sqlx.Open("postgres", os.Getenv("DATABASE_URL"))
+	db, err := sqlx.Open("postgres", connStr)
 	if err != nil {
 		panic(err)
 	}

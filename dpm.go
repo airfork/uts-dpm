@@ -22,13 +22,13 @@ type Controller struct {
 }
 
 // NewController returns a pointer a struct that contains all the route functions
-func NewController(db *sqlx.DB, store *sessions.CookieStore, tpl *template.Template) *Controller {
+func newController(db *sqlx.DB, store *sessions.CookieStore, tpl *template.Template) *Controller {
 	return &Controller{db, store, tpl}
 }
 
 // Index loads the main page
 // Handles all type of requests to "/"
-func (c Controller) Index(w http.ResponseWriter, r *http.Request) {
+func (c Controller) index(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
@@ -39,7 +39,7 @@ func (c Controller) Index(w http.ResponseWriter, r *http.Request) {
 
 // CreateDPM handles the creation of DPM objects and their insertion to the db
 // Handles POST requests to "/dpm"
-func (c Controller) CreateDPM(w http.ResponseWriter, r *http.Request) {
+func (c Controller) createDPM(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
@@ -50,7 +50,7 @@ func (c Controller) CreateDPM(w http.ResponseWriter, r *http.Request) {
 
 // ShowDPM renders the dpm input html file
 // Handles requests other than POST to "/dpm"
-func (c Controller) ShowDPM(w http.ResponseWriter, r *http.Request) {
+func (c Controller) showDPM(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
@@ -61,7 +61,7 @@ func (c Controller) ShowDPM(w http.ResponseWriter, r *http.Request) {
 
 // Users gets list of all users names, their dpm IDS, and the user name of the user loading page
 // Handles GET requests to "/users"
-func (c Controller) Users(w http.ResponseWriter, r *http.Request) {
+func (c Controller) users(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
@@ -72,7 +72,7 @@ func (c Controller) Users(w http.ResponseWriter, r *http.Request) {
 
 // User creates a user in the database
 // Handles POST requests to "/users"
-func (c Controller) User(w http.ResponseWriter, r *http.Request) {
+func (c Controller) user(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
@@ -82,7 +82,7 @@ func (c Controller) User(w http.ResponseWriter, r *http.Request) {
 }
 
 // ShowUserCreate shows the html for creating a new user
-func (c Controller) ShowUserCreate(w http.ResponseWriter, r *http.Request) {
+func (c Controller) showUserCreate(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
@@ -94,7 +94,7 @@ func (c Controller) ShowUserCreate(w http.ResponseWriter, r *http.Request) {
 // Login handles regular logic of users logging in
 // Does not get called on password reset
 // Handles GET and POST requests to "/login"
-func (c Controller) Login(w http.ResponseWriter, r *http.Request) {
+func (c Controller) login(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
@@ -110,7 +110,7 @@ func (c Controller) Login(w http.ResponseWriter, r *http.Request) {
 // ChangePass renders the html file for changing a password
 // It also handles updating the user in the database
 // Handles POST and GET requests to /change
-func (c Controller) ChangePass(w http.ResponseWriter, r *http.Request) {
+func (c Controller) changePass(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
@@ -125,7 +125,7 @@ func (c Controller) ChangePass(w http.ResponseWriter, r *http.Request) {
 
 // Logout removes the user's session
 // Handes POST request to /logout
-func (c Controller) Logout(w http.ResponseWriter, r *http.Request) {
+func (c Controller) logout(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
@@ -136,7 +136,7 @@ func (c Controller) Logout(w http.ResponseWriter, r *http.Request) {
 
 // Reset handles an admin wanting to reset a user's password
 // Handes Get and Post requests to /users/reset
-func (c Controller) Reset(w http.ResponseWriter, r *http.Request) {
+func (c Controller) reset(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
@@ -151,7 +151,7 @@ func (c Controller) Reset(w http.ResponseWriter, r *http.Request) {
 
 // AutogenDPM handles the process of autogenerating a dpm report and then submitting the dpms to the db, eventually
 // Handles POST and GET requests to /dpm/auto
-func (c Controller) AutogenDPM(w http.ResponseWriter, r *http.Request) {
+func (c Controller) autogenDPM(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
@@ -168,7 +168,7 @@ func (c Controller) AutogenDPM(w http.ResponseWriter, r *http.Request) {
 // as part of ajax call so that they can view more detailed info about
 // their DPMs
 // Handles GET requests to /dpm/all
-func (c Controller) SendDriverDPM(w http.ResponseWriter, r *http.Request) {
+func (c Controller) sendDriverDPM(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
@@ -179,7 +179,7 @@ func (c Controller) SendDriverDPM(w http.ResponseWriter, r *http.Request) {
 
 // SendApprovalDPMS sends all unapproved DPMS to the admin requesting the page
 // Handles GET requests to /dpm/approve
-func (c Controller) SendApprovalDPMS(w http.ResponseWriter, r *http.Request) {
+func (c Controller) sendApprovalDPMS(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
@@ -189,7 +189,7 @@ func (c Controller) SendApprovalDPMS(w http.ResponseWriter, r *http.Request) {
 }
 
 // ApproveDPM approves a dpm upon admin request
-func (c Controller) ApproveDPM(w http.ResponseWriter, r *http.Request) {
+func (c Controller) approveDPM(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
@@ -199,7 +199,7 @@ func (c Controller) ApproveDPM(w http.ResponseWriter, r *http.Request) {
 }
 
 // DenyDPM denies a DPM, but keeps it in the database
-func (c Controller) DenyDPM(w http.ResponseWriter, r *http.Request) {
+func (c Controller) denyDPM(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
@@ -209,7 +209,7 @@ func (c Controller) DenyDPM(w http.ResponseWriter, r *http.Request) {
 }
 
 // DataPage just renders the data page
-func (c Controller) DataPage(w http.ResponseWriter, r *http.Request) {
+func (c Controller) dataPage(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
@@ -219,7 +219,7 @@ func (c Controller) DataPage(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetUserCSV creates a csv file from the users table
-func (c Controller) GetUserCSV(w http.ResponseWriter, r *http.Request) {
+func (c Controller) getUserCSV(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
@@ -229,7 +229,7 @@ func (c Controller) GetUserCSV(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetDPMCSV creates a csv file from the dpm table
-func (c Controller) GetDPMCSV(w http.ResponseWriter, r *http.Request) {
+func (c Controller) getDPMCSV(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
@@ -244,5 +244,9 @@ func (c Controller) findForm(w http.ResponseWriter, r *http.Request) {
 	if v {
 		return
 	}
-	c.renderFindUser(w, r)
+	if r.Method == "POST" {
+		c.findUser(w, r)
+	} else {
+		c.renderFindUser(w, r)
+	}
 }

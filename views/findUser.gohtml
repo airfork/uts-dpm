@@ -35,16 +35,16 @@ Thanks very much!-->
         <h2>Find User</h2>
         <div class="grid">
 
-            <form action="/users" method="POST" class="form login">
-        
-            <div class="form__field">
-                <label for="name_input"><svg class="icon"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#user"></use></svg><span class="hidden">Full Name</span></label>
-                <input id="name_input" type="text" name="email" class="form__input" placeholder="Name" required>
-            </div>
-            <div class="form__field">
-                <input type="submit" value="Find">
-            </div>
-            <p class="text--center">Find a user, or create one if they do not exist</p>
+            <form action="/users/find" method="POST" class="form login">
+                <div class="form__field">
+                    <label for="name_input"><svg class="icon"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#user"></use></svg><span class="hidden">Full Name</span></label>
+                    <input id="name_input" type="text" name="name" class="form__input" placeholder="Name" required>
+                </div>
+                <div class="form__field">
+                    <input type="submit" value="Find">
+                </div>
+                <p class="text--center">Find a user, or create one if they do not exist. This is case sensitive.</p>
+                {{.csrf}}
             </form>
         
         </div>

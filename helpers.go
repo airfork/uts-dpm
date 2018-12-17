@@ -207,6 +207,24 @@ func (c Controller) createUserMessage(w http.ResponseWriter, r *http.Request, me
 	return
 }
 
+func (c Controller) createUserFill(w http.ResponseWriter, r *http.Request, firstname, lastname string) {
+	var err error
+	// If lastname does exist, only pass in csrf and firstname, otherwise pass in token, first name, and lastname
+	if lastname == "" {
+		err = c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"firstname": firstname, "csrf": csrf.TemplateField(r)})
+	} else {
+		err = c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"firstname": firstname, "lastname": lastname, "csrf": csrf.TemplateField(r)})
+	}
+	if err != nil {
+		out := fmt.Sprintln("Something went wrong, please try again")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(out))
+		return
+	}
+	return
+}
+
 // formatDate takes in a pqsl date string and converts it into a more friendly format
 func formatDate(date string) string {
 	// 2018-11-29T00:00:00Z
