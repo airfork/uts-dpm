@@ -426,3 +426,31 @@ func (c Controller) renderDataPage(w http.ResponseWriter, r *http.Request) {
 	}
 	return
 }
+
+// renderFindUser renders this template, no data passed in
+func (c Controller) renderFindUser(w http.ResponseWriter, r *http.Request) {
+	sender, err := c.getUser(w, r)
+	// If user is not signed in, redirect
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+	// user needs to be admin or sup to do this
+	if !sender.Admin {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// if user has not changed password, redirect
+	if !sender.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+	//Render createuser template
+	err = c.tpl.ExecuteTemplate(w, "findUser.gohtml", map[string]interface{}{"csrf": csrf.TemplateField(r)})
+	if err != nil {
+		out := fmt.Sprintln("Something went wrong, please try again")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(out))
+	}
+}

@@ -9,12 +9,12 @@ Thanks very much!-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <!-- Uncomment if wanting to view styles locally -->
-    <!-- <link rel="stylesheet" href="../assets/css/login.css">
-    <link rel="stylesheet" href="../assets/css/shared.css"> -->
+    <link rel="stylesheet" href="../assets/css/login.css">
+    <link rel="stylesheet" href="../assets/css/shared.css">
 
     <!-- Uncomment if wanting to serve files -->
-    <link rel="stylesheet" href="/assets/css/login.css">
-    <link rel="stylesheet" href="/assets/css/shared.css">
+    <!-- <link rel="stylesheet" href="/assets/css/login.css">
+    <link rel="stylesheet" href="/assets/css/shared.css"> -->
     <!-- Load an icon library to show a hamburger menu (bars) on small screens -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <title>DPM</title>
@@ -32,31 +32,19 @@ Thanks very much!-->
         </a>
     </div>
     <section class="align">
-        <h2>Create User</h2>
+        <h2>Find User</h2>
         <div class="grid">
 
             <form action="/users" method="POST" class="form login">
         
             <div class="form__field">
-                <label for="login__username"><svg class="icon"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#user"></use></svg><span class="hidden">Email</span></label>
-                <input id="login__username" type="text" name="email" class="form__input" placeholder="Email" required>
+                <label for="name_input"><svg class="icon"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#user"></use></svg><span class="hidden">Full Name</span></label>
+                <input id="name_input" type="text" name="email" class="form__input" placeholder="Name" required>
             </div>
-
             <div class="form__field">
-                <label for="login__username"><svg class="icon"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#user"></use></svg><span class="hidden">First Name</span></label>
-                <input id="login__username" type="text" name="firstName" class="form__input" placeholder="First Name" required>
+                <input type="submit" value="Find">
             </div>
-        
-            <div class="form__field">
-                <label for="login__username"><svg class="icon"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#user"></use></svg><span class="hidden">Last Name</span></label>
-                <input id="login__username" type="text" name="lastName" class="form__input" placeholder="Last Name" required>
-            </div>        
-            {{.csrf}}
-            <div class="form__field">
-                <input type="submit" value="Create User">
-            </div>
-            <p class="text--center"><input class="checkbox" type="checkbox" name="fullTimer"> Is the driver a fulltimer?</p>
-            {{if .message}} <p class="text--center"><strong>{{.message}}</strong></p>{{end}}
+            <p class="text--center">Find a user, or create one if they do not exist</p>
             </form>
         
         </div>
@@ -65,7 +53,8 @@ Thanks very much!-->
     </section>
     
     <!-- Uncomment if wanting to view JS locally -->
-    <!-- <script src="../assets/js/shared.js"></script> -->
+    <!-- <script src="../assets/js/shared.js"></script>
+    <script src="../assets/js/autocomplete.js"></script> -->
 
     <!-- Uncomment if wanting to serve js -->
     <script src="/assets/js/shared.js"></script>

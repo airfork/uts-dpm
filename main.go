@@ -55,6 +55,7 @@ func main() {
 	r.HandleFunc("/users", c.Users).Methods("GET")
 	r.HandleFunc("/users/create", c.ShowUserCreate).Methods("GET")
 	r.HandleFunc("/users/reset", c.Reset).Methods("POST", "GET")
+	r.HandleFunc("/users/find", c.findForm).Methods("GET")
 	r.HandleFunc("/login", c.Login).Methods("POST", "GET")
 	r.HandleFunc("/logout", c.Logout)
 	r.HandleFunc("/change", c.ChangePass).Methods("POST", "GET")
@@ -70,8 +71,9 @@ func main() {
 
 // Connect to database and return a pointer to than connection
 func getSession() *sqlx.DB {
-	// connStr := "user=tunji dbname=balloon password=" + os.Getenv("PSQL_PASS") + " sslmode=verify-full"
-	db, err := sqlx.Open("postgres", os.Getenv("DATABASE_URL"))
+	connStr := "user=tunji dbname=balloon password=" + os.Getenv("PSQL_PASS") + " sslmode=verify-full"
+	// db, err := sqlx.Open("postgres", os.Getenv("DATABASE_URL"))
+	db, err := sqlx.Open("postgres", connStr)
 	if err != nil {
 		panic(err)
 	}

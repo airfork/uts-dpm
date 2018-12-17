@@ -147,3 +147,7 @@ func (c Controller) GetUserCSV(w http.ResponseWriter, r *http.Request) {
 func (c Controller) GetDPMCSV(w http.ResponseWriter, r *http.Request) {
 	c.dpmCSV(w, r)
 }
+
+func (c Controller) findForm(w http.ResponseWriter, r *http.Request) {
+	c.renderFindUser(w, r)
+}

@@ -892,6 +892,7 @@ func (c Controller) usersCSV(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	returnFile(w, r, "user.csv")
 }
 
 // dpmCSV creates a csv file with all the data from the dpms table
@@ -950,11 +951,15 @@ func (c Controller) dpmCSV(w http.ResponseWriter, r *http.Request) {
 		rows.Scan(&id, &createid, &userid, &firstname, &lastname, &block, &date, &dpmtype, &points, &notes, &created, &approved, &location, &startTime, &endtime, &ignored)
 		// Format date, created, startTime, and endTime into a more user friendly data format
 		date = formatDate(date)
-		created = formatCreatedDate(date)
+		created = formatCreatedDate(created)
 		startTime = startTime[11:13] + startTime[14:16]
 		endtime = endtime[11:13] + endtime[14:16]
 		// Create string with all the values separated by commas
-		out := fmt.Sprintf("%v,%v,%v,%s,%s,%s,%s,%s,%v,%s,%s,%v,%s,%s,%s,%v\n", id, createid, userid, firstname, lastname, block, date, dpmtype, points, notes, created, approved, location, startTime, endtime, ignored)
+		out := fmt.Sprintf("%v,%v,%v,%s,%s,%s,%s,%s,%v,%s,%s,%v,%s,%s,%s,%v", id, createid, userid, firstname, lastname, block, date, dpmtype, points, notes, created, approved, location, startTime, endtime, ignored)
+		// Replace any newlines with empty strings, newlines get put in for some I never bothered to figured out
+		out = strings.Replace(out, "\n", "", -1)
+		// Add newline to string
+		out += "\n"
 		// Append created string to final string
 		final += out
 	}
@@ -971,4 +976,5 @@ func (c Controller) dpmCSV(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	returnFile(w, r, "dpm.csv")
 }
