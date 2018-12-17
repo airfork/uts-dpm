@@ -309,6 +309,11 @@ func (c Controller) renderAutoGen(w http.ResponseWriter, r *http.Request) {
 
 // RenderApprovals gives data to and renders the approvals template
 func (c Controller) RenderApprovals(w http.ResponseWriter, r *http.Request) {
+	// Redirect if not right domain
+	v := redirect(w, r)
+	if v {
+		return
+	}
 	u, err := c.getUser(w, r)
 	// Validate user
 	if err != nil {
