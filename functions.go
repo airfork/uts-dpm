@@ -1113,7 +1113,7 @@ func (c Controller) editUser(w http.ResponseWriter, r *http.Request) {
 	var admin, analyst, sup bool
 	if role == "admin" {
 		admin = true
-	} else if role == "analyst" {
+	} else if role == "manager" {
 		analyst = true
 	} else if role == "sup" {
 		analyst = true
