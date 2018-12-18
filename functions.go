@@ -1023,6 +1023,11 @@ func (c Controller) findUser(w http.ResponseWriter, r *http.Request) {
 	var userid int16
 	// Get name from form
 	name := r.FormValue("name")
+	// If they are trying to reset password, redirect them
+	if name == "reset" {
+		http.Redirect(w, r, "/users/reset", http.StatusFound)
+		return
+	}
 	// Split name into first and last, if applicabale
 	ns := strings.Split(name, " ")
 	// Sanitize first name and put it in the format "%firstname%"
@@ -1089,6 +1094,11 @@ func (c Controller) editUser(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	// Get reset status
+	reset := false
+	if r.FormValue("reset") == "on" {
+		reset = true
+	}
 	// Get fulltime status
 	fulltime := false
 	if r.FormValue("fulltime") == "on" {
@@ -1123,6 +1133,11 @@ func (c Controller) editUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// If reset is true, render the reset password form with the username filled in
+	if reset {
+		c.resetUserFill(w, r, username)
 		return
 	}
 	http.Redirect(w, r, r.URL.String(), http.StatusFound)

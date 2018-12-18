@@ -20,6 +20,7 @@ var tpl = template.Must(template.ParseGlob("views/*.gohtml"))
 var store = sessions.NewCookieStore(
 	[]byte(os.Getenv("SESSION_KEY")),
 	[]byte(os.Getenv("ENCRYPTION_KEY")))
+var production bool
 
 func init() {
 	// Sets all cookies stored in this cookie store to have these values
@@ -27,6 +28,10 @@ func init() {
 		Path:     "/",
 		MaxAge:   86400, // Max age of one day
 		HttpOnly: true,
+	}
+	// Check if code is in production
+	if os.Getenv("PRODUCTION") != "" {
+		production = true
 	}
 }
 
@@ -40,7 +45,7 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 		Addr:         ":" + os.Getenv("PORT"),
-		Handler:      csrf.Protect([]byte(os.Getenv("CSRF_KEY")), csrf.Secure(true))(r),
+		Handler:      csrf.Protect([]byte(os.Getenv("CSRF_KEY")), csrf.Secure(production))(r),
 	}
 	r.HandleFunc("/", c.index)
 	r.HandleFunc("/dpm", c.createDPM).Methods("POST")
@@ -73,9 +78,15 @@ func main() {
 
 // Connect to database and return a pointer to than connection
 func getSession() *sqlx.DB {
-	// connStr := "user=tunji dbname=balloon password=" + os.Getenv("PSQL_PASS") + " sslmode=verify-full"
-	db, err := sqlx.Open("postgres", os.Getenv("DATABASE_URL"))
-	// db, err := sqlx.Open("postgres", connStr)
+	var err error
+	var db *sqlx.DB
+	// Change database based on if in production or not
+	if !production {
+		connStr := "user=tunji dbname=balloon password=" + os.Getenv("PSQL_PASS") + " sslmode=verify-full"
+		db, err = sqlx.Open("postgres", connStr)
+	} else {
+		db, err = sqlx.Open("postgres", os.Getenv("DATABASE_URL"))
+	}
 	if err != nil {
 		panic(err)
 	}

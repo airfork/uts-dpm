@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-
-
   <!-- Uncomment when wanting to view styling locally -->
 
   <!-- <link rel="stylesheet" type="text/css" href="../assets/css/main.css" />
@@ -14,6 +12,7 @@
   <!-- Uncomment when wanting to serve files -->
   <link rel="stylesheet" type="text/css" href="/assets/css/approvals.css" />
   <link rel="stylesheet" type="text/css" href="/assets/css/shared.css" />
+  <link rel="shortcut icon" href="/views/favicon.ico">
    <!-- Load an icon library to show a hamburger menu (bars) on small screens -->
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <title>DPM</title>
@@ -35,7 +34,7 @@
       {{if .Nav.Admin}}
       <a href="/users/find">Users</a>
       {{end}}
-      <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+      <a href="javascript:void(0);" class="ham" onclick="myFunction()">
           <i class="fa fa-bars"></i>
       </a>
   </div>

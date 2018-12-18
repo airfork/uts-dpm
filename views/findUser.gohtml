@@ -9,12 +9,13 @@ Thanks very much!-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <!-- Uncomment if wanting to view styles locally -->
-    <link rel="stylesheet" href="../assets/css/login.css">
-    <link rel="stylesheet" href="../assets/css/shared.css">
+    <!-- <link rel="stylesheet" href="../assets/css/login.css">
+    <link rel="stylesheet" href="../assets/css/shared.css"> -->
 
     <!-- Uncomment if wanting to serve files -->
-    <!-- <link rel="stylesheet" href="/assets/css/login.css">
-    <link rel="stylesheet" href="/assets/css/shared.css"> -->
+    <link rel="stylesheet" href="/assets/css/login.css">
+    <link rel="stylesheet" href="/assets/css/shared.css">
+    <link rel="shortcut icon" href="/views/favicon.ico">
     <!-- Load an icon library to show a hamburger menu (bars) on small screens -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <title>DPM</title>
@@ -27,7 +28,7 @@ Thanks very much!-->
         <a href="/data">Data</a> 
         <a href="/approve">Approvals</a>
         <a href="/users/find" class="active--nav">Users</a>
-        <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+        <a href="javascript:void(0);" class="ham" onclick="myFunction()">
             <i class="fa fa-bars"></i>
         </a>
     </div>
@@ -43,7 +44,7 @@ Thanks very much!-->
                 <div class="form__field">
                     <input type="submit" value="Find">
                 </div>
-                <p class="text--center">Find a user, or create one if they do not exist. This is case sensitive.</p>
+                <p class="text--center">Find a user, or create one if they do not exist. This is case sensitive. Typing in 'reset' will allow you reset passwords.</p>
                 {{.csrf}}
             </form>
         

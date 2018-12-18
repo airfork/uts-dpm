@@ -45,7 +45,7 @@ var typeMap = map[string]int16{
 	"Type C: Custom (-15 Points)":                           -15,
 }
 
-// Creates a DPM from the shortened version taken from client
+// generateDPM creates a DPM from the shortened version taken from client
 func generateDPM(d *dpmRes) *dpm {
 	// Slice of name inputted
 	// Done to handle multiple name last names
@@ -103,7 +103,7 @@ func generateDPM(d *dpmRes) *dpm {
 	return dpm
 }
 
-// This function returns the userID based on the session ID
+// getUser returns the userID based on the session ID
 func (c Controller) getUser(w http.ResponseWriter, r *http.Request) (*user, error) {
 	u := &user{}
 	// Find cookie, if no cookie, they are not logged in
@@ -128,6 +128,7 @@ func (c Controller) getUser(w http.ResponseWriter, r *http.Request) (*user, erro
 	return u, err
 }
 
+// createSession creates a new session for the user
 func (c Controller) createSession(w http.ResponseWriter, r *http.Request) (string, error) {
 	// Get a session. Get() always returns a session, even if empty.
 	session, err := c.store.Get(r, "dpm_cookie")
@@ -143,6 +144,7 @@ func (c Controller) createSession(w http.ResponseWriter, r *http.Request) (strin
 	return string(sid), nil
 }
 
+// cookieSignIn signs in user
 func (c Controller) cookieSignIn(w http.ResponseWriter, r *http.Request) (string, error) {
 	// Create new session, prompt user to try again if this fails
 	sk, err := c.createSession(w, r)
@@ -155,6 +157,7 @@ func (c Controller) cookieSignIn(w http.ResponseWriter, r *http.Request) (string
 	return sk, nil
 }
 
+// loginError renders login with an error message
 func (c Controller) loginError(w http.ResponseWriter, r *http.Request, message string) {
 	// Render login template
 	err := c.tpl.ExecuteTemplate(w, "login.gohtml", map[string]interface{}{"message": message, "csrf": csrf.TemplateField(r)})
@@ -168,6 +171,7 @@ func (c Controller) loginError(w http.ResponseWriter, r *http.Request, message s
 	return
 }
 
+// changePasswordError renders changePass with an error message
 func (c Controller) changePasswordError(w http.ResponseWriter, r *http.Request, message string) {
 	// Render login template
 	err := c.tpl.ExecuteTemplate(w, "changePass.gohtml", map[string]interface{}{"message": message, "csrf": csrf.TemplateField(r)})
@@ -181,6 +185,7 @@ func (c Controller) changePasswordError(w http.ResponseWriter, r *http.Request, 
 	return
 }
 
+// resetPasswordMessage renders resetPassword with a message underneath
 func (c Controller) resetPasswordMessage(w http.ResponseWriter, r *http.Request, message string) {
 	// Render login template
 	err := c.tpl.ExecuteTemplate(w, "resetPassword.gohtml", map[string]interface{}{"message": message, "csrf": csrf.TemplateField(r)})
@@ -194,6 +199,7 @@ func (c Controller) resetPasswordMessage(w http.ResponseWriter, r *http.Request,
 	return
 }
 
+// createUserMessage renders createUser template with a message underneath
 func (c Controller) createUserMessage(w http.ResponseWriter, r *http.Request, message string) {
 	// Render login template
 	err := c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"message": message, "csrf": csrf.TemplateField(r)})
@@ -207,6 +213,7 @@ func (c Controller) createUserMessage(w http.ResponseWriter, r *http.Request, me
 	return
 }
 
+// createUserFill renders createUser template with some fields prefilled
 func (c Controller) createUserFill(w http.ResponseWriter, r *http.Request, firstname, lastname string) {
 	var err error
 	// If lastname does exist, only pass in csrf and firstname, otherwise pass in token, first name, and lastname
@@ -215,6 +222,19 @@ func (c Controller) createUserFill(w http.ResponseWriter, r *http.Request, first
 	} else {
 		err = c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"firstname": firstname, "lastname": lastname, "csrf": csrf.TemplateField(r)})
 	}
+	if err != nil {
+		out := fmt.Sprintln("Something went wrong, please try again")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(out))
+		return
+	}
+	return
+}
+
+// resetUserFill loads reset template with the username to reset prefilled
+func (c Controller) resetUserFill(w http.ResponseWriter, r *http.Request, username string) {
+	err := c.tpl.ExecuteTemplate(w, "resetPassword.gohtml", map[string]interface{}{"username": username, "csrf": csrf.TemplateField(r)})
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
