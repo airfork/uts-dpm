@@ -544,13 +544,13 @@ func (c Controller) renderEditUser(w http.ResponseWriter, r *http.Request) {
 	}
 	// Get role list in correct order
 	if foundUser.Admin {
-		roles = []string{"Admin", "Analyst", "Driver", "Supervisor"}
+		roles = []string{"Admin", "Manager", "Driver", "Supervisor"}
 	} else if foundUser.Analyst {
-		roles = []string{"Analyst", "Admin", "Driver", "Supervisor"}
+		roles = []string{"Manager", "Admin", "Driver", "Supervisor"}
 	} else if foundUser.Sup {
-		roles = []string{"Supervisor", "Admin", "Analyst", "Driver"}
+		roles = []string{"Supervisor", "Admin", "Manager", "Driver"}
 	} else {
-		roles = []string{"Driver", "Admin", "Analyst", "Supervisor"}
+		roles = []string{"Driver", "Admin", "Manager", "Supervisor"}
 	}
 
 	// Pass all the data into a map
