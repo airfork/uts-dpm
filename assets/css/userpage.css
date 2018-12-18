@@ -1,0 +1,13 @@
+.container {
+    margin: 2rem auto;
+    max-width: 85vw;
+}
+
+.btn-primary {
+    background-color: #3AAFA9;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #2d8f8a;
+}

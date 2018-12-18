@@ -56,6 +56,8 @@ func main() {
 	r.HandleFunc("/users/create", c.showUserCreate).Methods("GET")
 	r.HandleFunc("/users/reset", c.reset).Methods("POST", "GET")
 	r.HandleFunc("/users/find", c.findForm).Methods("GET", "POST")
+	r.HandleFunc("/users/edit/{id}", c.renderEditUser).Methods("GET")
+	r.HandleFunc("/users/edit/{id}", c.updateUser).Methods("POST")
 	r.HandleFunc("/login", c.login).Methods("POST", "GET")
 	r.HandleFunc("/logout", c.logout)
 	r.HandleFunc("/change", c.changePass).Methods("POST", "GET")

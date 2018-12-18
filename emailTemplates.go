@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"strings"
 )
@@ -103,12 +104,16 @@ func sendPassChangeMail(email string) {
 
 // NegativeDPMEmail sends a email informing the drive that they have received a negative dpm
 // Only happens with parttimers
-func NegativeDPMEmail(email, dpmtype string) {
+func negativeDPMEmail(email, dpmtype string) {
 	s := newSender("airfork@gmail.com", gmail)
 	//The receiver needs to be in slice as the receive supports multiple receiver
 	receiver := []string{email}
 
-	subject := dpmtype
+	letter := fmt.Sprintf("[%s]", dpmtype[5:6])
+	description := dpmtype[8 : len(dpmtype)-12]
+	out := fmt.Sprintf("Type %s DPM: %s", letter, dpmtype[8:])
+
+	subject := fmt.Sprintf("%s: %s", dpmtype[0:6], description)
 	var sb strings.Builder
 	sb.WriteString(`
 	<!DOCTYPE HTML PULBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
@@ -117,7 +122,7 @@ func NegativeDPMEmail(email, dpmtype string) {
 	<meta http-equiv="content-type" content="text/html"; charset=ISO-8859-1">
 	</head>
 	<body>
-	<p>This email is to inform you that you have received a negative DPM:` + dpmtype + `. If you have any issures with this, please contact Allison Day directly</p>
+	<p>This email is to inform you that you have received a ` + out + `. If you have any issures with this, please contact Allison Day directly</p>
 	</body>
 	</html>
 	`)

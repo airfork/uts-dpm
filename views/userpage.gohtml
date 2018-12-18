@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>DPM</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+  <link href="/assets/css/shared.css" rel="stylesheet">
+  <link href="/assets/css/userpage.css" rel="stylesheet">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+<body>
+    <div class="topnav" id="myTopnav">
+        <a href="/">Home</a>
+        <a href="/dpm">DPM</a>
+        <a href="/dpm/auto">Autogen</a> 
+        <a href="/data">Data</a> 
+        <a href="/approve">Approvals</a>
+        <a href="/users/find" class="active--nav">Users</a>
+        <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+            <i class="fa fa-bars"></i>
+        </a>
+    </div>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-9">
+          <div class="card">
+              <div class="card-body">
+                  <div class="row">
+                      <div class="col-md-12">
+                          <h4>Edit User</h4>
+                          <hr>
+                      </div>
+                  </div>
+                  <div class="row">
+                      <div class="col-md-12">
+                          <form action={{.url}} method="POST">
+                                <div class="form-group row">
+                                  <label for="username" class="col-12 col-sm-4 col-form-label">Username</label> 
+                                  <div class="col-12 col-sm-8">
+                                    <input id="username" name="username" placeholder="Username" class="form-control here" required type="email"
+                                    {{if .username}} value={{.username}} {{end}}>
+                                  </div>
+                                </div> 
+
+                                <div class="form-group row">
+                                  <label for="firstname" class="col-12 col-sm-4 col-form-label">First Name</label> 
+                                  <div class="col-12 col-sm-8">
+                                    <input id="firstname" name="firstname" placeholder="First Name" class="form-control here" required type="text"
+                                    {{if .firstname}} value={{.firstname}} {{end}}>
+                                  </div>
+                                </div>
+
+                                <div class="form-group row">
+                                  <label for="lastname" class="col-12 col-sm-4 col-form-label">Last Name</label> 
+                                  <div class="col-12 col-sm-8">
+                                    <input id="lastname" name="lastname" placeholder="Last Name" class="form-control here" required type="text"
+                                    {{if .lastname}} value={{.lastname}} {{end}}>
+                                  </div>
+                                </div>
+
+                                <div class="form-group row">
+                                  <label for="manager" class="col-12 col-sm-4 col-form-label">Manager</label> 
+                                  <div class="col-12 col-sm-8">
+                                    <select id="manager" name="manager" class="custom-select">
+                                      {{if .manager}}
+                                      {{range .manager}}
+                                        <option value={{.ID}}>{{.Name}}</option>
+                                      {{end}}
+                                      {{end}}
+                                    </select>
+                                  </div>
+                                </div>
+
+                                <div class="form-group row">
+                                  <label for="role" class="col-12 col-sm-4 col-form-label">Role</label> 
+                                  <div class="col-12 col-sm-8">
+                                    <select id="role" name="role" class="custom-select">
+                                      {{if .role}}
+                                      {{range .role}}
+                                        <option value={{.}}>{{.}}</option>
+                                      {{end}}
+                                      {{end}}
+                                    </select>
+                                  </div>
+                                </div>
+
+                                <div class="form-group row">
+                                  <label for="fulltime" class="col-8 col-sm-4 col-form-label">Fulltime</label> 
+                                  <div class="col-4 col-sm-8">
+                                    <input style="vertical-align: bottom;" id="fulltime" type="checkbox" name="fulltime"
+                                    {{if .fulltime}} checked {{end}}>
+                                  </div>
+                                </div>
+
+                                <div class="form-group row">
+                                  <div class="offset-4 col-4">
+                                    <button name="submit" type="submit" class="btn btn-primary">Update</button>
+                                  </div>
+                                </div>
+                                {{.csrf}}
+                              </form>
+                      </div>
+                  </div>
+                  
+              </div>
+          </div>
+      </div>
+    </div>
+  </div>
+  <script src="/assets/js/shared.js"></script>
+</body>
+</html>

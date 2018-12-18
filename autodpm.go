@@ -171,7 +171,7 @@ func autoGen() ([]dpmDriver, error) {
 			startTime := times[0]
 			endTime := times[1]
 			// Get location
-			re = regexp.MustCompile(`[\w- ]+"\)`)
+			re = regexp.MustCompile(`[\w- \(\)\\*&@!#\+=_\{\}\[\]:';\.\?]+"\)`)
 			// If location is missing, skip
 			location := string(re.Find([]byte(s)))
 			if len(location) < 3 {

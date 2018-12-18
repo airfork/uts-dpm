@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strconv"
 
 	csrf "github.com/gorilla/csrf"
+	"github.com/gorilla/mux"
 )
 
 // Navbar holds info for templates on what navbar tabs should be displayed
@@ -450,12 +452,125 @@ func (c Controller) renderFindUser(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/change", http.StatusFound)
 		return
 	}
-	//Render createuser template
+	//Render finduser template
 	err = c.tpl.ExecuteTemplate(w, "findUser.gohtml", map[string]interface{}{"csrf": csrf.TemplateField(r)})
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(out))
+	}
+}
+
+func (c Controller) renderEditUser(w http.ResponseWriter, r *http.Request) {
+	u, err := c.getUser(w, r)
+	// If user is not signed in, redirect
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+	// user needs to be admin or sup to do this
+	if !u.Admin {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// if user has not changed password, redirect
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+	// Get user id from the url and convert it to an int
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// user struct to put data into
+	foundUser := user{}
+	// These will get the name of the associated manager
+	var managerFirst, managerLast string
+	var manageID int16
+	type manage struct {
+		Name string
+		ID   int16
+	}
+	m := manage{}
+	// This will hold all of the managers that exist
+	managerSlice := make([]manage, 0)
+	// Contains the list of roles
+	// roleSlice := []string {"Admin", "Driver", "Manager", "Supervisor"}
+	// Will order the above list, putting the current role first
+	var roles []string
+	// Find user and put data into the struct
+	stmt := `SELECT * FROM users WHERE id=$1`
+	err = c.db.QueryRowx(stmt, id).StructScan(&foundUser)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Get the first name, last name of the driver's manager
+	stmt = `SELECT firstname, lastname FROM users WHERE id=$1`
+	err = c.db.QueryRow(stmt, foundUser.ManagerID).Scan(&managerFirst, &managerLast)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	m.Name = fmt.Sprintf("%s %s", managerFirst, managerLast)
+	m.ID = foundUser.ManagerID
+	managerSlice = append(managerSlice, m)
+	// Find all the managers in the database, except the one we already have
+	stmt = `SELECT id, firstname, lastname FROM users WHERE analyst=true AND id!=$1`
+	rows, err := c.db.Query(stmt, foundUser.ManagerID)
+	defer rows.Close()
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Iterate over returned managers
+	for rows.Next() {
+		err = rows.Scan(&manageID, &managerFirst, &managerLast)
+		if err != nil {
+			fmt.Println(err)
+		}
+		// Add managers to slice
+		m.Name = fmt.Sprintf("%s %s", managerFirst, managerLast)
+		m.ID = manageID
+		managerSlice = append(managerSlice, m)
+	}
+	// Get role list in correct order
+	if foundUser.Admin {
+		roles = []string{"Admin", "Analyst", "Driver", "Supervisor"}
+	} else if foundUser.Analyst {
+		roles = []string{"Analyst", "Admin", "Driver", "Supervisor"}
+	} else if foundUser.Sup {
+		roles = []string{"Supervisor", "Admin", "Analyst", "Driver"}
+	} else {
+		roles = []string{"Driver", "Admin", "Analyst", "Supervisor"}
+	}
+
+	// Pass all the data into a map
+	data := map[string]interface{}{
+		"csrf":      csrf.TemplateField(r),
+		"username":  foundUser.Username,
+		"firstname": foundUser.FirstName,
+		"lastname":  foundUser.LastName,
+		"manager":   managerSlice,
+		"role":      roles,
+		"fulltime":  foundUser.FullTime,
+		"url":       r.URL.String(),
+	}
+	//Render userpage template
+	err = c.tpl.ExecuteTemplate(w, "userpage.gohtml", data)
+	if err != nil {
+		out := fmt.Sprintln("Something went wrong, please try again")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(out))
+		return
 	}
 }

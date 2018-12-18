@@ -709,9 +709,13 @@ func (c Controller) approveDPMLogic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var secondID, managerid int
-	// All this does is check that this dpm id relates to a real dpm
-	stmt := `SELECT id FROM dpms WHERE id=$1`
-	err = c.db.QueryRow(stmt, id).Scan(&secondID)
+	var fulltime bool
+	var dpmtype, username string
+	// This checks that this dpm id relates to a real dpm and gets the fulltime status, username, and dpm type of the driver
+	stmt := `SELECT a.id, a.fulltime, a.username, b.dpmtype FROM users a
+	JOIN dpms b ON a.id=b.userid
+	WHERE b.id=$1;`
+	err = c.db.QueryRow(stmt, id).Scan(&secondID, &fulltime, &username, &dpmtype)
 	// If this fails, assume the ID is not valid and abort
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -770,6 +774,9 @@ func (c Controller) approveDPMLogic(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Println(err)
 		return
+	}
+	if !fulltime && points < 0 {
+		go negativeDPMEmail(username, dpmtype)
 	}
 	w.WriteHeader(http.StatusOK)
 }
@@ -1013,7 +1020,7 @@ func (c Controller) findUser(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/change", http.StatusFound)
 		return
 	}
-	foundUser := user{}
+	var userid int16
 	// Get name from form
 	name := r.FormValue("name")
 	// Split name into first and last, if applicabale
@@ -1028,8 +1035,8 @@ func (c Controller) findUser(w http.ResponseWriter, r *http.Request) {
 		// Sanitize last name and put it in the format "%lastname%"
 		last = fmt.Sprintf("%%%s%%", bm.Sanitize(strings.Join(ns, " ")))
 		// Try to find user based on first and last name
-		stmt := `SELECT * FROM users WHERE firstname LIKE $1 AND lastname LIKE $2 LIMIT 1`
-		err = c.db.QueryRowx(stmt, first, last).StructScan(&foundUser)
+		stmt := `SELECT id FROM users WHERE firstname LIKE $1 AND lastname LIKE $2 LIMIT 1`
+		err = c.db.QueryRow(stmt, first, last).Scan(&userid)
 		// If error is not nil, assume user does not exist and redirect
 		if err != nil {
 			fmt.Println(err)
@@ -1040,8 +1047,8 @@ func (c Controller) findUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else { // Handle first name only
-		stmt := `SELECT * FROM users WHERE firstname LIKE $1 LIMIT 1`
-		err = c.db.QueryRowx(stmt, first).StructScan(&foundUser)
+		stmt := `SELECT id FROM users WHERE firstname LIKE $1 LIMIT 1`
+		err = c.db.QueryRow(stmt, first).Scan(&userid)
 		// If error is not nil, assume user does not exist and send them to create user page
 		if err != nil {
 			fmt.Println(err)
@@ -1051,9 +1058,73 @@ func (c Controller) findUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	sfu := fmt.Sprintln(foundUser)
-	// For now, just write out user
-	w.WriteHeader(http.StatusFound)
-	w.Write([]byte(sfu))
+	url := fmt.Sprintf("/users/edit/%v", userid)
+	http.Redirect(w, r, url, http.StatusFound)
+	return
+}
+
+func (c Controller) editUser(w http.ResponseWriter, r *http.Request) {
+	u, err := c.getUser(w, r)
+	// Validate user
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		fmt.Println(err)
+		return
+	}
+	// Only admins can do this
+	if !u.Admin {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// Redirect if still on temporary password
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+	// Get user id from url and convert it to an int
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Get fulltime status
+	fulltime := false
+	if r.FormValue("fulltime") == "on" {
+		fulltime = true
+	}
+	// Get form information
+	username := bm.Sanitize(r.FormValue("username"))
+	firstname := bm.Sanitize(r.FormValue("firstname"))
+	lastname := bm.Sanitize(r.FormValue("lastname"))
+	// Convert manager id to an int
+	manager := r.FormValue("manager")
+	managerid, err := strconv.Atoi(manager)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	role := bm.Sanitize(r.FormValue("role"))
+	// Make sure that role is lowered, for consistency
+	role = strings.ToLower(role)
+	// Assign values to roles
+	var admin, analyst, sup bool
+	if role == "admin" {
+		admin = true
+	} else if role == "analyst" {
+		analyst = true
+	} else if role == "sup" {
+		analyst = true
+	}
+	stmt := `UPDATE users SET admin=$1, analyst=$2, sup=$3, username=$4, firstname=$5, lastname=$6, managerid=$7, fulltime=$8 WHERE id=$9`
+	_, err = c.db.Exec(stmt, admin, analyst, sup, username, firstname, lastname, managerid, fulltime, id)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, r.URL.String(), http.StatusFound)
 	return
 }

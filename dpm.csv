@@ -1,4 +1,0 @@
-ID,Createid,Userid,Firstname,Lastname,Block,Date,Type,Points,Notes,Created,Approved,Location,Start Time,End Time,Ignored
-1,1,1,Tunji,Afolabi-Brown,12,12-15-2018,Type G: Good! (+1 Point Each),1,,12-15-2018 20:23:26,true,OFF,2023,2023,false
-2,1,1,Tunji,Afolabi-Brown,1,12-16-2018,Type G: Good! (+1 Point Each),1,,12-16-2018 03:46:00,false,OFF,0345,0345,false
-3,1,1,Tunji,Afolabi-Brown,5,12-16-2018,Type G: 200 Hours Safe (+2 Points),2,,12-16-2018 03:46:21,false,,0346,0346,false

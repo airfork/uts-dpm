@@ -238,6 +238,8 @@ func (c Controller) getDPMCSV(w http.ResponseWriter, r *http.Request) {
 	c.dpmCSV(w, r)
 }
 
+// findForm renders the find form and handles the searching for a user
+// Handles POST?GET requests to /users/find
 func (c Controller) findForm(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
@@ -249,4 +251,14 @@ func (c Controller) findForm(w http.ResponseWriter, r *http.Request) {
 	} else {
 		c.renderFindUser(w, r)
 	}
+}
+
+// updateUser handles post requests to /users/edit/{id}
+func (c Controller) updateUser(w http.ResponseWriter, r *http.Request) {
+	// Redirect if not right domain
+	v := redirect(w, r)
+	if v {
+		return
+	}
+	c.editUser(w, r)
 }

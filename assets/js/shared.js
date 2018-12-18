@@ -1,4 +1,4 @@
-if (!document.getElementById('myTopmav')) {
+if (!document.getElementById('myTopnav')) {
     document.querySelector('section').classList.add('fullSection');
 }
 
