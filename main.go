@@ -40,7 +40,7 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 		Addr:         ":" + os.Getenv("PORT"),
-		Handler:      csrf.Protect([]byte(os.Getenv("CSRF_KEY")), csrf.Secure(false))(r),
+		Handler:      csrf.Protect([]byte(os.Getenv("CSRF_KEY")), csrf.Secure(true))(r),
 	}
 	r.HandleFunc("/", c.index)
 	r.HandleFunc("/dpm", c.createDPM).Methods("POST")
@@ -73,9 +73,9 @@ func main() {
 
 // Connect to database and return a pointer to than connection
 func getSession() *sqlx.DB {
-	connStr := "user=tunji dbname=balloon password=" + os.Getenv("PSQL_PASS") + " sslmode=verify-full"
-	// db, err := sqlx.Open("postgres", os.Getenv("DATABASE_URL"))
-	db, err := sqlx.Open("postgres", connStr)
+	// connStr := "user=tunji dbname=balloon password=" + os.Getenv("PSQL_PASS") + " sslmode=verify-full"
+	db, err := sqlx.Open("postgres", os.Getenv("DATABASE_URL"))
+	// db, err := sqlx.Open("postgres", connStr)
 	if err != nil {
 		panic(err)
 	}
