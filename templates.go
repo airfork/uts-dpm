@@ -462,7 +462,13 @@ func (c Controller) renderFindUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// renderEditUser renders and fills out the userPage template
 func (c Controller) renderEditUser(w http.ResponseWriter, r *http.Request) {
+	// redirect if not correct domain
+	v := redirect(w, r)
+	if v {
+		return
+	}
 	u, err := c.getUser(w, r)
 	// If user is not signed in, redirect
 	if err != nil {
