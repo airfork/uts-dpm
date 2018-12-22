@@ -507,17 +507,15 @@ func (c Controller) callAutoSubmit(w http.ResponseWriter, r *http.Request) {
 	err = autoSubmit(c.db, dpms, sender.ID)
 	// If error, render the autogenErr template stating this
 	if err != nil {
-		type autoErr struct {
-			Nav Navbar
-			Err string
-		}
-		n := Navbar{
+		n := navbar{
 			Admin:   sender.Admin,
 			Sup:     sender.Sup,
 			Analyst: sender.Analyst,
 		}
-		auto := autoErr{n, err.Error()}
-		err = c.tpl.ExecuteTemplate(w, "autogenErr.gohtml", auto)
+		auto := err.Error()
+		err = c.tpl.ExecuteTemplate(w, "autogenErr.gohtml", map[string]interface{}{
+			"Nav": n, "Err": auto,
+		})
 		if err != nil {
 			out := fmt.Sprintln("Something went wrong, please try again")
 			fmt.Println(err)

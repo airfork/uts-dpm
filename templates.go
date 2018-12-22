@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 
@@ -12,24 +11,20 @@ import (
 )
 
 // Navbar holds info for templates on what navbar tabs should be displayed
-type Navbar struct {
+type navbar struct {
 	Admin   bool
 	Sup     bool
 	Analyst bool
-	CSRF    template.HTML
 }
 
 // Index holds info for rendering the driver's index page
 type Index struct {
-	Nav   Navbar
 	Types []string
 }
 
 // Auto holds info for rendering the autogen template
 type Auto struct {
-	Nav  Navbar
 	DPMS []dpmDriver
-	Csrf template.HTML
 }
 
 // Approval holds first and lastname as well as the point value for each non approved DPM in the db
@@ -41,8 +36,6 @@ type Approval struct {
 // ApprovalCSRF is a struct holding a list of approvals as well as a csrf input template field
 type ApprovalCSRF struct {
 	List []Approval
-	CSRF template.HTML
-	Nav  Navbar
 }
 
 // Renders the index page
@@ -84,18 +77,15 @@ func (c Controller) renderIndexPage(w http.ResponseWriter, r *http.Request) {
 		ss = append(ss, dpmtype)
 	}
 	// Struct to allow navbar to only show tabs user is allowed to see
-	n := Navbar{
+	n := navbar{
 		Admin:   sender.Admin,
 		Sup:     sender.Sup,
 		Analyst: sender.Analyst,
 	}
-	// Struct to hold navbar struct and the slice of point values
-	in := Index{
-		Nav:   n,
-		Types: ss,
-	}
 	// Render index.gohtml template
-	err = c.tpl.ExecuteTemplate(w, "index.gohtml", in)
+	err = c.tpl.ExecuteTemplate(w, "index.gohtml", map[string]interface{}{
+		"Nav": n, "Types": ss,
+	})
 	if err != nil {
 		out := fmt.Sprintln("Uh-Oh")
 		fmt.Println(err)
@@ -122,14 +112,15 @@ func (c Controller) renderDPM(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/change", http.StatusFound)
 		return
 	}
-	n := Navbar{
+	n := navbar{
 		Admin:   sender.Admin,
 		Sup:     sender.Sup,
 		Analyst: sender.Analyst,
-		CSRF:    csrf.TemplateField(r),
 	}
 	// Render html
-	err = c.tpl.ExecuteTemplate(w, "dpm.gohtml", n)
+	err = c.tpl.ExecuteTemplate(w, "dpm.gohtml", map[string]interface{}{
+		"Nav": n, "csrf": csrf.TemplateField(r),
+	})
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
@@ -142,24 +133,29 @@ func (c Controller) renderDPM(w http.ResponseWriter, r *http.Request) {
 
 // Renders the create user page
 func (c Controller) renderCreateUser(w http.ResponseWriter, r *http.Request) {
-	sender, err := c.getUser(w, r)
+	u, err := c.getUser(w, r)
 	// If user is not signed in, redirect
 	if err != nil {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
 	// user needs to be admin or sup to do this
-	if !sender.Admin {
+	if !u.Admin {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	// if user has not changed password, redirect
-	if !sender.Changed {
+	if !u.Changed {
 		http.Redirect(w, r, "/change", http.StatusFound)
 		return
 	}
+	n := navbar{
+		Admin:   u.Admin,
+		Analyst: u.Analyst,
+		Sup:     u.Sup,
+	}
 	//Render createuser template
-	err = c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"csrf": csrf.TemplateField(r)})
+	err = c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"csrf": csrf.TemplateField(r), "Nav": n})
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
@@ -267,7 +263,7 @@ func (c Controller) renderAutoGen(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Assign values to navbar struct
-	n := Navbar{
+	n := navbar{
 		Admin:   u.Admin,
 		Sup:     u.Sup,
 		Analyst: u.Analyst,
@@ -276,12 +272,10 @@ func (c Controller) renderAutoGen(w http.ResponseWriter, r *http.Request) {
 	dpms, err := autoGen()
 	// If error, render the autogenErr template stating this
 	if err != nil {
-		type autoErr struct {
-			Nav Navbar
-			Err string
-		}
-		auto := autoErr{n, err.Error()}
-		err = c.tpl.ExecuteTemplate(w, "autogenErr.gohtml", auto)
+		auto := err.Error()
+		err = c.tpl.ExecuteTemplate(w, "autogenErr.gohtml", map[string]interface{}{
+			"Nav": n, "Err": auto,
+		})
 		if err != nil {
 			out := fmt.Sprintln("Something went wrong, please try again")
 			fmt.Println(err)
@@ -291,14 +285,11 @@ func (c Controller) renderAutoGen(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	// Assign values to auto struct to be parsed in the template file
-	d := Auto{
-		Nav:  n,
-		DPMS: dpms,
-		Csrf: csrf.TemplateField(r),
-	}
+
 	// Render autogen template and pass in data
-	err = c.tpl.ExecuteTemplate(w, "autogen.gohtml", d)
+	err = c.tpl.ExecuteTemplate(w, "autogen.gohtml", map[string]interface{}{
+		"Nav": n, "dpms": dpms, "csrf": csrf.TemplateField(r),
+	})
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
@@ -380,19 +371,15 @@ func (c Controller) renderApprovals(w http.ResponseWriter, r *http.Request) {
 		list = append(list, a)
 	}
 	// Create navbar struct in order to render html header tabs correctly
-	n := Navbar{
+	n := navbar{
 		Admin:   u.Admin,
 		Sup:     u.Sup,
 		Analyst: u.Analyst,
 	}
-	// container contains all the information the client needs
-	container := ApprovalCSRF{
-		List: list,
-		CSRF: csrf.TemplateField(r),
-		Nav:  n,
-	}
 	// Render approvals template and pass in data
-	err = c.tpl.ExecuteTemplate(w, "approvals.gohtml", container)
+	err = c.tpl.ExecuteTemplate(w, "approvals.gohtml", map[string]interface{}{
+		"List": list, "Nav": n, "csrf": csrf.TemplateField(r),
+	})
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
@@ -417,13 +404,15 @@ func (c Controller) renderDataPage(w http.ResponseWriter, r *http.Request) {
 	if !u.Changed {
 		http.Redirect(w, r, "/change", http.StatusFound)
 	}
-	n := Navbar{
+	n := navbar{
 		Admin:   u.Admin,
 		Sup:     u.Sup,
 		Analyst: u.Analyst,
 	}
 	// Render data page and pass in data
-	err = c.tpl.ExecuteTemplate(w, "data.gohtml", n)
+	err = c.tpl.ExecuteTemplate(w, "data.gohtml", map[string]navbar{
+		"Nav": n,
+	})
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)

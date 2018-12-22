@@ -23,11 +23,17 @@ Thanks very much!-->
 <body>
     <div class="topnav" id="myTopnav">
         <a href="/">Home</a>
+        {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}} 
         <a href="/dpm">DPM</a>
         <a href="/dpm/auto">Autogen</a> 
+        {{end}}
+        {{if or .Nav.Analyst .Nav.Admin}}
         <a href="/data">Data</a> 
         <a href="/approve">Approvals</a>
+        {{end}}
+        {{if .Nav.Admin}}
         <a href="/users/find" class="active--nav">Users</a>
+        {{end}}
         <a href="javascript:void(0);" class="ham" onclick="myFunction()">
             <i class="fa fa-bars"></i>
         </a>

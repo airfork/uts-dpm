@@ -25,15 +25,15 @@
     </div>
     <div class="topnav" id="myTopnav">
         <a href="/">Home</a>
-        {{if or .Sup .Admin .Analyst}} 
+        {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}} 
         <a href="/dpm">DPM</a>
         <a href="/dpm/auto">Autogen</a> 
         {{end}}
-        {{if or .Analyst .Admin}} 
+        {{if or .Nav.Analyst .Nav.Admin}} 
         <a href="/data" class="active--nav">Data</a>
         <a href="/approve">Approvals</a>
         {{end}}
-        {{if .Admin}}
+        {{if .Nav.Admin}}
         <a href="/users/find">Users</a>
         {{end}}
         <a href="javascript:void(0);" class="ham" onclick="myFunction()">

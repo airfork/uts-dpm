@@ -201,8 +201,19 @@ func (c Controller) resetPasswordMessage(w http.ResponseWriter, r *http.Request,
 
 // createUserMessage renders createUser template with a message underneath
 func (c Controller) createUserMessage(w http.ResponseWriter, r *http.Request, message string) {
-	// Render login template
-	err := c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"message": message, "csrf": csrf.TemplateField(r)})
+	u, err := c.getUser(w, r)
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+	n := navbar{
+		Admin:   u.Admin,
+		Analyst: u.Analyst,
+		Sup:     u.Sup,
+	}
+	// Render createUser template
+	err = c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"message": message, "csrf": csrf.TemplateField(r), "Nav": n})
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
@@ -215,12 +226,22 @@ func (c Controller) createUserMessage(w http.ResponseWriter, r *http.Request, me
 
 // createUserFill renders createUser template with some fields prefilled
 func (c Controller) createUserFill(w http.ResponseWriter, r *http.Request, firstname, lastname string) {
-	var err error
+	u, err := c.getUser(w, r)
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+	n := navbar{
+		Admin:   u.Admin,
+		Analyst: u.Analyst,
+		Sup:     u.Sup,
+	}
 	// If lastname does exist, only pass in csrf and firstname, otherwise pass in token, first name, and lastname
 	if lastname == "" {
-		err = c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"firstname": firstname, "csrf": csrf.TemplateField(r)})
+		err = c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"firstname": firstname, "csrf": csrf.TemplateField(r), "Nav": n})
 	} else {
-		err = c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"firstname": firstname, "lastname": lastname, "csrf": csrf.TemplateField(r)})
+		err = c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"firstname": firstname, "lastname": lastname, "csrf": csrf.TemplateField(r), "Nav": n})
 	}
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
