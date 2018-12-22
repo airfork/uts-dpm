@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	_ "github.com/heroku/x/hmetrics/onload"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )

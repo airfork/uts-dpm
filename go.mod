@@ -9,7 +9,7 @@ require (
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/sessions v1.1.3
 	github.com/heroku/go-getting-started v0.0.0-20171212200808-a8bffc1cac53 // indirect
-	github.com/heroku/x v0.0.0-20181102215100-85e5aa5e6aa1 // indirect
+	github.com/heroku/x v0.0.0-20181102215100-85e5aa5e6aa1
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.0.0
 	github.com/mattn/go-isatty v0.0.4 // indirect
