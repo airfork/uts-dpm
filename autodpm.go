@@ -105,7 +105,7 @@ func autoGen() ([]dpmDriver, error) {
 	// This gets the block numbers and the respective abouts of shifts for that block
 	// This if format sh(2,"[01]","3 shifts - 18.00 hours");
 	// But only matching sh(2,"[01]","3
-	re = regexp.MustCompile(`sh\(\d+,"\[\w+\]","\d+`)
+	re = regexp.MustCompile(`sh\(\d+,"[\[\w+\]]+","\d+`)
 	blocks := re.FindAllString(string(body), -1)
 	if blocks == nil {
 		return nil, errors.New("failed to parse blocks")
@@ -115,6 +115,19 @@ func autoGen() ([]dpmDriver, error) {
 	var position int
 	// For each block, get the number of shifts under it, and loop that many positions in shifts array
 	for _, block := range blocks {
+		// If block is special, get the number of shifts under special
+		// Add this number to position variable so that those shifts are passed over in slice iteration below
+		if strings.Contains(block, "Special") {
+			num := string(block[len(block)-1])
+			incrementAmount, err := strconv.Atoi(num)
+			if err != nil {
+				fmt.Println(err)
+				return nil, err
+			}
+			position += incrementAmount
+			fmt.Println("Skipping special shift")
+			continue
+		}
 		// Get block, is in this format [BLOCK]
 		re = regexp.MustCompile(`\[\w+\]`)
 		// Turn block into string
@@ -200,7 +213,7 @@ func autoGen() ([]dpmDriver, error) {
 				}
 				// fmt.Println(d)
 				if color == "ffcc00" {
-					d.DPMType = "Type G: Good! (+1 Point Each)"
+					d.DPMType = "Type G: Good! (+1 Point)"
 					d.Points = "+1"
 					d.Notes = "Thanks!"
 					dpms = append(dpms, d)

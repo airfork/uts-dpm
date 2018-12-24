@@ -1,5 +1,28 @@
-let backdrop = document.querySelector('.backdrop');
-let modal =  document.querySelector('.modal');
+document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.sidenav');
+    var instances = M.Sidenav.init(elems);
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('select');
+    var instances = M.FormSelect.init(elems);
+});
+
+
+// dealing with floating button
+document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.fixed-action-btn');
+    var instances = M.FloatingActionButton.init(elems);
+});
+
+let modal = null;
+document.addEventListener('DOMContentLoaded', function() {
+    let modalElement = document.querySelectorAll('.modal');
+    var instances = M.Modal.init(modalElement);
+    modal = instances[0];
+});
+
+
 let dataList = [];
 let objectList = [];
 
@@ -8,6 +31,7 @@ let request = new XMLHttpRequest();
 request.open('GET', '/dpm/all', true);
 request.onload = () => {
   if (request.status >= 200 && request.status < 400) {
+    let modaltext =  document.querySelector('.modal-content');
     // Success!
     let data = JSON.parse(request.responseText);
     // Get items from data into dataList
@@ -23,8 +47,8 @@ request.onload = () => {
             // Do find dpm data based on index of clicked dpm
             var list = dataList[objectList.indexOf(this)];
             timeObj = timeAndDateFormat(list.startTime, list.endTime, list.date)
-            modal.innerHTML = `
-            <p>Name: ${list.firstName} ${list.lastName}</p>
+            modaltext.innerHTML = `
+            <h4>${list.firstName} ${list.lastName}</h4>
             <p>Points: ${list.points}</p>
             <p>${list.dpmtype}</p>
             <p>Block: ${list.block}</p>
@@ -33,9 +57,7 @@ request.onload = () => {
             <p>Time: ${timeObj.startTime}-${timeObj.endTime}</p>
             <p>Notes: ${list.notes}</p>
             `;
-            // Make backdrop and modal visible
-            backdrop.classList.add('popup');
-            modal.classList.add('popup');
+            modal.open();
         }
     });
   } else {
@@ -44,20 +66,7 @@ request.onload = () => {
   }
 };
 
-request.onerror = () => {
-    // There was a connection error of some sort
-    console.log("There was an error of sometype, please try again")
-  };
-  
 request.send();
-
-// On click of backdrop. remove classes making backdrop and modal visible
-// clear content of modal
-backdrop.onclick = () => {
-    backdrop.classList.remove('popup');
-    modal.classList.remove('popup');
-    modal.innerHTML = '';
-}
 
 // Format the time into more user friendly format
 function timeAndDateFormat(startTime, endTime, date) {

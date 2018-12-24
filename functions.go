@@ -339,7 +339,7 @@ func (c Controller) changeUserPassword(w http.ResponseWriter, r *http.Request) {
 	}
 	// If user enters temporary password for their new password, complain
 	if pass1 == og {
-		out := "Please make your new password different from your temporary one"
+		out := "Please make your new password different from your temporary one."
 		c.changePasswordError(w, r, out)
 		return
 	}

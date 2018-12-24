@@ -2,9 +2,9 @@
 let inputs = document.querySelectorAll('input');
 const csrf = inputs[inputs.length - 1].value;
 let backdrop = document.querySelector('.backdrop');
-let modal =  document.querySelector('.modal');
 let dataList = [];
 let objectList = [];
+let modal = null;
 
 // Send AJAX call to server, to get DPM data
 let request = new XMLHttpRequest();
@@ -17,6 +17,7 @@ request.onload = () => {
     for (i = 0; i < data.length; i++) {
         dataList[i] = data[i];
     }
+    let modalText =  document.querySelector('.modal-content');
     // Add event listener to each dpm that pulls up more information
     document.querySelectorAll('.dpm').forEach((item) => {
         // Push item to object list so I know which dpm is being clicked
@@ -26,7 +27,7 @@ request.onload = () => {
             // Do find dpm data based on index of clicked dpm
             var list = dataList[objectList.indexOf(this)];
             timeObj = timeAndDateFormat(list.startTime, list.endTime, list.date);
-            modal.innerHTML = 
+            modalText.innerHTML = 
              `<p>Driver: ${list.name}</p>
             <p>Supervisor: ${list.supName}
             <p>Points: ${list.points}</p>
@@ -36,15 +37,10 @@ request.onload = () => {
             <p>Date: ${timeObj.date}</p>
             <p>Time: ${timeObj.startTime}-${timeObj.endTime}</p>
             <p>Notes: ${list.notes}</p>
-            <p>Created: ${createdFormat(list.created)}</p>
-            <button>Approve</button>
-            <button>Deny</button>`;
-            // Select two buttons and give them event listeners
-            let buttons = document.querySelectorAll('button');
+            <p>Created: ${createdFormat(list.created)}</p>`;
+            let buttons = document.querySelectorAll('.btn-flat');
             addButtonLogic(buttons, this, list.id, list.points, list.name);
-            // Make backdrop, modal, and buttons visible
-            backdrop.classList.add('popup');
-            modal.classList.add('popup');
+            modal.open();
         }
     });
   } else {
@@ -59,14 +55,6 @@ request.onerror = () => {
   };
   
 request.send();
-
-// On click of backdrop. remove classes making backdrop and modal visible
-// clear content of modal
-backdrop.onclick = () => {
-    backdrop.classList.remove('popup');
-    modal.classList.remove('popup');
-    modal.innerHTML = '';
-}
 
 // Format the time into more user friendly format
 function timeAndDateFormat(startTime, endTime, date) {
@@ -103,20 +91,11 @@ function addButtonLogic(buttons, dpm, id, points, name) {
     buttons[0].onclick = () => {
         dpm.style.display = 'none';
         approve(id, points, name);
-        clearModal();
     }
     buttons[1].onclick = () => {
         dpm.style.display = 'none';
         deny(id);
-        clearModal();
     }
-}
-
-// Clears modal of all of its contents
-function clearModal() {
-    backdrop.classList.remove('popup');
-    modal.classList.remove('popup');
-    modal.innerHTML = '';
 }
 
 // Approve sends AJAX request in order to approve a DPM
@@ -146,3 +125,16 @@ function deny(id) {
     request.setRequestHeader('X-CSRF-Token', csrf);
     request.send();
 }
+
+// Navbar initialized
+document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.sidenav');
+    var instances = M.Sidenav.init(elems);
+});
+
+// Initialize modal
+document.addEventListener('DOMContentLoaded', function() {
+    let modalElement = document.querySelectorAll('.modal');
+    var instances = M.Modal.init(modalElement);
+    modal = instances[0];
+});

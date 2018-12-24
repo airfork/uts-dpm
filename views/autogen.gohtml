@@ -4,59 +4,89 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-
-
-  <!-- Uncomment when wanting to view styling locally -->
-
-  <!-- <link rel="stylesheet" type="text/css" href="../assets/css/main.css" />
-  <link rel="stylesheet" type="text/css" href="../assets/css/shared.css" /> -->
-
-  <!-- Uncomment when wanting to serve files -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
   <link rel="shortcut icon" href="/views/favicon.ico">
-  <link rel="stylesheet" type="text/css" href="/assets/css/main.css" />
-  <link rel="stylesheet" type="text/css" href="/assets/css/shared.css" />
-  <link rel="stylesheet" type="text/css" href="/assets/css/autogen.css" />
-   <!-- Load an icon library to show a hamburger menu (bars) on small screens -->
-   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" type="text/css" href="/assets/css/index.css" />
+  <link rel="stylesheet" type="text/css" href="/assets/css/dpm.css" />
   <title>DPM</title>
 </head>
 <body>
-  <div class="topnav" id="myTopnav">
-      <a href="/">Home</a>
-      {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}} 
-      <a href="/dpm">DPM</a>
-      <a href="/dpm/auto" class="active--nav">Autogen</a> 
-      {{end}}
-      {{if or .Nav.Analyst .Nav.Admin}} 
-      <a href="/data">Data</a> 
-       <a href="/approve">Approvals</a>
-      {{end}}
-      {{if or .Nav.Admin}}
-      <a href="/users/find">Users</a>
-      {{end}}
-      <a href="javascript:void(0);" class="ham" onclick="myFunction()">
-          <i class="fa fa-bars"></i>
-      </a>
-  </div>
-  <section class="main-section">
-    <div class="main-div">
-        <div class="main_list">
-        {{with .dpms}}
-        {{range .}}
-            <p class="list_item">{{.FirstName}} {{.LastName}} [{{.Block}}] {{.StartTime}}-{{.EndTime}} {{.Location}} {{.DPMType}} </p>
-        {{end}}
-        {{end}}
-            <form action="/dpm/auto" method="POST">
-                {{.csrf}}
-                <button>Submit</button>
-            </form>
+    <nav class="blue darken-4">
+        <div class="nav-wrapper">
+          <a href="/" class="brand-logo">Home</a>
+          <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+          <ul class="right hide-on-med-and-down">
+            {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}} 
+            <li><a href="/dpm">DPM</a></li>
+            <li class="active"><a href="/dpm/auto">Autogen</a></li>
+            {{end}}
+            {{if or .Nav.Analyst .Nav.Admin}}
+            <li><a href="/data">Data</a></li>
+            <li><a href="/approve">Approvals</a></li>
+            {{end}}
+            {{if .Nav.Admin}}
+            <li><a href="/users/find">Users</a></li>
+            {{end}}
+          </ul>
         </div>
-    </div>
-  </section>
-  <!-- Uncomment if wanting to view JS locally -->
-  <!-- <script src="../assets/js/shared.js"></script> -->
+    </nav>
+    
+    <ul class="sidenav" id="mobile-demo">
+    {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}} 
+    <li><a href="/dpm">DPM</a></li>
+    <li><a href="/dpm/auto">Autogen</a></li>
+    {{end}}
+    {{if or .Nav.Analyst .Nav.Admin}}
+    <li><a href="/data">Data</a></li>
+    <li><a href="/approve">Approvals</a></li>
+    {{end}}
+    {{if .Nav.Admin}}
+    <li><a href="/users/find">Users</a></li>
+    {{end}}
+    </ul>
 
-  <!-- Uncomment if wanting to serve js -->
-  <script src="/assets/js/shared.js"></script>
+<div class="container">
+        <table class="striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Block/Time</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+    
+            <tbody>
+                {{with .dpms}}
+                {{range .}}
+                <tr>
+                    <td>{{.FirstName}} {{.LastName}}</td>
+                    <td>[{{.Block}}] {{.StartTime}}-{{.EndTime}}</td>
+                    <td>{{.DPMType}}</td>
+                </tr>
+                {{end}}
+                {{end}}
+            </tbody>
+        </table>     
+    </div>
+
+    <div class="fixed-action-btn">
+        <form action="/dpm/auto" method="POST" id="auto-form">
+            {{.csrf}}
+            <a class="btn-floating btn-large waves-effect waves-orange" onclick="document.getElementById('auto-form').submit();">
+            <i class="large material-icons">send</i>
+        </a>
+        </form>
+    </div>
+    
+    <script>
+    // Navbar initialized
+        document.addEventListener('DOMContentLoaded', function() {
+            var elems = document.querySelectorAll('.sidenav');
+            var instances = M.Sidenav.init(elems);
+        });
+    </script>
+
 </body>
 </html>

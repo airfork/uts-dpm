@@ -1,116 +1,82 @@
+// Holds names of all the users for autocomplete box
+let people = [];
+// Relates users to their ids
+let peopleIds = [];
+// Holds the userID of the person loading the page
+let userID = ""
+
+// Send AJAX call to server, to fill up arrays
+let request = new XMLHttpRequest();
+request.open('GET', '/users', true);
+request.onload = () => {
+  if (request.status >= 200 && request.status < 400) {
+    // Success!
+    let data = JSON.parse(request.responseText);
+    // Get ids, people, and the username
+    peopleIds = data.ids;
+    people = data.names;
+    userID = data.userID;
+    let dataobj = {};
+    people.forEach((name) => {
+        dataobj[name] = null;
+    });
+    var elems = document.querySelectorAll('.autocomplete');
+    var instances = M.Autocomplete.init(elems, {
+        data: dataobj,
+        limit: 5,
+    });
+
+  } else {
+    // We reached our target server, but it returned an error
+    console.log('Error');
+  }
+};
+
+request.onerror = () => {
+  // There was a connection error of some sort
+  console.log("There was an error of sometype, please try again")
+};
+
+request.send();
+
 // Get the last input box on the page, which holds a csrf token, and store it
 let inputs = document.querySelectorAll('input');
 const csrf = inputs[inputs.length - 1].value;
-// Selects all the DPM types and adds an event listener to them
-document.querySelectorAll('.type').forEach((item) => {
-    // On click, remove active class from whatever element has it
-    // Then add the class to the clicked element
-    item.onclick = () => {
-        document.querySelector('.active').classList.remove('active');
-        item.classList.toggle('active');
-    }
-});
-
-// Adds an eventlistener to the submit button
-document.querySelectorAll('.submit').forEach((button) => {
-    button.onclick = () => {
-        submitLogic();
-    }
-});
-
-pointsMap = new Map();
-pointsMap.set("A", -5);
-pointsMap.set("B", -10);
-pointsMap.set("C", -15);
-pointsMap.set("D", -20);
-pointsMap.set("G", 2);
-pointsMap.set("L", -2);
-// Sets time and date inputs
-setTimeAndDate();
-
-// Sets time and date inputs based on the current time
-function setTimeAndDate() {
-    // Get date to prefill inputs
-    let d = new Date();
-    // Turn each into a string
-    let month = d.getMonth() + 1; // Add one because January is 0
-    month = month.toString();
-    let minute = d.getMinutes().toString();
-    let hours = d.getHours().toString();
-    let day = d.getDate().toString();
-    // Make sure that the length of each is 2, otherwise browser will complain
-    day = (day.length == 1 ? '0' + day : day);
-    hours = (hours.length == 1 ? '0' + hours : hours);
-    minute = (minute.length == 1 ? '0' + minute : minute);
-    month = (month.length == 1 ? '0' + month : month);
-    // Put time and date in variable then set input values
-    const startTime = `${hours}:${minute}`;
-    const endTime = `${hours}:${minute}`;
-    const date = `${d.getFullYear()}-${month}-${day}`;
-    document.getElementById('date_input').value = date;
-    document.getElementById('startTime_input').value = startTime;
-    document.getElementById('endTime_input').value = endTime;
-}
-
-function getPoints(type) {
-    if (type.length < 6) {
-        return null;
-    }
-    const letter = type[5];
-    if (!pointsMap.has(letter)) {
-        return null;
-    }
-    return pointsMap.get(letter);
-} 
 
 // Parses the inputs and gets information from them
 // Creates and sends JSON object for the server to handle
 function submitLogic() {
     // Takes all of these fields and puts them in an object
     let obj = {};
-    obj.name = document.getElementById('name_input').value;
+    obj.name = document.getElementById('autocomplete-input').value;
     if (people.indexOf(obj.name) == -1) {
-        console.log(`${obj.name} is not a valid name`);
-        return;
+        return "name";
     }
-    obj.block = document.getElementById('block_input').value.toUpperCase();
-    obj.location = document.getElementById('location_input').value.toUpperCase();
-    // if (obj.location == "") {
-    //     console.log('Location cannot be blank');
-    //     return;
-    // }
-    obj.date = document.getElementById('date_input').value;
-    obj.startTime = document.getElementById('startTime_input').value;
-    obj.endTime = document.getElementById('endTime_input').value;
-    obj.notes = document.getElementById('notes_input').value;
-    obj.dpmType = document.querySelector('.active').textContent;
+    obj.block = document.getElementById('block').value.toUpperCase();
+    obj.location = document.getElementById('location').value.toUpperCase();
+    obj.date = document.getElementById('date').value;
+    if (obj.date == "") {
+        return "date";
+    }
+    obj.startTime = document.getElementById('starttime').value;
+    obj.endTime = document.getElementById('endtime').value;
+    if (obj.startTime == "" || obj.endTime == "") {
+        return "time";
+    }
+    obj.notes = document.getElementById('notes').value;
+    obj.dpmType = document.getElementById('type').value;
     obj.sender = userID;
     id = peopleIds[people.indexOf(obj.name)];
     obj.id = id.toString();
-    points = getPoints(obj.dpmType);
-    qty = document.getElementById('qty');
-    if (points == null) {
-        console.log("Point value must be specified");
-        return
-    }
-    typeG = document.getElementById('typeG').textContent;
-    if (obj.dpmType == typeG) {
-        points = (qty.value == "" ? 1 : qty.value);
-    }
-    obj.points = points.toString();
-    // Remove highlight around selected type, highlight default type
-    document.querySelector('.active').classList.remove('active');
-    document.querySelector('#typeG').classList.add('active');
-    // Clear out all inputs
+    obj.points = '0';
+    // Clear out text inputs
     document.querySelectorAll('.input').forEach((input) => {
         input.value = "";
     });
-    qty.value = "";
-    // Fill in date and time inputs
-    setTimeAndDate();
     // Create JSON, then POST to server
     const jObj = JSON.stringify(obj);
     sendDPM(jObj);
+    return true;
 }
 
 // Actually sends the JSON
@@ -122,3 +88,51 @@ function sendDPM(jOBJ) {
     request.setRequestHeader('X-CSRF-Token', csrf);
     request.send(jOBJ);
 }
+
+// Dealing with timepicker forms
+document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.timepicker');
+    var instances = M.Timepicker.init(elems, {
+        twelveHour: false,
+        showClearBtn: true,
+        autoClose: true,
+    });
+});
+
+// dealing with date picker
+document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.datepicker');
+    var instances = M.Datepicker.init(elems, {
+        format: 'yyyy-mm-dd',
+    });
+});
+
+// dealing with selects
+document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('select');
+    var instances = M.FormSelect.init(elems);
+});
+
+// dealing with floating button
+document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.fixed-action-btn');
+    var instances = M.FloatingActionButton.init(elems);
+    elems[0].onclick = () => {
+        submitted = submitLogic();
+        if (submitted == "name") {
+            M.toast({html: 'Please input a valid name.'});
+        } 
+        else if (submitted == "date") {
+            M.toast({html: 'Please provide a date.'});
+        } else if (submitted == "time") {
+            M.toast({html: 'Please input a start and end time.'});
+        } else {
+            M.toast({html: 'DPM Submitted!'});
+        }
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.sidenav');
+    var instances = M.Sidenav.init(elems);
+});

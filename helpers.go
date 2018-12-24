@@ -16,7 +16,7 @@ import (
 )
 
 var typeMap = map[string]int16{
-	"Type G: Good! (+1 Point Each)":                         1,
+	"Type G: Good! (+1 Point)":                              1,
 	"Type G: 200 Hours Safe (+2 Points)":                    2,
 	"Type G: Voluntary Clinic/Road Test Passed (+2 Points)": 2,
 	"Type L: 1-5 Minutes Late to OFF (-2 Points)":           -2,
@@ -76,14 +76,6 @@ func generateDPM(d *dpmRes) *dpm {
 	points, ok := typeMap[dpmType]
 	if !ok {
 		return nil
-	}
-	if d.DpmType == "Type G: Good! (+1 Point Each)" {
-		id64, err = strconv.ParseInt(bm.Sanitize(d.Points), 10, 64)
-		if err != nil {
-			fmt.Println(err)
-			return nil
-		}
-		points = int16(id64)
 	}
 	dpm := &dpm{
 		CreateID:  createID,

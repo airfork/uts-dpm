@@ -1,84 +1,141 @@
 <!DOCTYPE html>
-<html class="no-js">
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>DPM</title>
-    <meta name="description" content="">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/assets/css/dpm.css">
-    <link rel="stylesheet" href="/assets/css/shared.css">
-    <link rel="shortcut icon" href="/views/favicon.ico">
-    <!-- Load an icon library to show a hamburger menu (bars) on small screens -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <link rel="shortcut icon" href="/views/favicon.ico">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <link rel="stylesheet" href="assets/css/index.css">
+  <link rel="stylesheet" href="assets/css/dpm.css">
+  <title>DPM</title>
 </head>
 <body>
-    <div class="topnav" id="myTopnav">
-        <a href="/">Home</a>
-        {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}} 
-        <a href="/dpm" class="active--nav">DPM</a>
-        <a href="/dpm/auto">Autogen</a> 
-        {{end}}
-        {{if or .Nav.Analyst .Nav.Admin}} 
-        <a href="/data">Data</a>
-        <a href="/approve">Approvals</a>
-        {{end}}
-        {{if .Nav.Admin}}
-        <a href="/users/find">Users</a>
-        {{end}}
-        <a href="javascript:void(0);" class="ham" onclick="myFunction()">
-          <i class="fa fa-bars"></i>
+    <nav class="blue darken-4">
+        <div class="nav-wrapper">
+          <a href="/" class="brand-logo">Home</a>
+          <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+          <ul class="right hide-on-med-and-down">
+            {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}} 
+            <li class="active"><a href="/dpm">DPM</a></li>
+            <li><a href="/dpm/auto">Autogen</a></li>
+            {{end}}
+            {{if or .Nav.Analyst .Nav.Admin}}
+            <li><a href="/data">Data</a></li>
+            <li><a href="/approve">Approvals</a></li>
+            {{end}}
+            {{if .Nav.Admin}}
+            <li><a href="/users/find">Users</a></li>
+            {{end}}
+          </ul>
+        </div>
+    </nav>
+    
+    <ul class="sidenav" id="mobile-demo">
+    {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}} 
+    <li><a href="/dpm">DPM</a></li>
+    <li><a href="/dpm/auto">Autogen</a></li>
+    {{end}}
+    {{if or .Nav.Analyst .Nav.Admin}}
+    <li><a href="/data">Data</a></li>
+    <li><a href="/approve">Approvals</a></li>
+    {{end}}
+    {{if .Nav.Admin}}
+    <li><a href="/users/find">Users</a></li>
+    {{end}}
+    </ul>
+
+
+    <div class="container">
+        <div class="row">
+            <div class="col s12">
+                <div class="row">
+                    <div class="input-field col s12 xl4 input">
+                        <input type="text" id="autocomplete-input" class="autocomplete input">
+                        <label class="autocomplete-label" for="autocomplete-input">Name</label>
+                    </div>
+                    <div class="input-field col s12 m4 xl4 input">
+                        <input id="block" type="text" maxlength="4" class="input">
+                        <label for="block">Block</label>
+                    </div>
+                    <div class="input-field col s12 m4 xl4">
+                        <input id="location" type="text" maxlength="3" class="input">
+                        <label for="location">Location</label>
+                    </div>
+                    <div class="input-field col s12 m4 xl4">
+                        <input id="date" type="text" class="datepicker input">
+                        <label for="date">Date</label>
+                    </div>
+                    <div class="input-field col s12 m6 xl4">
+                        <input id="starttime" type="text" class="timepicker input">
+                        <label for="starttime">Start Time</label>
+                    </div>
+                    <div class="input-field col s12 m6 xl4">
+                        <input id="endtime" type="text" class="timepicker input">
+                        <label for="endtime">End Time</label>
+                    </div>
+                    <div class="input-field col s12 xl12">
+                        <select id="type">
+                            <optgroup label="Type G">
+                                <option value="Type G: Good! (+1 Point)">Good! (+1 Point)</option>
+                                <option value="Type G: Voluntary Clinic/Road Test Passed (+2 Points)">Voluntary Clinic/Road Test Passed (+2 Points)</option>
+                                <option value="Type G: 200 Hours Safe (+2 Points)">200 Hours Safe (+2 Points)</option>
+                            </optgroup>
+                            <optgroup label="Type L">
+                                <option value="Type L: 1-5 Minutes Late to OFF (-2 Points)">1-5 Minutes Late to OFF (-2 Points)</option>
+                            </optgroup>
+                            <optgroup label="Type A">
+                                <option value="Type A: 1-5 Minutes Late to BLK (-5 Points)">1-5 Minutes Late to BLK (-5 Points)</option>
+                                <option value="Type A: Improper Shutdown (-5 Points)">Improper Shutdown (-5 Points)</option>
+                                <option value="Type A: Off-Route, No Stops Missed (-5 Points)">Off-Route, No Stops Missed (-5 Points)</option>
+                                <option value="Type A: Out of Uniform (-5 Points)">Out of Uniform (-5 Points)</option>
+                                <option value="Type A: Improper Radio Procedure (-5 Points)">Improper Radio Procedure (-5 Points)</option>
+                                <option value="Type A: Improper Bus Log (-5 Points)">Improper Bus Log (-5 Points)</option>
+                                <option value="Type A: Timesheet/Improper Book Change (-5 Points)">Timesheet/Improper Book Change (-5 Points)</option>
+                                <option value="Type A: 6-15 Minutes Late to Blk (-7 Points)">6-15 Minutes Late to Blk (-7 Points)</option>
+                                <option value="Type A: Custom (-5 Points)">Custom (-5 Points)</option>
+                            </optgroup>
+                            <optgroup label="Type B">
+                                <option value="Type B: Off Route, Stops Missed (-7 Points)">Off Route, Stops Missed (-7 Points)</option>
+                                <option value="Type B: Passenger Inconvenience (-10 Points)">Passenger Inconvenience (-10 Points)</option>
+                                <option value="Type B: Moving Downed Bus (-10 Points)">Moving Downed Bus (-10 Points)</option>
+                                <option value="Type B: Improper 10-50 Procedure (-10 Points)">Improper 10-50 Procedure (-10 Points)</option>
+                                <option value="Type B: 16+ Minutes Late (-10 Points)">16+ Minutes Late (-10 Points)</option>
+                                <option value="Type B: Failed Ride-Along/Road Test (-10 Points)">Failed Ride-Along/Road Test (-10 Points)</option>
+                                <option value="Type B: Custom (-10 Points)">Custom (-10 Points)</option>
+                            </optgroup>
+                            <optgroup label="Type C">
+                                <option value="Type C: Failure to Report 10-50 (-15 Points)">Failure to Report 10-50 (-15 Points)</option>
+                                <option value="Type C: Insubordination (-15 Points)">Insubordination (-15 Points)</option>
+                                <option value="Type C: Safety Offense (-15 Points)">Safety Offense (-15 Points)</option>
+                                <option value="Type C: Preventable Accident 1,2 (-15 Points)">Preventable Accident 1,2 (-15 Points)</option>
+                                <option value="Type C: Custom (-15 Points)">Custom (-15 Points)</option>
+                            </optgroup>
+                            <optgroup label="Type D">
+                                <option value="Type D: DNS/Did Not Show (-15 Points)">DNS/Did Not Show (-15 Points)</option>
+                                <option value="Type D: Preventable Accident 3,4 (-20 Points)">Preventable Accident 3,4 (-20 Points)</option>
+                            </optgroup>
+                        </select>
+                        <label>DPM Type</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <textarea id="notes" class="materialize-textarea input"></textarea>
+                        <label for="notes">Notes</label>
+                    </div>   
+                </div>
+            </div>
+        </div>
+                 
+    </div>
+    {{.csrf}}
+    <div class="fixed-action-btn">
+        <a class="btn-floating btn-large waves-effect waves-orange submit">
+            <i class="large material-icons">send</i>
         </a>
     </div>
-    <section>
-        <div class="main-div">
-            <form class="item auto_form" autocomplete="off">
-                <div class="autocomplete">
-                    <input class="input" id="name_input" type="text" placeholder="Name" maxlength="96">
-                </div>
-            </form>
-            <input class="input item" id="block_input" type="text" placeholder="Block" maxlength="4">
-            <input class="input item" id="location_input" type="text" placeholder="Location" maxlength="3">
-            <input class="input item" id="date_input" type="date" placeholder="Date">
-            <input class="input item" id="startTime_input" type="time" placeholder="Start Time">
-            <input class="input item" id="endTime_input" type="time" placeholder="Start Time">
-            <div class="divide"></div>
-            <h4 class="type active item" id="typeG">Type G: Good! (+1 Point Each)</h4>
-            <input type="number" id="qty" placeholder="QTY" maxlength="2">
-            <h4 class="type item">Type G: Voluntary Clinic/Road Test Passed (+2 Points)</h4>
-            <h4 class="type item">Type G: 200 Hours Safe (+2 Points)</h4>
-            <h4 class="type item">Type L: 1-5 Minutes Late to OFF (-2 Points)</h4>
-            <h4 class="type item">Type A: 1-5 Minutes Late to BLK (-5 Points)</h4>
-            <h4 class="type item">Type A: Improper Shutdown (-5 Points)</h4>
-            <h4 class="type item">Type A: Off-Route, No Stops Missed (-5 Points)</h4>
-            <h4 class="type item">Type A: Out of Uniform (-5 Points)</h4>
-            <h4 class="type item">Type A: Improper Radio Procedure (-5 Points)</h4>
-            <h4 class="type item">Type A: Improper Bus Log (-5 Points)</h4>
-            <h4 class="type item">Type A: Timesheet/Improper Book Change (-5 Points)</h4>
-            <h4 class="type item">Type A: 6-15 Minutes Late to Blk (-7 Points)</h4>
-            <h4 class="type item">Type B: Off Route, Stops Missed (-7 Points)</h4>
-            <h4 class="type item">Type B: Passenger Inconvenience (-10 Points)</h4>
-            <h4 class="type item">Type B: Moving Downed Bus (-10 Points)</h4>
-            <h4 class="type item">Type B: Improper 10-50 Procedure (-10 Points)</h4>
-            <h4 class="type item">Type B: 16+ Minutes Late (-10 Points)</h4>
-            <h4 class="type item">Type B: Failed Ride-Along/Road Test (-10 Points)</h4>
-            <h4 class="type item">Type C: Failure to Report 10-50 (-15 Points)</h4>
-            <h4 class="type item">Type C: Insubordination (-15 Points)</h4>
-            <h4 class="type item">Type C: Safety Offense (-15 Points)</h4>
-            <h4 class="type item">Type C: Preventable Accident 1,2 (-15 Points)</h4>
-            <h4 class="type item">Type D: DNS/Did Not Show (-15 Points)</h4>
-            <h4 class="type item">Type D: Preventable Accident 3,4 (-20 Points)</h4>
-            <h4 class="type item">Type A: Custom (-5 Points)</h4>
-            <h4 class="type item">Type B: Custom (-10 Points)</h4>
-            <h4 class="type item">Type C: Custom (-15 Points)</h4>
-            <input class="input item" id="notes_input" type="text" placeholder="Notes">
-            <button class="submit item">Submit</button>
-            {{.csrf}}
-        </div>
-    </section>
     
-    <script src="../assets/js/dpm.js"async defer></script>
-    <script src="../assets/js/autocomplete.js"async defer></script>
-    <script src="../assets/js/shared.js"async defer></script>
+    <script src="/assets/js/dpm.js"></script>
 </body>
 </html>
