@@ -883,7 +883,7 @@ func (c Controller) usersCSV(w http.ResponseWriter, r *http.Request) {
 	// RIght now, I am creating the headers for the csv file
 	final := "ID,Username,Firstname,Lastname,Admin,Sup,Analyst,Fulltime,Points,Managerid\n"
 	// Query database for required info
-	stmt := `SELECT id, username, firstname, lastname, admin, sup, analyst, fulltime, points, managerid FROM users`
+	stmt := `SELECT id, username, firstname, lastname, admin, sup, analyst, fulltime, points, managerid FROM users ORDER BY lastname, firstname`
 	rows, err := c.db.Query(stmt)
 	defer rows.Close()
 	if err != nil {
@@ -958,7 +958,7 @@ func (c Controller) dpmCSV(w http.ResponseWriter, r *http.Request) {
 	// Right now, I am creating the headers for the csv file
 	final := "ID,Createid,Userid,Firstname,Lastname,Block,Date,Type,Points,Notes,Created,Approved,Location,Start Time,End Time,Ignored\n"
 	// Select everything from this table
-	stmt := `SELECT * FROM dpms`
+	stmt := `SELECT * FROM dpms ORDER BY userid`
 	rows, err := c.db.Query(stmt)
 	defer rows.Close()
 	if err != nil {
