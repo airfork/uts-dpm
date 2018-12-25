@@ -337,6 +337,12 @@ func (c Controller) changeUserPassword(w http.ResponseWriter, r *http.Request) {
 		c.changePasswordError(w, r, out)
 		return
 	}
+	// Check is password is shorter than 8 characters
+	if len(pass1) < 8 {
+		out := "Please make your password at least eight characters long."
+		c.changePasswordError(w, r, out)
+		return
+	}
 	// If user enters temporary password for their new password, complain
 	if pass1 == og {
 		out := "Please make your new password different from your temporary one."
