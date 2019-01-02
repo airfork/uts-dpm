@@ -267,7 +267,7 @@ func autoSubmit(db *sqlx.DB, dpms []dpmDriver, sender int16) error {
 		// Get current time
 		created := time.Now().Format("2006-1-02 15:04:05")
 		// If DPM is positive, can insert it into the db, no need to check fulltimer bool
-		if d.DPMType == "Type G: Good! (+1 Point Each)" {
+		if d.DPMType == "Type G: Good! (+1 Point)" {
 			// Set ponits
 			points = 1
 			// Execute query with values
@@ -286,7 +286,7 @@ func autoSubmit(db *sqlx.DB, dpms []dpmDriver, sender int16) error {
 			_, err := db.Exec(dpmIn, sender, id, d.FirstName, d.LastName, d.Block, d.Date, d.StartTime, d.EndTime, d.DPMType, points, d.Notes, created, d.Location)
 			// If error, fatal, exit function
 			if err != nil {
-				fmt.Println("Autogen input failure, -20 full")
+				fmt.Println("Autogen input failure, -20")
 				fmt.Println(err)
 				return err
 			}

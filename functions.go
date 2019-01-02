@@ -534,7 +534,7 @@ func (c Controller) callAutoSubmit(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
-// sendApprovalLogic sends all unapproved DPMS to the admin requesting the page
+// sendApprovalLogic sends all unapproved DPMS to the user requesting the page
 // Helper function for SendApprovalDPM
 func (c Controller) sendApprovalLogic(w http.ResponseWriter, r *http.Request) {
 	// If can't find user/user not logged in, redirect to login page
@@ -559,24 +559,23 @@ func (c Controller) sendApprovalLogic(w http.ResponseWriter, r *http.Request) {
 	// Variable containing the id of the supervisor who submitted each dpm
 	var supID int16
 	var rows *sql.Rows
-	// If analyst, there is a more complicated query to get the dpms
-	if u.Analyst {
+	if u.Admin {
+		// Query that gets most of the relevant information about each non-approved dpm
+		stmt = `SELECT id, createid, firstname, lastname, block, location, date, starttime, endtime, dpmtype, points, notes, created FROM dpms WHERE approved=false AND ignored=false ORDER BY created DESC`
+		// If analyst, there is a more complicated query to get the dpms
+	} else {
 		stmt = `SELECT a.id, a.createid, a.firstname, a.lastname, a.block, a.location, a.date, a.starttime, a.endtime, a.dpmtype, a.points, a.notes, a.created FROM dpms a
 		JOIN users b ON b.id=a.userid
 		WHERE approved=false AND ignored=false AND managerid=$1 ORDER BY created DESC`
-		//Admin case
-	} else {
-		// Query that gets most of the relevant information about each non-approved dpm
-		stmt = `SELECT id, createid, firstname, lastname, block, location, date, starttime, endtime, dpmtype, points, notes, created FROM dpms WHERE approved=false AND ignored=false ORDER BY created DESC`
 	}
 	// Query that gets the name of the supervisor that submitted each dpm
 	supQuery := `SELECT firstname, lastname FROM users WHERE id=$1`
 	ds := make([]dpmApprove, 0)
-	// If they are an analyst, I need to pass their id into the query
-	if u.Analyst {
-		rows, err = c.db.Query(stmt, u.ID)
-	} else {
+	if u.Admin {
 		rows, err = c.db.Query(stmt)
+		// If they are an analyst, I need to pass their id into the query
+	} else {
+		rows, err = c.db.Query(stmt, u.ID)
 	}
 	defer rows.Close()
 	if err != nil {
@@ -726,8 +725,8 @@ func (c Controller) approveDPMLogic(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	// If analyst, make sure they have access to this dpm
-	if u.Analyst {
+	// If not an admin, make sure they have access to this dpm
+	if !u.Admin {
 		// Select the manager ID for the driver who owns this DPM
 		stmt := `SELECT managerid FROM users a
 		JOIN dpms b ON a.id=b.userid

@@ -326,20 +326,20 @@ func (c Controller) renderApprovals(w http.ResponseWriter, r *http.Request) {
 		rows *sql.Rows
 	)
 	// If user is analyst, a different query is needed
-	if u.Analyst {
+	if u.Admin {
+		// Query that gets name and point value for each dpm
+		stmt = `SELECT firstname, lastname, points FROM dpms WHERE approved=false AND ignored=false ORDER BY created DESC`
+	} else {
 		// Get name and point value of each dpm whose manager is this person
 		stmt = `SELECT a.firstname, a.lastname, a.points FROM dpms a
 		JOIN users b ON b.id=a.userid
 		WHERE approved=false AND ignored=false AND managerid=$1 ORDER BY created DESC`
-	} else {
-		// Query that gets name and point value for each dpm
-		stmt = `SELECT firstname, lastname, points FROM dpms WHERE approved=false AND ignored=false ORDER BY created DESC`
 	}
-	// If they are an analyst, I need to pass their id into the query
-	if u.Analyst {
-		rows, err = c.db.Query(stmt, u.ID)
-	} else {
+	if u.Admin {
 		rows, err = c.db.Query(stmt)
+	} else {
+		// If they are an analyst, I need to pass their id into the query
+		rows, err = c.db.Query(stmt, u.ID)
 	}
 	if err != nil {
 		fmt.Println(err)
