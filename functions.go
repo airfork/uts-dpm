@@ -822,8 +822,8 @@ func (c Controller) denyDPMLogic(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	// If analyst, make sure they have access to this dpm
-	if u.Analyst {
+	// If not an admin, make sure they have access to this dpm
+	if !u.Admin {
 		// Select the manager ID for the driver who owns this DPM
 		stmt := `SELECT managerid FROM users a
 		JOIN dpms b ON a.id=b.userid
