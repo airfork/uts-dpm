@@ -219,8 +219,8 @@ func autoGen() ([]dpmDriver, error) {
 					dpms = append(dpms, d)
 					// If color is red, DNS dpm
 				} else if color == "ff0000" {
-					d.DPMType = "Type D: DNS/Did Not Show (-15 Points)"
-					d.Points = "-15"
+					d.DPMType = "Type D: DNS/Did Not Show (-10 Points)"
+					d.Points = "-10"
 					dpms = append(dpms, d)
 				}
 			}
