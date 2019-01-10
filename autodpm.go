@@ -96,7 +96,7 @@ func autoGen() ([]dpmDriver, error) {
 	// This gets shifts via regex
 	// either swl("952294753",2,"#000000","Brian Newman","959635624","07:00 - 14:20","   7.33 hours","OFF");
 	// or ewl("959635634",2,"#000000","17:20 - 01:00","   7.67 hours","JPA"); if the shift is unassigned
-	re = regexp.MustCompile(`\wwl\("\d+",\d,"#\w+","[\w\d -:,~]+;`)
+	re = regexp.MustCompile(`\wwl\("\d+",\d,"#\w+","[\w\d -:,~><]+;`)
 	shifts := re.FindAllString(string(body), -1)
 	if shifts == nil {
 		return nil, errors.New("failed to parse shifts")
