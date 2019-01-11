@@ -29,6 +29,7 @@ func init() {
 		Path:     "/",
 		MaxAge:   86400, // Max age of one day
 		HttpOnly: true,
+		Secure:   production,
 	}
 	// Check if code is in production
 	if os.Getenv("PRODUCTION") != "" {
