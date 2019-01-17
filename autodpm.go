@@ -92,7 +92,7 @@ func autoGen() ([]dpmDriver, error) {
 	if err != nil {
 		return nil, errors.New("failed to read response from when2work")
 	}
-
+	// fmt.Println(string(body))
 	// This gets shifts via regex
 	// either swl("952294753",2,"#000000","Brian Newman","959635624","07:00 - 14:20","   7.33 hours","OFF");
 	// or ewl("959635634",2,"#000000","17:20 - 01:00","   7.67 hours","JPA"); if the shift is unassigned
@@ -102,10 +102,11 @@ func autoGen() ([]dpmDriver, error) {
 		return nil, errors.New("failed to parse shifts")
 	}
 
-	// This gets the block numbers and the respective abouts of shifts for that block
+	// This gets the block numbers/shift and the respective number of shifts for that block
 	// This if format sh(2,"[01]","3 shifts - 18.00 hours");
 	// But only matching sh(2,"[01]","3
-	re = regexp.MustCompile(`sh\(\d+,"[\[\w+\]]+","\d+`)
+	// The [chararcters] may replaced with something else like Charter
+	re = regexp.MustCompile(`sh\(\d+,"[\[\w+\]a-zA-Z ()]+","\d+`)
 	blocks := re.FindAllString(string(body), -1)
 	if blocks == nil {
 		return nil, errors.New("failed to parse blocks")
@@ -115,9 +116,9 @@ func autoGen() ([]dpmDriver, error) {
 	var position int
 	// For each block, get the number of shifts under it, and loop that many positions in shifts array
 	for _, block := range blocks {
-		// If block is special, get the number of shifts under special
+		// If block is special or Charter(mini)/Charter(setra), get the number of shifts under it
 		// Add this number to position variable so that those shifts are passed over in slice iteration below
-		if strings.Contains(block, "Special") {
+		if strings.Contains(block, "Special") || strings.Contains(block, "Charter") {
 			num := string(block[len(block)-1])
 			incrementAmount, err := strconv.Atoi(num)
 			if err != nil {
@@ -125,7 +126,7 @@ func autoGen() ([]dpmDriver, error) {
 				return nil, err
 			}
 			position += incrementAmount
-			fmt.Println("Skipping special shift")
+			fmt.Println("Skipping charter or special shift")
 			continue
 		}
 		// Get block, is in this format [BLOCK]
