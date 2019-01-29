@@ -92,7 +92,6 @@ func autoGen() ([]dpmDriver, error) {
 	if err != nil {
 		return nil, errors.New("failed to read response from when2work")
 	}
-	// fmt.Println(string(body))
 	// This gets shifts via regex
 	// either swl("952294753",2,"#000000","Brian Newman","959635624","07:00 - 14:20","   7.33 hours","OFF");
 	// or ewl("959635634",2,"#000000","17:20 - 01:00","   7.67 hours","JPA"); if the shift is unassigned
@@ -159,9 +158,9 @@ func autoGen() ([]dpmDriver, error) {
 			re = regexp.MustCompile(`#\w+`)
 			color := string(re.Find([]byte(s)))
 			// Get driver name
-			re = regexp.MustCompile(`"[A-z -]+",`)
+			re = regexp.MustCompile(`"[^,]\D+",`)
 			name := string(re.Find([]byte(s)))
-			// Remove starting quote, comma, and ending quote
+			// Remove starting quote, ending comma, and ending quote
 			name = name[1 : len(name)-2]
 			// Get first and last name
 			ns := strings.Split(name, " ")
