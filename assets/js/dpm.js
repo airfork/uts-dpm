@@ -3,7 +3,9 @@ let people = [];
 // Relates users to their ids
 let peopleIds = [];
 // Holds the userID of the person loading the page
-let userID = ""
+let userID = "";
+//Datepicker element
+let datepicker = null;
 
 // Send AJAX call to server, to fill up arrays
 let request = new XMLHttpRequest();
@@ -73,12 +75,17 @@ function submitLogic() {
     document.querySelectorAll('.input').forEach((input) => {
         input.value = "";
     });
+    // Remove active class from labels
+    document.querySelectorAll('label').forEach((label) => {
+        label.classList.remove('active');
+    });
+    // Reset date picker
+    datePickerInit();
     // Create JSON, then POST to server
     const jObj = JSON.stringify(obj);
     sendDPM(jObj);
     return true;
 }
-
 // Actually sends the JSON
 function sendDPM(jOBJ) {
     let request = new XMLHttpRequest();
@@ -100,14 +107,15 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // dealing with date picker
-document.addEventListener('DOMContentLoaded', function() {
+function datePickerInit() {
     var elems = document.querySelectorAll('.datepicker');
-    var instances = M.Datepicker.init(elems, {
+    M.Datepicker.init(elems, {
         format: 'yyyy-mm-dd',
         defaultDate: new Date(),
         setDefaultDate: true,
     });
-});
+}
+document.addEventListener('DOMContentLoaded', datePickerInit);
 
 // dealing with selects
 document.addEventListener('DOMContentLoaded', function() {
