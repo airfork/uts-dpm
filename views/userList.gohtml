@@ -20,14 +20,14 @@
           <ul class="right hide-on-med-and-down">
             {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}} 
             <li><a href="/dpm">DPM</a></li>
-            <li class="active"><a href="/dpm/auto">Autogen</a></li>
+            <li><a href="/dpm/auto">Autogen</a></li>
             {{end}}
             {{if or .Nav.Analyst .Nav.Admin}}
             <li><a href="/data">Data</a></li>
             <li><a href="/approve">Approvals</a></li>
             {{end}}
             {{if .Nav.Admin}}
-            <li><a href="/users/find">Users</a></li>
+            <li class="active"><a href="/users/find">Users</a></li>
             {{end}}
           </ul>
         </div>
@@ -51,20 +51,18 @@
         <table class="striped">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Block/Time</th>
-                    <th>Type</th>
+                    <th>Lastname</th>
+                    <th>First Name</th>
                 </tr>
             </thead>
     
             <tbody>
-                {{with .dpms}}
+                {{with .user}}
                 {{range .}}
-                <tr>
-                    <td>{{.FirstName}} {{.LastName}}</td>
-                    <td>[{{.Block}}] {{.StartTime}}-{{.EndTime}}</td>
-                    <td>{{.DPMType}}</td>
-                </tr>
+                    <tr onclick="window.location.href = '/users/edit/{{.id}}';">
+                            <td>{{.lastname}}</td>
+                            <td>{{.firstname}}</td>
+                    </tr>
                 {{end}}
                 {{end}}
             </tbody>

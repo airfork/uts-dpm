@@ -569,3 +569,62 @@ func (c Controller) renderEditUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (c Controller) renderUserList(w http.ResponseWriter, r *http.Request) {
+	u, err := c.getUser(w, r)
+	// If user is not signed in, redirect
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+	// user needs to be admin or sup to do this
+	if !u.Admin {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// if user has not changed password, redirect
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+	// Get all users
+	rows, err := c.db.Query("SELECT firstname, lastname, id FROM users ORDER BY lastname")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+	// Slices to hold names and ids
+	users := make([]map[string]string, 0)
+	// Iterate through rows returned filling slices with infor
+	for rows.Next() {
+		var (
+			firstname string
+			lastname  string
+			id        string
+		)
+		rows.Scan(&firstname, &lastname, &id)
+		m := map[string]string{
+			"firstname": firstname,
+			"lastname":  lastname,
+			"id":        id,
+		}
+		users = append(users, m)
+	}
+	n := navbar{
+		Admin:   u.Admin,
+		Sup:     u.Sup,
+		Analyst: u.Analyst,
+	}
+	data := map[string]interface{}{
+		"Nav":  n,
+		"user": users,
+	}
+	err = c.tpl.ExecuteTemplate(w, "userList.gohtml", data)
+	if err != nil {
+		out := fmt.Sprintln("Something went wrong, please try again")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(out))
+	}
+}

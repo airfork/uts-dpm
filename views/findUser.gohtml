@@ -46,7 +46,7 @@
                 <div class="form__field">
                     <input type="submit" value="Find">
                 </div>
-                <p class="text--center">Find a user, or create one if they do not exist. This is case sensitive. Typing in 'reset' will allow you reset passwords.</p>
+                <p class="text--center">Find a user, or create one if they do not exist. This is case sensitive. Typing in 'reset' will allow you reset passwords. Typing in 'list' will list all users.</p>
                 {{.csrf}}
             </form>
         
@@ -56,11 +56,8 @@
     </section>
 
     <script>
-        // Navbar initialized
-        document.addEventListener('DOMContentLoaded', function() {
-            var elems = document.querySelectorAll('.sidenav');
-            var instances = M.Sidenav.init(elems);
-        });
+        // initialize elements
+        M.AutoInit();
     </script>
 </body>
 </html>

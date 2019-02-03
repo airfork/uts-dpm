@@ -1031,6 +1031,11 @@ func (c Controller) findUser(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/users/reset", http.StatusFound)
 		return
 	}
+	// List is keyword to show list of users
+	if name == "list" {
+		http.Redirect(w, r, "/users/list", http.StatusFound)
+		return
+	}
 	// Split name into first and last, if applicabale
 	ns := strings.Split(name, " ")
 	// Sanitize first name and put it in the format "%firstname%"
