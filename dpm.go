@@ -253,12 +253,16 @@ func (c Controller) findForm(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// updateUser handles post requests to /users/edit/{id}
+// updateUser handles post and delete requests to /users/edit/{id}
 func (c Controller) updateUser(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
 		return
 	}
-	c.editUser(w, r)
+	if r.Method == "DELETE" {
+		c.deleteUser(w, r)
+	} else if r.Method == "POST" {
+		c.editUser(w, r)
+	}
 }

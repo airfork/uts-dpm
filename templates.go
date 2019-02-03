@@ -54,7 +54,7 @@ func (c Controller) renderIndexPage(w http.ResponseWriter, r *http.Request) {
 	}
 	// Get the type of each DPM a user has
 	// Need to get approved DPMs that are not being ignored
-	stmt := `SELECT dpmtype FROM dpms WHERE userid=$1 AND approved=true AND ignored=false ORDER BY created DESC`
+	stmt := `SELECT dpmtype FROM dpms WHERE userid=$1 AND approved=true AND ignored=false AND created > now() - interval '6 months' ORDER BY created DESC`
 	ss := make([]string, 0)
 	// Make query
 	rows, err := c.db.Query(stmt, sender.ID)

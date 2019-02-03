@@ -104,24 +104,16 @@
     </div>
 
     <div class="fixed-action-btn">
-        <a class="btn-floating btn-large waves-effect waves-orange" style="background-color: #e94c1d;" onclick="document.getElementById('edit-form').submit();">
+        <a class="btn-floating btn-large waves-effect waves-orang tooltipped" style="background-color: #e94c1d;" data-position="left" data-tooltip="Update User" id="send-btn">
             <i class="large material-icons">send</i>
         </a>
+        <ul>
+            <li><a data-position="left" data-tooltip="Delete User" class="btn tooltipped btn-floating red"><i class="material-icons" id="delete-btn">delete_forever</i></a></li>
+        </ul>
     </div>
 
 
-    <script>
-        // Navbar initialized
-        document.addEventListener('DOMContentLoaded', function() {
-            var elems = document.querySelectorAll('.sidenav');
-            var instances = M.Sidenav.init(elems);
-        });
-        // dealing with selects
-        document.addEventListener('DOMContentLoaded', function() {
-            var elems = document.querySelectorAll('select');
-            var instances = M.FormSelect.init(elems);
-        });
-    </script>
+    <script src="/assets/js/editUser.js"></script>
 </body>
 </html>
 

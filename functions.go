@@ -638,7 +638,7 @@ func (c Controller) sendDriverLogic(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	stmt := `SELECT firstname, lastname, block, location, date, starttime, endtime, dpmtype, points, notes FROM dpms WHERE userid=$1 AND approved=true AND ignored=false ORDER BY created DESC`
+	stmt := `SELECT firstname, lastname, block, location, date, starttime, endtime, dpmtype, points, notes FROM dpms WHERE userid=$1 AND approved=true AND ignored=false AND created > now() - interval '6 months' ORDER BY created DESC`
 	ds := make([]dpmDriver, 0)
 	rows, err := c.db.Queryx(stmt, u.ID)
 	defer rows.Close()
@@ -1144,5 +1144,73 @@ func (c Controller) editUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.Redirect(w, r, r.URL.String(), http.StatusFound)
+	return
+}
+
+// deleteUser deletes a user from the database
+func (c Controller) deleteUser(w http.ResponseWriter, r *http.Request) {
+	u, err := c.getUser(w, r)
+	// Validate user
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		fmt.Println(err)
+		return
+	}
+	// Only admins can do this
+	if !u.Admin {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// Redirect if still on temporary password
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+	// Get user id from url and convert it to an int
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Make sure admins can't delete themselves
+	if u.ID == int16(id) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+	// Delete all of the users dpms
+	stmt := `DELETE FROM dpms WHERE userid=$1`
+	_, err = c.db.Exec(stmt, id)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Change dpms potentially created by deleted user to show that they are created by the admin deleting the user
+	stmt = `UPDATE dpms SET createid=$1 WHERE createid=$2`
+	_, err = c.db.Exec(stmt, u.ID, id)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Make any users potentially managed by deleted user managed by admin calling the route
+	stmt = `UPDATE users SET managerid=$1 WHERE managerid=$2`
+	_, err = c.db.Exec(stmt, u.ID, id)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Delete user from database
+	stmt = `DELETE FROM users WHERE id=$1`
+	_, err = c.db.Exec(stmt, id)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 	return
 }
