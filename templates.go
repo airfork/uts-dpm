@@ -464,7 +464,7 @@ func (c Controller) renderEditUser(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
-	// user needs to be admin or sup to do this
+	// user needs to be admin
 	if !u.Admin {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -577,7 +577,7 @@ func (c Controller) renderUserList(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
-	// user needs to be admin or sup to do this
+	// user needs to be admin to do this
 	if !u.Admin {
 		w.WriteHeader(http.StatusNotFound)
 		return
