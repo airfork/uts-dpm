@@ -1,101 +1,192 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"mime/quotedprintable"
-	"net/smtp"
-	"strings"
+	"log"
+	"os"
+
+	mailgun "github.com/mailgun/mailgun-go"
+	"github.com/matcornic/hermes/v2"
 )
 
-/**
-	Very slightly modified from https://github.com/tangingw/go_smtp
-	Mainly added comments and changed a few exported variables to non exported
-**/
+var yourDomain = "airfork.icu"
 
-const (
-	/**
-		Gmail SMTP Server
-	**/
-	smtpServer = "smtp.gmail.com"
-)
+var privateAPIKey = os.Getenv("MAILGUN_KEY")
 
-// Holds the information about who is sending the email
-type sender struct {
-	User     string
-	Password string
+// sendPasswordChanged sends confirmation of a changed password to user
+func sendPasswordChanged(recipient string) {
+	h := hermes.Hermes{
+		// Optional Theme
+		// Theme: new(Default)
+		Product: hermes.Product{
+			// Appears in header & footer of e-mails
+			Name:      "University Transit Service",
+			Link:      "https://www.airfork.icu/",
+			Copyright: "Copyright © 2019 University Transit Service. All rights reserved.",
+		},
+	}
+
+	email := hermes.Email{
+		Body: hermes.Body{
+			Greeting: "",
+			Name:     "Tunji Afolabi-Brown",
+			Intros: []string{
+				"Your password has been successfully changed. If you did not authorize this change, please contact an admin.",
+			},
+		},
+	}
+	// Generate an HTML email with the provided contents (for modern clients)
+	body, err := h.GenerateHTML(email)
+	if err != nil {
+		fmt.Println("Failed to generate email")
+		fmt.Println(err)
+	}
+	// Generate the plaintext version of the e-mail (for clients that do not support xHTML)
+	emailText, err := h.GeneratePlainText(email)
+	if err != nil {
+		fmt.Println("Failed to generate plaintext")
+		fmt.Println(err)
+	}
+
+	// Create an instance of the Mailgun Client
+	mg := mailgun.NewMailgun(yourDomain, privateAPIKey)
+
+	sender := "mail@airfork.icu"
+	subject := "Password Has Been Reset"
+
+	sendMessage(mg, sender, subject, emailText, body, recipient)
 }
 
-// NewSender creates a new sender struct
-func newSender(Username, Password string) sender {
+// sendResetPasswordEmail sends an email to user after their password has been reset by an admin
+func sendResetPasswordEmail(recipient, pass string) {
+	h := hermes.Hermes{
+		// Optional Theme
+		// Theme: new(Default)
+		Product: hermes.Product{
+			// Appears in header & footer of e-mails
+			Name:      "University Transit Service",
+			Link:      "https://www.airfork.icu/",
+			Copyright: "Copyright © 2019 University Transit Service. All rights reserved.",
+		},
+	}
 
-	return sender{Username, Password}
+	email := hermes.Email{
+		Body: hermes.Body{
+			Greeting: "",
+			Name:     "Tunji Afolabi-Brown",
+			Intros: []string{
+				"Your password has been reset.",
+			},
+			Dictionary: []hermes.Entry{
+				{Key: "Temporary Password", Value: pass},
+			},
+			Actions: []hermes.Action{
+				{
+					Instructions: `Please copy your temporary password and sign in to change your password.`,
+					Button: hermes.Button{
+						// Color: "#22BC66", // Optional action button color
+						Text: "Log In",
+						Link: "https://www.airfork.icu/login",
+					},
+				},
+			},
+			Outros: []string{
+				"If this email was unexpected, please contact an admin and or manager.",
+			},
+		},
+	}
+
+	// Generate an HTML email with the provided contents (for modern clients)
+	body, err := h.GenerateHTML(email)
+	if err != nil {
+		fmt.Println("Failed to generate email")
+		fmt.Println(err)
+	}
+	// Generate the plaintext version of the e-mail (for clients that do not support xHTML)
+	emailText, err := h.GeneratePlainText(email)
+	if err != nil {
+		fmt.Println("Failed to generate plaintext")
+		fmt.Println(err)
+	}
+
+	// Create an instance of the Mailgun Client
+	mg := mailgun.NewMailgun(yourDomain, privateAPIKey)
+
+	sender := "mail@airfork.icu"
+	subject := "Password Reset"
+
+	sendMessage(mg, sender, subject, emailText, body, recipient)
 }
 
-// SendMail is what actually sends the mail
-func (sender sender) SendMail(Dest []string, Subject, bodyMessage string) {
+// sendNewUserEmail sends email to user when then are initially added to the app
+func sendNewUserEmail(recipient, pass string) {
+	h := hermes.Hermes{
+		// Optional Theme
+		// Theme: new(Default)
+		Product: hermes.Product{
+			// Appears in header & footer of e-mails
+			Name:      "University Transit Service",
+			Link:      "https://www.airfork.icu/",
+			Copyright: "Copyright © 2019 University Transit Service. All rights reserved.",
+		},
+	}
 
-	msg := "From: " + sender.User + "\n" +
-		"To: " + strings.Join(Dest, ",") + "\n" +
-		"Subject: " + Subject + "\n" + bodyMessage
+	email := hermes.Email{
+		Body: hermes.Body{
+			Name: "Tunji Afolabi-Brown",
+			Intros: []string{
+				"You have been added to UTS DPM.",
+			},
+			Dictionary: []hermes.Entry{
+				{Key: "Temporary Password", Value: pass},
+			},
+			Actions: []hermes.Action{
+				{
+					Instructions: `To get started, please copy your temporay password and use it sign in along with your email address.`,
+					Button: hermes.Button{
+						// Color: "#22BC66", // Optional action button color
+						Text: "Log In",
+						Link: "https://www.airfork.icu/login",
+					},
+				},
+			},
+			Outros: []string{
+				"If this email was unexpected, please ignore it or contact an admin and or manager.",
+			},
+		},
+	}
 
-	err := smtp.SendMail(smtpServer+":587",
-		smtp.PlainAuth("", sender.User, sender.Password, smtpServer),
-		sender.User, Dest, []byte(msg))
+	// Generate an HTML email with the provided contents (for modern clients)
+	body, err := h.GenerateHTML(email)
+	if err != nil {
+		fmt.Println("Failed to generate email")
+		fmt.Println(err)
+	}
+	// Generate the plaintext version of the e-mail (for clients that do not support xHTML)
+	emailText, err := h.GeneratePlainText(email)
+	if err != nil {
+		fmt.Println("Failed to generate plaintext")
+		fmt.Println(err)
+	}
+
+	// Create an instance of the Mailgun Client
+	mg := mailgun.NewMailgun(yourDomain, privateAPIKey)
+
+	sender := "mail@airfork.icu"
+	subject := "Welcome to UTS DPM"
+
+	sendMessage(mg, sender, subject, emailText, body, recipient)
+}
+
+// sendMessage handles actually sending out the email
+func sendMessage(mg mailgun.Mailgun, sender, subject, body, html, recipient string) {
+	message := mg.NewMessage(sender, subject, body, recipient)
+	message.SetHtml(html)
+	resp, id, err := mg.Send(message)
 
 	if err != nil {
-
-		fmt.Printf("smtp error: %s", err)
-		return
+		log.Fatal(err)
 	}
 
-	fmt.Println("Mail sent successfully!")
-}
-
-// WriteEmail writes the email content
-func (sender sender) WriteEmail(dest []string, contentType, subject, bodyMessage string) string {
-
-	header := make(map[string]string)
-	header["From"] = sender.User
-
-	receipient := ""
-
-	for _, user := range dest {
-		receipient = receipient + user
-	}
-
-	header["To"] = receipient
-	header["Subject"] = subject
-	header["MIME-Version"] = "1.0"
-	header["Content-Type"] = fmt.Sprintf("%s; charset=\"utf-8\"", contentType)
-	header["Content-Transfer-Encoding"] = "quoted-printable"
-	header["Content-Disposition"] = "inline"
-
-	message := ""
-
-	for key, value := range header {
-		message += fmt.Sprintf("%s: %s\r\n", key, value)
-	}
-
-	var encodedMessage bytes.Buffer
-
-	finalMessage := quotedprintable.NewWriter(&encodedMessage)
-	finalMessage.Write([]byte(bodyMessage))
-	finalMessage.Close()
-
-	message += "\r\n" + encodedMessage.String()
-
-	return message
-}
-
-// WriteHTMLEmail writes the email while allowing html text
-func (sender sender) WriteHTMLEmail(dest []string, subject, bodyMessage string) string {
-
-	return sender.WriteEmail(dest, "text/html", subject, bodyMessage)
-}
-
-// WritePlainEmail writes the email with plain text
-func (sender sender) WritePlainEmail(dest []string, subject, bodyMessage string) string {
-
-	return sender.WriteEmail(dest, "text/plain", subject, bodyMessage)
+	fmt.Printf("ID: %s Resp: %s\n", id, resp)
 }

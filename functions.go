@@ -205,12 +205,12 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 		c.createUserMessage(w, r, out)
 		return
 	}
-	// Generate 16 character random password for the user and send it to them
+	// Generate temp password
 	pass := gotp.RandomSecret(16)
 	// Create go routine to handle sending the email
 	// Only send email if not testing
 	if !test {
-		go sendTempPass(username, pass)
+		go sendNewUserEmail(username, pass)
 	}
 	// Get password hash
 	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.MinCost)
@@ -377,7 +377,7 @@ func (c Controller) changeUserPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Send password change email
-	go sendPassChangeMail(u.Username)
+	go sendPasswordChanged(u.Username)
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
@@ -446,10 +446,10 @@ func (c Controller) resetPassword(w http.ResponseWriter, r *http.Request) {
 		c.resetPasswordMessage(w, r, out)
 		return
 	}
-	// Generate 16 character random password for the user and send it to them
+	// Generate random password for user
 	pass := gotp.RandomSecret(16)
 	// Send email telling user than an admin has reset your password
-	go sendAdminTempPass(u.Username, pass)
+	go sendResetPasswordEmail(u.Username, pass)
 	// Get password hash
 	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.MinCost)
 	if err != nil {
@@ -778,9 +778,11 @@ func (c Controller) approveDPMLogic(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	if !fulltime && points < 0 {
-		go negativeDPMEmail(username, dpmtype)
-	}
+
+	// If negative DPMS get sent to drivers upon approval, the code would go here
+	// if !fulltime && points < 0 {
+	// 	go negativeDPMEmail(username, dpmtype)
+	// }
 	w.WriteHeader(http.StatusOK)
 }
 
