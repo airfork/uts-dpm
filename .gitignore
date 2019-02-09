@@ -2,3 +2,5 @@ node_modules/
 dpm
 js/
 *.csv
+*.txt
+package-lock.json

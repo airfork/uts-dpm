@@ -26,9 +26,9 @@ request.onload = function () {
 
     for (var i = 0; i < dpmList.length; i++) {
       // Push item to object list so I know which dpm is being clicked
-      objectList.push(item);
+      objectList.push(dpmList[i]);
 
-      item.onclick = function () {
+      dpmList[i].onclick = function () {
         // Each object is mapped by index to dpm data
         // Do find dpm data based on index of clicked dpm
         var list = dataList[objectList.indexOf(this)];
@@ -63,7 +63,7 @@ function timeAndDateFormat(startTime, endTime, date) {
   var fulldate = "".concat(month, "-").concat(day, "-").concat(year);
   var fulltime = startHour + startMinute;
   var fullEndTime = endHour + endMinute;
-  t = {};
+  var t = {};
   t.date = fulldate;
   t.startTime = fulltime;
   t.endTime = fullEndTime;
