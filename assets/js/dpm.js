@@ -73,7 +73,7 @@ function submitLogic() {
   obj.notes = document.getElementById('notes').value;
   obj.dpmType = document.getElementById('type').value;
   obj.sender = userID;
-  id = peopleIds[people.indexOf(obj.name)];
+  var id = peopleIds[people.indexOf(obj.name)];
   obj.id = id.toString();
   obj.points = '0'; // Clear out text inputs
 
@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var instances = M.FloatingActionButton.init(elems);
 
   elems[0].onclick = function () {
-    submitted = submitLogic();
+    var submitted = submitLogic();
 
     if (submitted == "name") {
       M.toast({

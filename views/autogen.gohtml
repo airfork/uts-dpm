@@ -48,29 +48,38 @@
     </ul>
 
 <div class="container">
-        <table class="striped">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Block/Time</th>
-                    <th>Type</th>
-                </tr>
-            </thead>
-    
-            <tbody>
-                {{with .dpms}}
-                {{range .}}
-                <tr>
-                    <td>{{.FirstName}} {{.LastName}}</td>
-                    <td>[{{.Block}}] {{.StartTime}}-{{.EndTime}}</td>
-                    <td>{{.DPMType}}</td>
-                </tr>
-                {{end}}
-                {{end}}
-            </tbody>
-        </table>     
+    <table class="striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Block/Time</th>
+                <th>Type</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {{with .dpms}}
+            {{range .}}
+            <tr>
+                <td>{{.FirstName}} {{.LastName}}</td>
+                <td>[{{.Block}}] {{.StartTime}}-{{.EndTime}}</td>
+                <td>{{.DPMType}}</td>
+            </tr>
+            {{end}}
+            {{end}}
+        </tbody>
+    </table>     
+</div>
+
+    <div class="fixed-action-btn">
+        <form action="/dpm/auto" method="POST" id="auto-form">
+            {{.csrf}}
+            <a class="btn-floating btn-large waves-effect waves-orange tooltipped" data-position="left" data-tooltip="Submit DPMs" onclick="document.getElementById('auto-form').submit();">
+            <i class="large material-icons">send</i>
+        </a>
+        </form>
     </div>
-  
+
     <script>
         // initialize elements
         M.AutoInit();

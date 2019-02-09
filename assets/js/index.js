@@ -31,7 +31,7 @@ request.onload = function () {
 
     var data = JSON.parse(request.responseText); // Get items from data into dataList
 
-    for (i = 0; i < data.length; i++) {
+    for (var i = 0; i < data.length; i++) {
       dataList[i] = data[i];
     } // Add event listener to each dpm that pulls up more information
 
@@ -44,7 +44,7 @@ request.onload = function () {
         // Each object is mapped by index to dpm data
         // Do find dpm data based on index of clicked dpm
         var list = dataList[objectList.indexOf(this)];
-        timeObj = timeAndDateFormat(list.startTime, list.endTime, list.date);
+        var timeObj = timeAndDateFormat(list.startTime, list.endTime, list.date);
         modaltext.innerHTML = "\n            <h4>".concat(list.firstName, " ").concat(list.lastName, "</h4>\n            <p>Points: ").concat(list.points, "</p>\n            <p>").concat(list.dpmtype, "</p>\n            <p>Block: ").concat(list.block, "</p>\n            <p>Location: ").concat(list.location, "</p>\n            <p>Date: ").concat(timeObj.date, "</p>\n            <p>Time: ").concat(timeObj.startTime, "-").concat(timeObj.endTime, "</p>\n            <p>Notes: ").concat(list.notes, "</p>\n            ");
         modal.open();
       };
@@ -58,17 +58,17 @@ request.onload = function () {
 request.send(); // Format the time into more user friendly format
 
 function timeAndDateFormat(startTime, endTime, date) {
-  year = date.substring(0, 4);
-  month = date.substring(5, 7);
-  day = date.substring(8, 10);
-  startHour = startTime.substring(11, 13);
-  startMinute = startTime.substring(14, 16);
-  endHour = endTime.substring(11, 13);
-  endMinute = endTime.substring(14, 16);
-  fulldate = "".concat(month, "-").concat(day, "-").concat(year);
-  fulltime = startHour + startMinute;
-  fullEndTime = endHour + endMinute;
-  t = {};
+  var year = date.substring(0, 4);
+  var month = date.substring(5, 7);
+  var day = date.substring(8, 10);
+  var startHour = startTime.substring(11, 13);
+  var startMinute = startTime.substring(14, 16);
+  var endHour = endTime.substring(11, 13);
+  var endMinute = endTime.substring(14, 16);
+  var fulldate = "".concat(month, "-").concat(day, "-").concat(year);
+  var fulltime = startHour + startMinute;
+  var fullEndTime = endHour + endMinute;
+  var t = {};
   t.date = fulldate;
   t.startTime = fulltime;
   t.endTime = fullEndTime;
