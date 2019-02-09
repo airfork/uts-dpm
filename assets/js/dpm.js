@@ -77,13 +77,19 @@ function submitLogic() {
   obj.id = id.toString();
   obj.points = '0'; // Clear out text inputs
 
-  document.querySelectorAll('.input').forEach(function (input) {
-    input.value = "";
-  }); // Remove active class from labels
+  var inputList = document.querySelectorAll('.input');
 
-  document.querySelectorAll('label').forEach(function (label) {
-    label.classList.remove('active');
-  }); // Reset date picker
+  for (var i = 0; i < inputList.length; i++) {
+    inputList[i].value = "";
+  } // Remove active class from labels
+
+
+  var labelList = document.querySelectorAll('label');
+
+  for (var i = 0; i < labelList[i]; i++) {
+    labelList[i].classList.remove('active');
+  } // Reset date picker
+
 
   datePickerInit(); // Create JSON, then POST to server
 
