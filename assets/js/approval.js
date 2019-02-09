@@ -16,13 +16,15 @@ request.onload = function () {
     // Success!
     var data = JSON.parse(request.responseText); // Get items from data into dataList
 
-    for (i = 0; i < data.length; i++) {
+    for (var i = 0; i < data.length; i++) {
       dataList[i] = data[i];
     }
 
     var modalText = document.querySelector('.modal-content'); // Add event listener to each dpm that pulls up more information
 
-    document.querySelectorAll('.dpm').forEach(function (item) {
+    var dpmList = document.querySelectorAll('.dpm');
+
+    for (var i = 0; i < dpmList.length; i++) {
       // Push item to object list so I know which dpm is being clicked
       objectList.push(item);
 
@@ -30,13 +32,13 @@ request.onload = function () {
         // Each object is mapped by index to dpm data
         // Do find dpm data based on index of clicked dpm
         var list = dataList[objectList.indexOf(this)];
-        timeObj = timeAndDateFormat(list.startTime, list.endTime, list.date);
+        var timeObj = timeAndDateFormat(list.startTime, list.endTime, list.date);
         modalText.innerHTML = "<p>Driver: ".concat(list.name, "</p>\n            <p>Supervisor: ").concat(list.supName, "\n            <p>Points: ").concat(list.points, "</p>\n            <p>").concat(list.dpmtype, "</p>\n            <p>Block: ").concat(list.block, "</p>\n            <p>Location: ").concat(list.location, "</p>\n            <p>Date: ").concat(timeObj.date, "</p>\n            <p>Time: ").concat(timeObj.startTime, "-").concat(timeObj.endTime, "</p>\n            <p>Notes: ").concat(list.notes, "</p>\n            <p>Created: ").concat(createdFormat(list.created), "</p>");
         var buttons = document.querySelectorAll('.btn-flat');
         addButtonLogic(buttons, this, list.id, list.points, list.name);
         modal.open();
       };
-    });
+    }
   } else {
     // We reached our target server, but it returned an error
     console.log('Error');
@@ -51,16 +53,16 @@ request.onerror = function () {
 request.send(); // Format the time into more user friendly format
 
 function timeAndDateFormat(startTime, endTime, date) {
-  year = date.substring(0, 4);
-  month = date.substring(5, 7);
-  day = date.substring(8, 10);
-  startHour = startTime.substring(11, 13);
-  startMinute = startTime.substring(14, 16);
-  endHour = endTime.substring(11, 13);
-  endMinute = endTime.substring(14, 16);
-  fulldate = "".concat(month, "-").concat(day, "-").concat(year);
-  fulltime = startHour + startMinute;
-  fullEndTime = endHour + endMinute;
+  var year = date.substring(0, 4);
+  var month = date.substring(5, 7);
+  var day = date.substring(8, 10);
+  var startHour = startTime.substring(11, 13);
+  var startMinute = startTime.substring(14, 16);
+  var endHour = endTime.substring(11, 13);
+  var endMinute = endTime.substring(14, 16);
+  var fulldate = "".concat(month, "-").concat(day, "-").concat(year);
+  var fulltime = startHour + startMinute;
+  var fullEndTime = endHour + endMinute;
   t = {};
   t.date = fulldate;
   t.startTime = fulltime;
@@ -70,12 +72,12 @@ function timeAndDateFormat(startTime, endTime, date) {
 
 
 function createdFormat(createdDate) {
-  year = createdDate.substring(0, 4);
-  month = createdDate.substring(5, 7);
-  day = createdDate.substring(8, 10);
-  startHour = createdDate.substring(11, 13);
-  startMinute = createdDate.substring(14, 16);
-  fullDate = "".concat(month, "/").concat(day, "/").concat(year, " @ ").concat(startHour).concat(startMinute);
+  var year = createdDate.substring(0, 4);
+  var month = createdDate.substring(5, 7);
+  var day = createdDate.substring(8, 10);
+  var startHour = createdDate.substring(11, 13);
+  var startMinute = createdDate.substring(14, 16);
+  var fullDate = "".concat(month, "/").concat(day, "/").concat(year, " @ ").concat(startHour).concat(startMinute);
   return fullDate;
 }
 
@@ -102,11 +104,11 @@ function approve(id, points, name) {
   request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
   request.setRequestHeader('X-CSRF-Token', csrf); // Create object to hold name and points values for the DPM
 
-  temp = {};
+  var temp = {};
   temp.points = points;
   temp.name = name; // Stringify the object in order to send it to the server
 
-  out = JSON.stringify(temp);
+  var out = JSON.stringify(temp);
   request.send(out);
 } // Deny sends AJAX request in order to deny a DPM
 
