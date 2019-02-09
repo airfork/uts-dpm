@@ -1,24 +1,24 @@
 // Holds names of all the users for autocomplete box
-let people = [];
+var people = [];
 // Relates users to their ids
-let peopleIds = [];
+var peopleIds = [];
 // Holds the userID of the person loading the page
-let userID = "";
+var userID = "";
 //Datepicker element
-let datepicker = null;
+var datepicker = null;
 
 // Send AJAX call to server, to fill up arrays
-let request = new XMLHttpRequest();
+var request = new XMLHttpRequest();
 request.open('GET', '/users', true);
-request.onload = () => {
+request.onload = function() {
   if (request.status >= 200 && request.status < 400) {
     // Success!
-    let data = JSON.parse(request.responseText);
+    var data = JSON.parse(request.responseText);
     // Get ids, people, and the username
     peopleIds = data.ids;
     people = data.names;
     userID = data.userID;
-    let dataobj = {};
+    var dataobj = {};
     people.forEach((name) => {
         dataobj[name] = null;
     });
@@ -34,7 +34,7 @@ request.onload = () => {
   }
 };
 
-request.onerror = () => {
+request.onerror = function() {
   // There was a connection error of some sort
   console.log("There was an error of sometype, please try again")
 };
@@ -42,14 +42,14 @@ request.onerror = () => {
 request.send();
 
 // Get the last input box on the page, which holds a csrf token, and store it
-let inputs = document.querySelectorAll('input');
+var inputs = document.querySelectorAll('input');
 const csrf = inputs[inputs.length - 1].value;
 
 // Parses the inputs and gets information from them
 // Creates and sends JSON object for the server to handle
 function submitLogic() {
     // Takes all of these fields and puts them in an object
-    let obj = {};
+    var obj = {};
     obj.name = document.getElementById('autocomplete-input').value;
     if (people.indexOf(obj.name) == -1) {
         return "name";
@@ -88,7 +88,7 @@ function submitLogic() {
 }
 // Actually sends the JSON
 function sendDPM(jOBJ) {
-    let request = new XMLHttpRequest();
+    var request = new XMLHttpRequest();
     request.open('POST', '/dpm', true);
     // Set JSON header as well as the CSRF token header, both very important
     request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function() {
     var elems = document.querySelectorAll('.fixed-action-btn');
     var instances = M.FloatingActionButton.init(elems);
-    elems[0].onclick = () => {
+    elems[0].onclick = function() {
         submitted = submitLogic();
         if (submitted == "name") {
             M.toast({html: 'Please input a valid name.'});

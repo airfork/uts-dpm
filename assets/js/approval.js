@@ -1,23 +1,23 @@
 // Get the last input box on the page, which holds a csrf token, and store it
-let inputs = document.querySelectorAll('input');
+var inputs = document.querySelectorAll('input');
 const csrf = inputs[inputs.length - 1].value;
-let backdrop = document.querySelector('.backdrop');
-let dataList = [];
-let objectList = [];
-let modal = null;
+var backdrop = document.querySelector('.backdrop');
+var dataList = [];
+var objectList = [];
+var modal = null;
 
 // Send AJAX call to server, to get DPM data
-let request = new XMLHttpRequest();
+var request = new XMLHttpRequest();
 request.open('GET', '/dpm/approve', true);
-request.onload = () => {
+request.onload = function() {
   if (request.status >= 200 && request.status < 400) {
     // Success!
-    let data = JSON.parse(request.responseText);
+    var data = JSON.parse(request.responseText);
     // Get items from data into dataList
     for (i = 0; i < data.length; i++) {
         dataList[i] = data[i];
     }
-    let modalText =  document.querySelector('.modal-content');
+    var modalText =  document.querySelector('.modal-content');
     // Add event listener to each dpm that pulls up more information
     document.querySelectorAll('.dpm').forEach((item) => {
         // Push item to object list so I know which dpm is being clicked
@@ -38,7 +38,7 @@ request.onload = () => {
             <p>Time: ${timeObj.startTime}-${timeObj.endTime}</p>
             <p>Notes: ${list.notes}</p>
             <p>Created: ${createdFormat(list.created)}</p>`;
-            let buttons = document.querySelectorAll('.btn-flat');
+            var buttons = document.querySelectorAll('.btn-flat');
             addButtonLogic(buttons, this, list.id, list.points, list.name);
             modal.open();
         }
@@ -49,7 +49,7 @@ request.onload = () => {
   }
 };
 
-request.onerror = () => {
+request.onerror = function() {
     // There was a connection error of some sort
     console.log("There was an error of sometype, please try again")
   };
@@ -88,11 +88,11 @@ function createdFormat(createdDate) {
 
 function addButtonLogic(buttons, dpm, id, points, name) {
     points = (points[0] == '+' ? points.substring(1) : points);
-    buttons[0].onclick = () => {
+    buttons[0].onclick = function() {
         dpm.style.display = 'none';
         approve(id, points, name);
     }
-    buttons[1].onclick = () => {
+    buttons[1].onclick = function() {
         dpm.style.display = 'none';
         deny(id);
     }
@@ -101,7 +101,7 @@ function addButtonLogic(buttons, dpm, id, points, name) {
 // Approve sends AJAX request in order to approve a DPM
 function approve(id, points, name) {
     // Set post request URL and set headers
-    let request = new XMLHttpRequest();
+    var request = new XMLHttpRequest();
     request.open('POST', `/dpm/approve/${id}`, true);
     // Set JSON and CSRF token headers
     request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
@@ -118,7 +118,7 @@ function approve(id, points, name) {
 // Deny sends AJAX request in order to deny a DPM
 function deny(id) {
     // Set post request URL and set headers
-    let request = new XMLHttpRequest();
+    var request = new XMLHttpRequest();
     request.open('POST', `/dpm/deny/${id}`, true);
     // Set JSON and CSRF token headers
     request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Initialize modal
 document.addEventListener('DOMContentLoaded', function() {
-    let modalElement = document.querySelectorAll('.modal');
+    var modalElement = document.querySelectorAll('.modal');
     var instances = M.Modal.init(modalElement);
     modal = instances[0];
 });

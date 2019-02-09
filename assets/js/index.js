@@ -15,25 +15,25 @@ document.addEventListener('DOMContentLoaded', function() {
     var instances = M.FloatingActionButton.init(elems);
 });
 
-let modal = null;
+var modal = null;
 document.addEventListener('DOMContentLoaded', function() {
-    let modalElement = document.querySelectorAll('.modal');
+    var modalElement = document.querySelectorAll('.modal');
     var instances = M.Modal.init(modalElement);
     modal = instances[0];
 });
 
 
-let dataList = [];
-let objectList = [];
+var dataList = [];
+var objectList = [];
 
 // Send AJAX call to server, to get DPM data
-let request = new XMLHttpRequest();
+var request = new XMLHttpRequest();
 request.open('GET', '/dpm/all', true);
-request.onload = () => {
+request.onload = function() {
   if (request.status >= 200 && request.status < 400) {
-    let modaltext =  document.querySelector('.modal-content');
+    var modaltext =  document.querySelector('.modal-content');
     // Success!
-    let data = JSON.parse(request.responseText);
+    var data = JSON.parse(request.responseText);
     // Get items from data into dataList
     for (i = 0; i < data.length; i++) {
         dataList[i] = data[i];
