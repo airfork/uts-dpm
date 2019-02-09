@@ -19,7 +19,7 @@ request.onload = function() {
     people = data.names;
     userID = data.userID;
     var dataobj = {};
-    people.forEach((name) => {
+    people.forEach(function(name) {
         dataobj[name] = null;
     });
     var elems = document.querySelectorAll('.autocomplete');
@@ -72,11 +72,11 @@ function submitLogic() {
     obj.id = id.toString();
     obj.points = '0';
     // Clear out text inputs
-    document.querySelectorAll('.input').forEach((input) => {
+    document.querySelectorAll('.input').forEach(function(input) {
         input.value = "";
     });
     // Remove active class from labels
-    document.querySelectorAll('label').forEach((label) => {
+    document.querySelectorAll('label').forEach(function(label) {
         label.classList.remove('active');
     });
     // Reset date picker

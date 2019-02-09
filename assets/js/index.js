@@ -39,7 +39,7 @@ request.onload = function() {
         dataList[i] = data[i];
     }
     // Add event listener to each dpm that pulls up more information
-    document.querySelectorAll('.dpm').forEach((item) => {
+    document.querySelectorAll('.dpm').forEach(function(item) {
         // Push item to object list so I know which dpm is being clicked
         objectList.push(item);
         item.onclick = function() {
