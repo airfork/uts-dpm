@@ -14,7 +14,7 @@ var yourDomain = "airfork.icu"
 var privateAPIKey = os.Getenv("MAILGUN_KEY")
 
 // sendPasswordChanged sends confirmation of a changed password to user
-func sendPasswordChanged(recipient string) {
+func sendPasswordChanged(recipient, firstname, lastname string) {
 	h := hermes.Hermes{
 		// Optional Theme
 		// Theme: new(Default)
@@ -29,7 +29,7 @@ func sendPasswordChanged(recipient string) {
 	email := hermes.Email{
 		Body: hermes.Body{
 			Greeting: "",
-			Name:     "Tunji Afolabi-Brown",
+			Name:     firstname + " " + lastname,
 			Intros: []string{
 				"Your password has been successfully changed. If you did not authorize this change, please contact an admin.",
 			},
@@ -58,7 +58,7 @@ func sendPasswordChanged(recipient string) {
 }
 
 // sendResetPasswordEmail sends an email to user after their password has been reset by an admin
-func sendResetPasswordEmail(recipient, pass string) {
+func sendResetPasswordEmail(recipient, pass, firstname, lastname string) {
 	h := hermes.Hermes{
 		// Optional Theme
 		// Theme: new(Default)
@@ -73,7 +73,7 @@ func sendResetPasswordEmail(recipient, pass string) {
 	email := hermes.Email{
 		Body: hermes.Body{
 			Greeting: "",
-			Name:     "Tunji Afolabi-Brown",
+			Name:     firstname + " " + lastname,
 			Intros: []string{
 				"Your password has been reset.",
 			},
@@ -119,7 +119,7 @@ func sendResetPasswordEmail(recipient, pass string) {
 }
 
 // sendNewUserEmail sends email to user when then are initially added to the app
-func sendNewUserEmail(recipient, pass string) {
+func sendNewUserEmail(recipient, pass, firstname, lastname string) {
 	h := hermes.Hermes{
 		// Optional Theme
 		// Theme: new(Default)
@@ -133,7 +133,7 @@ func sendNewUserEmail(recipient, pass string) {
 
 	email := hermes.Email{
 		Body: hermes.Body{
-			Name: "Tunji Afolabi-Brown",
+			Name: firstname + " " + lastname,
 			Intros: []string{
 				"You have been added to UTS DPM.",
 			},

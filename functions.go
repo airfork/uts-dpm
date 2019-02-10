@@ -210,7 +210,7 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 	// Create go routine to handle sending the email
 	// Only send email if not testing
 	if !test {
-		go sendNewUserEmail(username, pass)
+		go sendNewUserEmail(username, pass, firstname, lastname)
 	}
 	// Get password hash
 	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.MinCost)
@@ -228,8 +228,8 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 	u = &user{
 		Username:   username,
 		Password:   string(hash),
-		FirstName:  firstname, // Sanitize first name
-		LastName:   lastname,  // Sanitize last name
+		FirstName:  firstname,
+		LastName:   lastname,
 		FullTime:   fulltime,
 		Changed:    false,
 		Admin:      false,
@@ -377,7 +377,7 @@ func (c Controller) changeUserPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Send password change email
-	go sendPasswordChanged(u.Username)
+	go sendPasswordChanged(u.Username, u.FirstName, u.LastName)
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
@@ -449,7 +449,7 @@ func (c Controller) resetPassword(w http.ResponseWriter, r *http.Request) {
 	// Generate random password for user
 	pass := gotp.RandomSecret(16)
 	// Send email telling user than an admin has reset your password
-	go sendResetPasswordEmail(u.Username, pass)
+	go sendResetPasswordEmail(u.Username, pass, u.FirstName, u.LastName)
 	// Get password hash
 	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.MinCost)
 	if err != nil {
