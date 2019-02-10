@@ -1131,12 +1131,13 @@ func (c Controller) editUser(w http.ResponseWriter, r *http.Request) {
 	role = strings.ToLower(role)
 	// Assign values to roles
 	var admin, analyst, sup bool
+	fmt.Println(role)
 	if role == "admin" {
 		admin = true
 	} else if role == "manager" {
 		analyst = true
-	} else if role == "sup" {
-		analyst = true
+	} else if role == "supervisor" {
+		sup = true
 	}
 	stmt := `UPDATE users SET admin=$1, analyst=$2, sup=$3, username=$4, firstname=$5, lastname=$6, managerid=$7, fulltime=$8 WHERE id=$9`
 	_, err = c.db.Exec(stmt, admin, analyst, sup, username, firstname, lastname, managerid, fulltime, id)
