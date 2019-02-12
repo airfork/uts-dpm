@@ -1222,3 +1222,90 @@ func (c Controller) deleteUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	return
 }
+
+// sendPointsToAll sends each user a point balance via email
+func (c Controller) sendPointsToAll(w http.ResponseWriter, r *http.Request) {
+	u, err := c.getUser(w, r)
+	// Validate user
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		fmt.Println(err)
+		return
+	}
+	// Only admins can do this
+	if !u.Admin {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// Redirect if still on temporary password
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+	// Get relevant info and ignore testing users
+	rows, err := c.db.Query(`SELECT username, points, firstname, lastname FROM users WHERE username != 'testing@testing.com'`)
+	defer rows.Close()
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	var (
+		username  string
+		points    string
+		firstname string
+		lastname  string
+	)
+	// Scan values into variables and call email functions
+	for rows.Next() {
+		rows.Scan(&username, &points, &firstname, &lastname)
+		go sendPointsBalance(username, firstname, lastname, points)
+	}
+	w.WriteHeader(http.StatusOK)
+	return
+}
+
+// sendUserPoints sends the point balance of a specific user
+func (c Controller) sendUserPoints(w http.ResponseWriter, r *http.Request) {
+	u, err := c.getUser(w, r)
+	// Validate user
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		fmt.Println(err)
+		return
+	}
+	// Only admins can do this
+	if !u.Admin {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// Redirect if still on temporary password
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+	// Get user id from url and convert it to an int
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	var (
+		username  string
+		points    string
+		firstname string
+		lastname  string
+	)
+	stmt := `SELECT username, points, firstname, lastname FROM users WHERE username != 'testing@testing.com' AND id=$1`
+	err = c.db.QueryRow(stmt, id).Scan(&username, &points, &firstname, &lastname)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	go sendPointsBalance(username, firstname, lastname, points)
+	w.WriteHeader(http.StatusOK)
+	return
+}

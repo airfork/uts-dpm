@@ -37,3 +37,31 @@ document.getElementById('send-btn').onclick = function () {
     document.getElementById('edit-form').submit();
   }
 };
+
+document.getElementById('email-btn').onclick = function () {
+  if (confirm('Are you sure you want to email this user their point balance?')) {
+    var id = url[url.length - 1];
+    var newURL = '/users/points/' + id; // Send request to server
+
+    var request = new XMLHttpRequest();
+    request.open('POST', newURL, true); // Set JSON header as well as the CSRF token header, both very important
+
+    request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    request.setRequestHeader('X-CSRF-Token', csrf); // On success, redirect user
+
+    request.onload = function () {
+      if (request.status >= 200 && request.status < 400) {
+        M.toast({
+          html: 'Email sent.'
+        });
+      } else {
+        // send toast to user on fail
+        M.toast({
+          html: 'Failed to send email to user, please try again.'
+        });
+      }
+    };
+
+    request.send();
+  }
+};

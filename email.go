@@ -178,6 +178,53 @@ func sendNewUserEmail(recipient, pass, firstname, lastname string) {
 	sendMessage(mg, sender, subject, emailText, body, recipient)
 }
 
+// sendPointsBalance sends the user's current point balance
+func sendPointsBalance(recipient, firstname, lastname, points string) {
+	h := hermes.Hermes{
+		// Optional Theme
+		// Theme: new(Default)
+		Product: hermes.Product{
+			// Appears in header & footer of e-mails
+			Name:      "University Transit Service",
+			Link:      "https://www.airfork.icu/",
+			Copyright: "Copyright © 2019 University Transit Service. All rights reserved.",
+		},
+	}
+
+	email := hermes.Email{
+		Body: hermes.Body{
+			Greeting: "",
+			Name:     firstname + " " + lastname,
+			Intros: []string{
+				"Below is your current points balance. To get more details about this value, please talk to your manager.",
+			},
+			Dictionary: []hermes.Entry{
+				{Key: "Points Balance", Value: points},
+			},
+		},
+	}
+	// Generate an HTML email with the provided contents (for modern clients)
+	body, err := h.GenerateHTML(email)
+	if err != nil {
+		fmt.Println("Failed to generate email")
+		fmt.Println(err)
+	}
+	// Generate the plaintext version of the e-mail (for clients that do not support xHTML)
+	emailText, err := h.GeneratePlainText(email)
+	if err != nil {
+		fmt.Println("Failed to generate plaintext")
+		fmt.Println(err)
+	}
+
+	// Create an instance of the Mailgun Client
+	mg := mailgun.NewMailgun(yourDomain, privateAPIKey)
+
+	sender := "mail@airfork.icu"
+	subject := "DPM Point Balance"
+
+	sendMessage(mg, sender, subject, emailText, body, recipient)
+}
+
 // sendMessage handles actually sending out the email
 func sendMessage(mg mailgun.Mailgun, sender, subject, body, html, recipient string) {
 	message := mg.NewMessage(sender, subject, body, recipient)

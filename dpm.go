@@ -266,3 +266,27 @@ func (c Controller) updateUser(w http.ResponseWriter, r *http.Request) {
 		c.editUser(w, r)
 	}
 }
+
+// sendPointsAll sends the points balance of every user. Responds to post requests to /users/points
+func (c Controller) sendPointsAll(w http.ResponseWriter, r *http.Request) {
+	// Redirect if not right domain
+	v := redirect(w, r)
+	if v {
+		return
+	}
+	if r.Method == "POST" {
+		c.sendPointsToAll(w, r)
+	}
+}
+
+// sendPoints sends the points balance of a specific user. Responds to post requests to /users/points/{id}
+func (c Controller) sendPoints(w http.ResponseWriter, r *http.Request) {
+	// Redirect if not right domain
+	v := redirect(w, r)
+	if v {
+		return
+	}
+	if r.Method == "POST" {
+		c.sendUserPoints(w, r)
+	}
+}
