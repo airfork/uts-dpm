@@ -61,7 +61,13 @@
                         <label for="lastname"
                         {{if .lastname}} class="active" {{end}}>Lastname</label>
                     </div>
-                    <div class="input-field col s12 m6">
+                    <div class="input-field col s12 m4">
+                        <input id="points" type="number" name="points" required
+                        value={{.points}}>
+                        <label for="points"
+                        class="active">Points</label>
+                    </div>
+                    <div class="input-field col s12 m4">
                         <select name="manager">
                             {{if .manager}}
                             {{range .manager}}
@@ -71,7 +77,7 @@
                         </select>
                         <label>Manager</label>
                     </div>
-                    <div class="input-field col s12 m6">
+                    <div class="input-field col s12 m4">
                         <select name="role">
                             {{if .role}}
                             {{range .role}}

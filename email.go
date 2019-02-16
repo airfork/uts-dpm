@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	mailgun "github.com/mailgun/mailgun-go"
 	"github.com/matcornic/hermes/v2"
@@ -221,6 +222,56 @@ func sendPointsBalance(recipient, firstname, lastname, points string) {
 
 	sender := "mail@airfork.icu"
 	subject := "DPM Point Balance"
+
+	sendMessage(mg, sender, subject, emailText, body, recipient)
+}
+
+func sendDPMEmail(recipient, firstname, lastname, dpmtype string) {
+	// Add space to dpmtype to make string manipulation easier
+	dpmtype += " "
+	// Gets letter of DPM, eg. G
+	letter := fmt.Sprintf("[%s]", dpmtype[5:6])
+	// Gets the part of dpm past Type[G]:, but minus the points in parenthesis
+	description := strings.Trim(strings.Replace(dpmtype[8:len(dpmtype)-12], "(", "", -1), " ")
+	out := fmt.Sprintf("Type %s DPM: %s", letter, dpmtype[8:])
+	subject := fmt.Sprintf("%s: %s", dpmtype[0:6], description)
+	message := fmt.Sprintf("This email is to inform you that you have received a %s. If you have any issues with this, please contact Allison Day directly.", out)
+	h := hermes.Hermes{
+		// Optional Theme
+		// Theme: new(Default)
+		Product: hermes.Product{
+			// Appears in header & footer of e-mails
+			Name:      "University Transit Service",
+			Link:      "https://www.airfork.icu/",
+			Copyright: "Copyright © 2019 University Transit Service. All rights reserved.",
+		},
+	}
+
+	email := hermes.Email{
+		Body: hermes.Body{
+			Name: firstname + " " + lastname,
+			Intros: []string{
+				message,
+			},
+		},
+	}
+	// Generate an HTML email with the provided contents (for modern clients)
+	body, err := h.GenerateHTML(email)
+	if err != nil {
+		fmt.Println("Failed to generate email")
+		fmt.Println(err)
+	}
+	// Generate the plaintext version of the e-mail (for clients that do not support xHTML)
+	emailText, err := h.GeneratePlainText(email)
+	if err != nil {
+		fmt.Println("Failed to generate plaintext")
+		fmt.Println(err)
+	}
+
+	// Create an instance of the Mailgun Client
+	mg := mailgun.NewMailgun(yourDomain, privateAPIKey)
+
+	sender := "mail@airfork.icu"
 
 	sendMessage(mg, sender, subject, emailText, body, recipient)
 }

@@ -713,12 +713,12 @@ func (c Controller) approveDPMLogic(w http.ResponseWriter, r *http.Request) {
 	}
 	var secondID, managerid int
 	var fulltime bool
-	var dpmtype, username string
+	var dpmtype, username, firstname, lastname string
 	// This checks that this dpm id relates to a real dpm and gets the fulltime status, username, and dpm type of the driver
-	stmt := `SELECT a.id, a.fulltime, a.username, b.dpmtype FROM users a
+	stmt := `SELECT a.id, a.fulltime, a.username, a.firstname, a.lastname, b.dpmtype FROM users a
 	JOIN dpms b ON a.id=b.userid
 	WHERE b.id=$1;`
-	err = c.db.QueryRow(stmt, id).Scan(&secondID, &fulltime, &username, &dpmtype)
+	err = c.db.QueryRow(stmt, id).Scan(&secondID, &fulltime, &username, &firstname, &lastname, &dpmtype)
 	// If this fails, assume the ID is not valid and abort
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -779,10 +779,10 @@ func (c Controller) approveDPMLogic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// If negative DPMS get sent to drivers upon approval, the code would go here
-	// if !fulltime && points < 0 {
-	// 	go negativeDPMEmail(username, dpmtype)
-	// }
+	if username != "testing@testing.com" {
+		// Send point email
+		go sendDPMEmail(username, firstname, lastname, dpmtype)
+	}
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -842,8 +842,8 @@ func (c Controller) denyDPMLogic(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	// Update specified DPM to set ignored to false and set approved to false for extra redundancy
-	update := `UPDATE dpms SET approved=false, ignored=true WHERE id=$1`
+	// Update specified DPM to set ignored to false and set approved to true. Set approved to true to indicate that the dpm has been looked at
+	update := `UPDATE dpms SET approved=true, ignored=true WHERE id=$1`
 	_, err = c.db.Exec(update, id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -1078,6 +1078,7 @@ func (c Controller) findUser(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+// editUser updates the user based on the data returned from the form
 func (c Controller) editUser(w http.ResponseWriter, r *http.Request) {
 	u, err := c.getUser(w, r)
 	// Validate user
@@ -1109,15 +1110,26 @@ func (c Controller) editUser(w http.ResponseWriter, r *http.Request) {
 	if r.FormValue("reset") == "on" {
 		reset = true
 	}
-	// Get fulltime status
-	fulltime := false
-	if r.FormValue("fulltime") == "on" {
-		fulltime = true
-	}
+
 	// Get form information
 	username := bm.Sanitize(r.FormValue("username"))
 	firstname := bm.Sanitize(r.FormValue("firstname"))
 	lastname := bm.Sanitize(r.FormValue("lastname"))
+	points := bm.Sanitize(r.FormValue("points"))
+	// Get fulltime status
+	fulltime := false
+	if r.FormValue("fulltime") == "on" {
+		// If user is becoming a fulltimer, set their point balance to 0, and ignore unapproved dpms
+		fulltime = true
+		points = "0"
+		stmt := `UPDATE dpms SET ignored = TRUE WHERE userid=$1 AND approved=TRUE`
+		_, err = c.db.Exec(stmt, id)
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
 	// Convert manager id to an int
 	manager := r.FormValue("manager")
 	managerid, err := strconv.Atoi(manager)
@@ -1131,7 +1143,6 @@ func (c Controller) editUser(w http.ResponseWriter, r *http.Request) {
 	role = strings.ToLower(role)
 	// Assign values to roles
 	var admin, analyst, sup bool
-	fmt.Println(role)
 	if role == "admin" {
 		admin = true
 	} else if role == "manager" {
@@ -1139,8 +1150,8 @@ func (c Controller) editUser(w http.ResponseWriter, r *http.Request) {
 	} else if role == "supervisor" {
 		sup = true
 	}
-	stmt := `UPDATE users SET admin=$1, analyst=$2, sup=$3, username=$4, firstname=$5, lastname=$6, managerid=$7, fulltime=$8 WHERE id=$9`
-	_, err = c.db.Exec(stmt, admin, analyst, sup, username, firstname, lastname, managerid, fulltime, id)
+	stmt := `UPDATE users SET admin=$1, analyst=$2, sup=$3, username=$4, firstname=$5, lastname=$6, managerid=$7, fulltime=$8, points=$9 WHERE id=$10`
+	_, err = c.db.Exec(stmt, admin, analyst, sup, username, firstname, lastname, managerid, fulltime, points, id)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -1306,6 +1317,48 @@ func (c Controller) sendUserPoints(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	go sendPointsBalance(username, firstname, lastname, points)
+	w.WriteHeader(http.StatusOK)
+	return
+}
+
+// resetPartTimePoints resets the point values for part timers
+func (c Controller) resetPartTimePoints(w http.ResponseWriter, r *http.Request) {
+	u, err := c.getUser(w, r)
+	// Validate user
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		fmt.Println(err)
+		return
+	}
+	// Only admins can do this
+	if !u.Admin {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// Redirect if still on temporary password
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+	// Set point balance for all part timers to be 0
+	stmt := `UPDATE users SET points=0 WHERE fulltime=false`
+	_, err = c.db.Exec(stmt)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Ignore all the dpms belonging to partimers that have been approved (already looked at)
+	stmt = `UPDATE dpms a SET ignored = TRUE WHERE a.userid IN (
+		SELECT id FROM users WHERE fulltime=FALSE
+		) AND a.approved = TRUE;`
+
+	_, err = c.db.Exec(stmt)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 	return
 }

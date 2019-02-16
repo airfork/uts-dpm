@@ -40,7 +40,9 @@ document.getElementById('send-btn').onclick = function () {
 
 document.getElementById('email-btn').onclick = function () {
   if (confirm('Are you sure you want to email this user their point balance?')) {
-    var id = url[url.length - 1];
+    // Get id from url variable
+    var id = url[url.length - 1]; // Append id to correct url for this action
+
     var newURL = '/users/points/' + id; // Send request to server
 
     var request = new XMLHttpRequest();

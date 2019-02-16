@@ -290,3 +290,16 @@ func (c Controller) sendPoints(w http.ResponseWriter, r *http.Request) {
 		c.sendUserPoints(w, r)
 	}
 }
+
+// resetPoints sets the point balance of all part timers to zero. It also sets all previously approved DPMS to be ignored.
+// Responds to post requests to /users/points/reset
+func (c Controller) resetPoints(w http.ResponseWriter, r *http.Request) {
+	// Redirect if not right domain
+	v := redirect(w, r)
+	if v {
+		return
+	}
+	if r.Method == "POST" {
+		c.resetPartTimePoints(w, r)
+	}
+}

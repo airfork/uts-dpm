@@ -67,6 +67,7 @@ func main() {
 	r.HandleFunc("/users/edit/{id}", c.updateUser).Methods("POST", "DELETE")
 	r.HandleFunc("/users/list", c.renderUserList).Methods("GET")
 	r.HandleFunc("/users/points", c.sendPointsAll).Methods("POST")
+	r.HandleFunc("/users/points/reset", c.resetPoints).Methods("POST")
 	r.HandleFunc("/users/points/{id}", c.sendPoints).Methods("POST")
 	r.HandleFunc("/login", c.login).Methods("POST", "GET")
 	r.HandleFunc("/logout", c.logout)

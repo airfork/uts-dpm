@@ -3,4 +3,5 @@ dpm
 js-pre/
 *.csv
 *.txt
+*.sh
 package-lock.json

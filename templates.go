@@ -557,6 +557,7 @@ func (c Controller) renderEditUser(w http.ResponseWriter, r *http.Request) {
 		"manager":   managerSlice,
 		"role":      roles,
 		"fulltime":  foundUser.FullTime,
+		"points":    foundUser.Points,
 		"url":       r.URL.String(),
 	}
 	//Render userpage template
