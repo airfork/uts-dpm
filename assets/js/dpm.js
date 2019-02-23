@@ -87,7 +87,6 @@ function submitLogic() {
   var labelList = document.querySelectorAll('label');
 
   for (var i = 0; i < labelList.length; i++) {
-    console.log(i);
     labelList[i].classList.remove('active');
   } // Reset date picker
 

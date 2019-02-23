@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"html"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -205,8 +206,8 @@ func autoGen() ([]dpmDriver, error) {
 				color = strings.ToLower(color[1:])
 				// If color is gold, Good dpm
 				d := dpmDriver{
-					FirstName: first,
-					LastName:  last,
+					FirstName: html.UnescapeString(first),
+					LastName:  html.UnescapeString(last),
 					Block:     bm.Sanitize(blockNum),
 					Location:  bm.Sanitize(location),
 					Date:      bm.Sanitize(date),
