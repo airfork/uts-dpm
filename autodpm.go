@@ -120,7 +120,7 @@ func autoGen() ([]dpmDriver, error) {
 	for _, block := range blocks {
 		// If block is special or Charter(mini)/Charter(setra), get the number of shifts under it
 		// Add this number to position variable so that those shifts are passed over in slice iteration below
-		if strings.Contains(block, "Special") || strings.Contains(block, "Charter") || strings.Contains(block, "Workshop") {
+		if !strings.Contains(block, "[") || !strings.Contains(block, "]") {
 			num := string(block[len(block)-1])
 			incrementAmount, err := strconv.Atoi(num)
 			if err != nil {
@@ -128,7 +128,7 @@ func autoGen() ([]dpmDriver, error) {
 				return nil, err
 			}
 			position += incrementAmount
-			fmt.Println("Skipping charter/special shift/workshop")
+			fmt.Println("Skipping non block type shift")
 			continue
 		}
 		// Get block, is in this format [BLOCK]
