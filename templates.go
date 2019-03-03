@@ -494,9 +494,6 @@ func (c Controller) renderEditUser(w http.ResponseWriter, r *http.Request) {
 	m := manage{}
 	// This will hold all of the managers that exist
 	managerSlice := make([]manage, 0)
-	// Contains the list of roles
-	// roleSlice := []string {"Admin", "Driver", "Manager", "Supervisor"}
-	// Will order the above list, putting the current role first
 	var roles []string
 	// Find user and put data into the struct
 	stmt := `SELECT * FROM users WHERE id=$1`
@@ -517,8 +514,8 @@ func (c Controller) renderEditUser(w http.ResponseWriter, r *http.Request) {
 	m.Name = fmt.Sprintf("%s %s", managerFirst, managerLast)
 	m.ID = foundUser.ManagerID
 	managerSlice = append(managerSlice, m)
-	// Find all the managers in the database, except the one we already have
-	stmt = `SELECT id, firstname, lastname FROM users WHERE analyst=true AND id!=$1`
+	// Find all the managers/admins in the database, except the one we already have
+	stmt = `SELECT id, firstname, lastname FROM users WHERE (analyst=true OR admin=true) AND id!=$1`
 	rows, err := c.db.Query(stmt, foundUser.ManagerID)
 	defer rows.Close()
 	if err != nil {
@@ -537,6 +534,7 @@ func (c Controller) renderEditUser(w http.ResponseWriter, r *http.Request) {
 		m.ID = manageID
 		managerSlice = append(managerSlice, m)
 	}
+	points := fmt.Sprintf("%v", foundUser.Points)
 	// Get role list in correct order
 	if foundUser.Admin {
 		roles = []string{"Admin", "Manager", "Driver", "Supervisor"}
@@ -551,13 +549,13 @@ func (c Controller) renderEditUser(w http.ResponseWriter, r *http.Request) {
 	// Pass all the data into a map
 	data := map[string]interface{}{
 		"csrf":      csrf.TemplateField(r),
-		"username":  foundUser.Username,
-		"firstname": foundUser.FirstName,
-		"lastname":  foundUser.LastName,
+		"username":  bm.Sanitize(foundUser.Username),
+		"firstname": bm.Sanitize(foundUser.FirstName),
+		"lastname":  bm.Sanitize(foundUser.LastName),
 		"manager":   managerSlice,
 		"role":      roles,
 		"fulltime":  foundUser.FullTime,
-		"points":    foundUser.Points,
+		"points":    bm.Sanitize(points),
 		"url":       r.URL.String(),
 	}
 	//Render userpage template

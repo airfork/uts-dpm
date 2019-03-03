@@ -941,32 +941,85 @@ func (c Controller) dpmCSV(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/change", http.StatusFound)
 		return
 	}
-	// Create a bunch of variables to extract row date into
+	params := r.URL.Query()
+	// Get all DPMS?
+	var getAll bool
+	reset, ok := params["reset"]
+	if ok && reset[0] == "on" {
+		getAll = true
+	}
+	endDate, ok := params["end"]
+	// Not valid request
+	if !ok && !getAll {
+		w.WriteHeader(http.StatusConflict)
+		return
+	}
+	startDate, ok := params["start"]
+	if !ok && !getAll {
+		w.WriteHeader(http.StatusConflict)
+		return
+	}
+	// Convert dates from url string into golang time type
+	start, err := time.Parse("2006-2-1", startDate[0])
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusConflict)
+		return
+	}
+	end, err := time.Parse("2006-2-1", endDate[0])
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusConflict)
+		return
+	}
+	// if end time is before start time and they are not trying to get all dpms, that is an invalid time range
+	if end.Before(start) && !getAll {
+		w.WriteHeader(http.StatusConflict)
+		return
+	}
+	// Create a bunch of variables to extract row data into and predeclare things for query
 	var (
-		id        int16
-		createid  int16
-		userid    int16
+		rows      *sql.Rows
+		stmt      string
 		firstname string
 		lastname  string
 		block     string
 		date      string
 		dpmtype   string
-		points    int16
+		points    string
 		notes     string
 		created   string
-		approved  bool
 		location  string
 		startTime string
 		endtime   string
-		ignored   bool
 	)
 
 	// String that will eventually hold all the csv data
 	// Right now, I am creating the headers for the csv file
-	final := "ID,Createid,Userid,Firstname,Lastname,Block,Date,Type,Points,Notes,Created,Approved,Location,Start Time,End Time,Ignored\n"
-	// Select everything from this table
-	stmt := `SELECT * FROM dpms ORDER BY userid`
-	rows, err := c.db.Query(stmt)
+	final := "First Name,Last Name,Block,Location,Start Time,End Time,Date,Type,Points,Notes,Created\n"
+	if u.Analyst {
+		if getAll {
+			stmt = `SELECT d.firstname, d.lastname, d.block, d.date, d.dpmtype, d.points, d.notes, d.created, d.location, d.starttime, d.endtime
+			FROM dpms d INNER JOIN users u ON d.userid=u.id
+			WHERE u.managerid = $1
+			ORDER BY date`
+			rows, err = c.db.Query(stmt, u.ID)
+		} else {
+			stmt = `SELECT d.firstname, d.lastname, d.block, d.date, d.dpmtype, d.points, d.notes, d.created, d.location, d.starttime, d.endtime
+			FROM dpms d INNER JOIN users u ON d.userid=u.id
+			WHERE u.managerid = $1 AND created <= $2 AND created >= $3
+			ORDER BY date`
+			rows, err = c.db.Query(stmt, u.ID, endDate[0], startDate[0])
+		}
+	} else {
+		if getAll {
+			stmt = `SELECT firstname, lastname, block, date, dpmtype, points, notes, created, location, starttime, endtime FROM dpms ORDER BY date`
+			rows, err = c.db.Query(stmt)
+		} else {
+			stmt = `SELECT firstname, lastname, block, date, dpmtype, points, notes, created, location, starttime, endtime FROM dpms WHERE created <= $1 AND created >= $2 ORDER BY date`
+			rows, err = c.db.Query(stmt, endDate[0], startDate[0])
+		}
+	}
 	defer rows.Close()
 	if err != nil {
 		fmt.Println(err)
@@ -975,14 +1028,14 @@ func (c Controller) dpmCSV(w http.ResponseWriter, r *http.Request) {
 	}
 	for rows.Next() {
 		// Scan row data into variables
-		rows.Scan(&id, &createid, &userid, &firstname, &lastname, &block, &date, &dpmtype, &points, &notes, &created, &approved, &location, &startTime, &endtime, &ignored)
+		rows.Scan(&firstname, &lastname, &block, &date, &dpmtype, &points, &notes, &created, &location, &startTime, &endtime)
 		// Format date, created, startTime, and endTime into a more user friendly data format
 		date = formatDate(date)
 		created = formatCreatedDate(created)
 		startTime = startTime[11:13] + startTime[14:16]
 		endtime = endtime[11:13] + endtime[14:16]
 		// Create string with all the values separated by commas
-		out := fmt.Sprintf("%v,%v,%v,%s,%s,%s,%s,%s,%v,%s,%s,%v,%s,%s,%s,%v", id, createid, userid, firstname, lastname, block, date, dpmtype, points, notes, created, approved, location, startTime, endtime, ignored)
+		out := fmt.Sprintf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s", firstname, lastname, block, location, startTime, endtime, date, dpmtype, points, notes, created)
 		// Replace any newlines with empty strings, newlines get put in for some I never bothered to figured out
 		out = strings.Replace(out, "\n", "", -1)
 		// Add newline to string
@@ -1138,6 +1191,23 @@ func (c Controller) editUser(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	var (
+		isManager bool
+		isAdmin   bool
+	)
+	stmt := `SELECT admin, analyst FROM users WHERE id=$1`
+	err = c.db.QueryRow(stmt, managerid).Scan(&isAdmin, &isManager)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Return 409 if (probably malicious) user tries to assign manager another user to be managed by someone
+	// that is not a manger or admin
+	if !(isAdmin || isManager) {
+		w.WriteHeader(http.StatusConflict)
+		return
+	}
 	role := bm.Sanitize(r.FormValue("role"))
 	// Make sure that role is lowered, for consistency
 	role = strings.ToLower(role)
@@ -1150,7 +1220,7 @@ func (c Controller) editUser(w http.ResponseWriter, r *http.Request) {
 	} else if role == "supervisor" {
 		sup = true
 	}
-	stmt := `UPDATE users SET admin=$1, analyst=$2, sup=$3, username=$4, firstname=$5, lastname=$6, managerid=$7, fulltime=$8, points=$9 WHERE id=$10`
+	stmt = `UPDATE users SET admin=$1, analyst=$2, sup=$3, username=$4, firstname=$5, lastname=$6, managerid=$7, fulltime=$8, points=$9 WHERE id=$10`
 	_, err = c.db.Exec(stmt, admin, analyst, sup, username, firstname, lastname, managerid, fulltime, points, id)
 	if err != nil {
 		fmt.Println(err)

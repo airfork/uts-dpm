@@ -9,6 +9,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
   <link rel="shortcut icon" href="/views/favicon.ico">
   <link rel="stylesheet" type="text/css" href="/assets/css/index.css" />
+  <link rel="stylesheet" type="text/css" href="/assets/css/data.css" />
   <title>DPM</title>
 </head>
 <body>
@@ -46,30 +47,55 @@
     {{end}}
     </ul>
 
-    <div class="container center-align">
-        <div class="row">
-            <div class="card" style="margin: auto">
-                <div class="card-content black-text">
-                    <span class="card-title">Data Download</span>
-                    <p>Click the links below to download a CSV containing all the respective information in the database.</p>
-                </div>
-                <div class="card-action">
-                    <form action="/data/users" method="GET" id="users-form">
-                        <a href="#" style="color: #ff8a50;" onclick="document.getElementById('users-form').submit();">
-                            Users
-                        </a>
-                    </form>
+    <div class="container">
+        <ul class="collapsible">
+            <li>
+                <div class="collapsible-header"><i class="material-icons">note</i>DPMS</div>
+                <div class="collapsible-body collapse-background center-align">
+                    <span>
                     <form action="/data/dpms" method="GET" id="dpm-form">
-                        <a href="#" style="color: #ff8a50;" onclick="document.getElementById('dpm-form').submit();">DPMs</a>
+                        <div class="row">
+                            <div class="input-field col s12 m4 xl4">
+                                <input id="startDate" type="text" class="datepicker input" name="start">
+                                <label for="date">Start Date</label>
+                            </div>
+                            <div class="input-field col s12 m4 xl4">
+                                <input id="endDate" type="text" class="datepicker input" name="end">
+                                <label for="date">End Date</label>
+                            </div>
+                            <div class="input-field col s12 m4 xl4">
+                                <p>
+                                    <label>
+                                        <input type="checkbox" name="reset" />
+                                        <span>Get All DPMs</span>
+                                    </label>
+                                </p>
+                            </div>
+                        </div>
                     </form>
+                        <a href="#" id="dpm-btn" onclick="document.getElementById('dpm-form').submit();">
+                            Download DPMs
+                        </a>
+                    </span>
                 </div>
-            </div>
-        </div>
+            </li>
+            <li>
+                <div class="collapsible-header"><i class="material-icons">people</i>Users</div>
+                <div class="collapsible-body collapse-background center-align">
+                    <span>
+                        <form action="/data/users" method="GET" id="users-form">
+                            {{/* <a href="#" style="color: #ff8a50;" onclick="document.getElementById('users-form').submit();">
+                                Download User List
+                            </a> */}}
+                            <a href="#" id="user-btn" onclick="document.getElementById('users-form').submit();">
+                                Download User List
+                            </a>
+                        </form>
+                    </span>
+                </div>
+            </li>
     </div>
     
-    <script>
-        // Navbar initialized
-        M.AutoInit();
-    </script>
+    <script src="/assets/js/data.js"></script>
 </body>
 </html>

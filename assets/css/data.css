@@ -1,0 +1,47 @@
+.collapse-background {
+    background-color: #fdfdfd;
+}
+
+/* label color */
+.input-field label, textarea.materialize-textarea:focus:not([readonly])+label {
+    color: #5472d3 !important;
+}
+/* label focus color */
+  .input-field input[type=text]:focus + label, .input-field input[type=number]:focus + label {
+    color: #5472d3 !important;
+}
+/* label underline focus color */
+.input-field input[type=text]:focus, textarea.materialize-textarea:focus, .input-field input[type=number]:focus {
+    border-bottom: 1px solid #002171 !important;
+    -webkit-box-shadow: 0 1px 0 0 #002171 !important;
+            box-shadow: 0 1px 0 0 #002171 !important;
+}
+
+.input-field input[type=text], textarea.materialize-textarea, .input-field input[type=number] {
+    border-bottom: 1px solid #002171 !important;
+}
+
+.datepicker-date-display {
+    background-color: #ff8a50;
+}
+
+.datepicker-cancel, .datepicker-done {
+  color: #ff8a50;
+}
+
+.datepicker-table td.is-selected, .btn-floating {
+  background-color: #ff5722;
+}
+
+.datepicker-table td.is-today {
+  color: #002171;
+}
+
+[type="checkbox"]:checked+span:not(.lever):before {
+    border-right: 2px solid #ff5722 !important;
+    border-bottom: 2px solid #ff5722 !important;
+}
+
+#user-btn, #dpm-btn {
+    color: #ff8a50;
+}

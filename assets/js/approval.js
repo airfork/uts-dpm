@@ -102,13 +102,27 @@ function approve(id, points, name) {
   request.open('POST', "/dpm/approve/".concat(id), true); // Set JSON and CSRF token headers
 
   request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-  request.setRequestHeader('X-CSRF-Token', csrf); // Create object to hold name and points values for the DPM
+  request.setRequestHeader('X-CSRF-Token', csrf);
+
+  if (request.status >= 200 && request.status < 400) {
+    M.toast({
+      html: 'DPM Approved'
+    });
+  } // Create object to hold name and points values for the DPM
+
 
   var temp = {};
   temp.points = points;
   temp.name = name; // Stringify the object in order to send it to the server
 
   var out = JSON.stringify(temp);
+
+  request.onerror = function () {
+    M.toast({
+      html: 'There was an error approving this DPM.'
+    });
+  };
+
   request.send(out);
 } // Deny sends AJAX request in order to deny a DPM
 
@@ -120,6 +134,19 @@ function deny(id) {
 
   request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
   request.setRequestHeader('X-CSRF-Token', csrf);
+
+  if (request.status >= 200 && request.status < 400) {
+    M.toast({
+      html: 'DPM Denied'
+    });
+  }
+
+  request.onerror = function () {
+    M.toast({
+      html: 'There was an error denying this DPM.'
+    });
+  };
+
   request.send();
 } // Navbar initialized
 
