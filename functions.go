@@ -1172,15 +1172,25 @@ func (c Controller) editUser(w http.ResponseWriter, r *http.Request) {
 	// Get fulltime status
 	fulltime := false
 	if r.FormValue("fulltime") == "on" {
-		// If user is becoming a fulltimer, set their point balance to 0, and ignore unapproved dpms
-		fulltime = true
-		points = "0"
-		stmt := `UPDATE dpms SET ignored = TRUE WHERE userid=$1 AND approved=TRUE`
-		_, err = c.db.Exec(stmt, id)
+		// See if person is already fulltime
+		stmt := `SELECT fulltime FROM users WHERE id=$1`
+		err = c.db.QueryRow(stmt, id).Scan(&fulltime)
 		if err != nil {
 			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
+		}
+		// If user is becoming a fulltimer, set their point balance to 0, and ignore unapproved dpms
+		if !fulltime {
+			fulltime = true
+			points = "0"
+			stmt = `UPDATE dpms SET ignored = TRUE WHERE userid=$1 AND approved=TRUE`
+			_, err = c.db.Exec(stmt, id)
+			if err != nil {
+				fmt.Println(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 		}
 	}
 	// Convert manager id to an int
