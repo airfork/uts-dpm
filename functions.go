@@ -83,7 +83,7 @@ func (c Controller) createDPMLogic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Prepare query string
-	dpmIn := `INSERT INTO dpms (createid, userid, firstname, lastname, block, date, starttime, endtime, dpmtype, points, notes, created, location, approved) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, false)`
+	dpmIn := `INSERT INTO dpms (createid, userid, firstname, lastname, block, date, starttime, endtime, dpmtype, points, notes, created, location, approved, ignored) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, false, false)`
 	// Insert unapproved dpm into databas
 	_, err = c.db.Exec(dpmIn, dpm.CreateID, dpm.UserID, dpm.FirstName, dpm.LastName, dpm.Block, dpm.Date, dpm.StartTime, dpm.EndTime, dpm.DPMType, dpm.Points, dpm.Notes, dpm.Created, dpm.Location)
 	if err != nil {
@@ -436,8 +436,9 @@ func (c Controller) resetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	u := &user{}
+	fmt.Println(username)
 	// Get user's id, username, and sessionkey from db
-	stmt := `SELECT id, username, sessionkey FROM users WHERE username=$1 LIMIT 1`
+	stmt := `SELECT id, username, sessionkey, firstname, lastname FROM users WHERE username=$1 LIMIT 1`
 	err = c.db.QueryRowx(stmt, username).StructScan(u)
 	// Assume, to client, that error is because could not find username in db
 	if err != nil {

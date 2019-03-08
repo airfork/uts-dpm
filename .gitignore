@@ -5,3 +5,4 @@ js-pre/
 *.txt
 *.sh
 package-lock.json
+password.go
