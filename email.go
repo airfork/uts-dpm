@@ -10,7 +10,7 @@ import (
 	"github.com/matcornic/hermes/v2"
 )
 
-var yourDomain = "airfork.icu"
+var yourDomain = "utsdpm.com"
 
 var privateAPIKey = os.Getenv("MAILGUN_KEY")
 
@@ -52,7 +52,7 @@ func sendPasswordChanged(recipient, firstname, lastname string) {
 	// Create an instance of the Mailgun Client
 	mg := mailgun.NewMailgun(yourDomain, privateAPIKey)
 
-	sender := "mail@airfork.icu"
+	sender := "DPM@utsdpm.com"
 	subject := "Password Has Been Reset"
 
 	sendMessage(mg, sender, subject, emailText, body, recipient)
@@ -113,7 +113,7 @@ func sendResetPasswordEmail(recipient, pass, firstname, lastname string) {
 	// Create an instance of the Mailgun Client
 	mg := mailgun.NewMailgun(yourDomain, privateAPIKey)
 
-	sender := "mail@airfork.icu"
+	sender := "DPM@utsdpm.com"
 	subject := "Password Reset"
 
 	sendMessage(mg, sender, subject, emailText, body, recipient)
@@ -173,7 +173,7 @@ func sendNewUserEmail(recipient, pass, firstname, lastname string) {
 	// Create an instance of the Mailgun Client
 	mg := mailgun.NewMailgun(yourDomain, privateAPIKey)
 
-	sender := "mail@airfork.icu"
+	sender := "DPM@utsdpm.com"
 	subject := "Welcome to UTS DPM"
 
 	sendMessage(mg, sender, subject, emailText, body, recipient)
@@ -220,7 +220,7 @@ func sendPointsBalance(recipient, firstname, lastname, points string) {
 	// Create an instance of the Mailgun Client
 	mg := mailgun.NewMailgun(yourDomain, privateAPIKey)
 
-	sender := "mail@airfork.icu"
+	sender := "DPM@utsdpm.com"
 	subject := "DPM Point Balance"
 
 	sendMessage(mg, sender, subject, emailText, body, recipient)
@@ -271,7 +271,7 @@ func sendDPMEmail(recipient, firstname, lastname, dpmtype string) {
 	// Create an instance of the Mailgun Client
 	mg := mailgun.NewMailgun(yourDomain, privateAPIKey)
 
-	sender := "mail@airfork.icu"
+	sender := "DPM@utsdpm.com"
 
 	sendMessage(mg, sender, subject, emailText, body, recipient)
 }

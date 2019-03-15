@@ -436,7 +436,6 @@ func (c Controller) resetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	u := &user{}
-	fmt.Println(username)
 	// Get user's id, username, and sessionkey from db
 	stmt := `SELECT id, username, sessionkey, firstname, lastname FROM users WHERE username=$1 LIMIT 1`
 	err = c.db.QueryRowx(stmt, username).StructScan(u)
