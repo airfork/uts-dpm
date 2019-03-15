@@ -4,7 +4,8 @@
 M.AutoInit(); // Get csrf token
 
 var inputs = document.querySelectorAll('input');
-var csrf = inputs[inputs.length - 1].value; // Get url from from on page
+var csrf = inputs[inputs.length - 1].value;
+var originalUserName = document.getElementById('username').value; // Get url from from on page
 
 var url = document.getElementById('edit-form').action; // Add event listener to the delete button
 
@@ -39,6 +40,13 @@ document.getElementById('send-btn').onclick = function () {
 };
 
 document.getElementById('email-btn').onclick = function () {
+  if (originalUserName === 'testing@testing.com') {
+    M.toast({
+      html: 'Can\'t send points balance to a testing account.'
+    });
+    return;
+  }
+
   if (confirm('Are you sure you want to email this user their point balance?')) {
     // Get id from url variable
     var id = url[url.length - 1]; // Append id to correct url for this action

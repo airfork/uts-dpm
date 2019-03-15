@@ -72,7 +72,7 @@ func autoGen() ([]dpmDriver, error) {
 
 	// Find SID from post request
 	re := regexp.MustCompile(`SID=\w+`)
-	sid := string(re.Find([]byte(re.Find(body))))
+	sid := string(re.Find(body))
 	if sid == "" {
 		return nil, errors.New("failed to get SID from when2work response")
 	}
@@ -93,7 +93,7 @@ func autoGen() ([]dpmDriver, error) {
 	if err != nil {
 		return nil, errors.New("failed to read response from when2work")
 	}
-	// Can't escape backticks in backticks, so I need to append this for the regex to work
+	// Can't escape backticks in backticks, so I need to append this to regex so that it catches backticks
 	tick := "`"
 	// This gets shifts via regex
 	// either swl("952294753",2,"#000000","Brian Newman","959635624","07:00 - 14:20","   7.33 hours","OFF");
@@ -105,7 +105,7 @@ func autoGen() ([]dpmDriver, error) {
 	}
 
 	// This gets the block numbers/shift and the respective number of shifts for that block
-	// This if format sh(2,"[01]","3 shifts - 18.00 hours");
+	// This is the format sh(2,"[01]","3 shifts - 18.00 hours");
 	// But only matching sh(2,"[01]","3
 	// The [chararcters] may replaced with something else like Charter
 	re = regexp.MustCompile(`sh\(\d+,"[\[\w+\]a-zA-Z ()]+","\d+`)
@@ -118,7 +118,7 @@ func autoGen() ([]dpmDriver, error) {
 	var position int
 	// For each block, get the number of shifts under it, and loop that many positions in shifts array
 	for _, block := range blocks {
-		// If block is special or Charter(mini)/Charter(setra), get the number of shifts under it
+		// If block is not surrounded in []'s, get the number of shifts under it (ignore it)
 		// Add this number to position variable so that those shifts are passed over in slice iteration below
 		if !strings.Contains(block, "[") || !strings.Contains(block, "]") {
 			num := string(block[len(block)-1])
@@ -204,7 +204,6 @@ func autoGen() ([]dpmDriver, error) {
 			if color[1] == 'f' || color[1] == 'F' {
 				// Remove '3' and convert color to lowercase
 				color = strings.ToLower(color[1:])
-				// If color is gold, Good dpm
 				d := dpmDriver{
 					FirstName: html.UnescapeString(first),
 					LastName:  html.UnescapeString(last),
@@ -214,7 +213,7 @@ func autoGen() ([]dpmDriver, error) {
 					StartTime: bm.Sanitize(startTime),
 					EndTime:   bm.Sanitize(endTime),
 				}
-				// fmt.Println(d)
+				// If color is gold, Good dpm
 				if color == "ffcc00" {
 					d.DPMType = "Type G: Good! (+1 Point)"
 					d.Points = "+1"
@@ -241,7 +240,7 @@ func autoSubmit(db *sqlx.DB, dpms []dpmDriver, sender int16) error {
 		id     int16
 		points int16
 	)
-	// Check to make sure that no dpms have be autosubmitted for today
+	// Check to make sure that no dpms have been autosubmitted for today
 	err := checkLastSubmission()
 	if err != nil {
 		return err
@@ -261,7 +260,7 @@ func autoSubmit(db *sqlx.DB, dpms []dpmDriver, sender int16) error {
 	for _, d := range dpms {
 		// Get id, and fulltimer bool based on first and last name
 		err = stmt.QueryRow(d.FirstName, d.LastName).Scan(&id)
-		// If error is not nil, assume it is becase user not in db, not fatal, keep going
+		// If error is not nil, assume it is because user not in db, not fatal, keep going
 		if err != nil {
 			fmt.Println("Failed to find", d.FirstName, d.LastName, "in the DB")
 			fmt.Println(err)
@@ -269,9 +268,8 @@ func autoSubmit(db *sqlx.DB, dpms []dpmDriver, sender int16) error {
 		}
 		// Get current time
 		created := time.Now().Format("2006-1-02 15:04:05")
-		// If DPM is positive, can insert it into the db, no need to check fulltimer bool
 		if d.DPMType == "Type G: Good! (+1 Point)" {
-			// Set ponits
+			// Set points
 			points = 1
 			// Execute query with values
 			_, err := db.Exec(dpmIn, sender, id, d.FirstName, d.LastName, d.Block, d.Date, d.StartTime, d.EndTime, d.DPMType, points, d.Notes, created, d.Location)
@@ -282,14 +280,14 @@ func autoSubmit(db *sqlx.DB, dpms []dpmDriver, sender int16) error {
 				return err
 			}
 			// Create negative dpm
-		} else if d.DPMType == "Type D: Preventable Accident 3,4 (-20 Points)" {
+		} else if d.DPMType == "Type D: DNS/Did Not Show (-10 Points)" {
 			// Set points
-			points = -20
+			points = -10
 			// Execute query
 			_, err := db.Exec(dpmIn, sender, id, d.FirstName, d.LastName, d.Block, d.Date, d.StartTime, d.EndTime, d.DPMType, points, d.Notes, created, d.Location)
 			// If error, fatal, exit function
 			if err != nil {
-				fmt.Println("Autogen input failure, -20")
+				fmt.Println("Autogen input failure, -10")
 				fmt.Println(err)
 				return err
 			}

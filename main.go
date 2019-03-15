@@ -16,7 +16,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// var tpl = template.Must(template.ParseFiles("views/index.gohtml", "views/dpm.gohtml", "views/login.gohtml", "views/changePass.gohtml", "views/createUser.gohtml", "views/resetPassword.gohtml", "views/autogen.gohtml", "views/autogenErr.gohtml"))
 var tpl = template.Must(template.ParseGlob("views/*.gohtml"))
 var store = sessions.NewCookieStore(
 	[]byte(os.Getenv("SESSION_KEY")),
@@ -100,5 +99,6 @@ func getSession() *sqlx.DB {
 	if err != nil {
 		panic(err)
 	}
+	db.SetMaxIdleConns(4)
 	return db
 }

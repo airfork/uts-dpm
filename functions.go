@@ -42,7 +42,7 @@ func (c Controller) createDPMLogic(w http.ResponseWriter, r *http.Request) {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 		return
 	}
 	// Turn simple DPM into full DPM
@@ -70,21 +70,21 @@ func (c Controller) createDPMLogic(w http.ResponseWriter, r *http.Request) {
 	// This prevents DPMS from being created with non matching user ids and name fields
 	stmt = `SELECT username FROM users WHERE id=$1 AND firstname=$2 AND lastname=$3 LIMIT 1`
 	err = c.db.QueryRow(stmt, dpm.UserID, dpm.FirstName, dpm.LastName).Scan(&username)
-	// If err, assume it is because a descrepancy between what's in the db and the info provided
+	// If err, assume it is because a discrepancy between what's in the db and the info provided
 	if err != nil {
 		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	// If they are a regular user, they do not
 	// have permission to create a dpm
 	if !admin && !sup && !analyst {
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 	// Prepare query string
 	dpmIn := `INSERT INTO dpms (createid, userid, firstname, lastname, block, date, starttime, endtime, dpmtype, points, notes, created, location, approved, ignored) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, false, false)`
-	// Insert unapproved dpm into databas
+	// Insert unapproved dpm into database
 	_, err = c.db.Exec(dpmIn, dpm.CreateID, dpm.UserID, dpm.FirstName, dpm.LastName, dpm.Block, dpm.Date, dpm.StartTime, dpm.EndTime, dpm.DPMType, dpm.Points, dpm.Notes, dpm.Created, dpm.Location)
 	if err != nil {
 		fmt.Println("DPM failure")
@@ -92,7 +92,7 @@ func (c Controller) createDPMLogic(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 	return
 }
 
@@ -108,7 +108,7 @@ func (c Controller) getAllUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	// No regular users can do this
 	if !sender.Admin && !sender.Sup && !sender.Analyst {
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
@@ -117,7 +117,7 @@ func (c Controller) getAllUsers(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/change", http.StatusFound)
 		return
 	}
-	// Struct to be marshalled into JSON and sent to client
+	// Struct to be marshaled into JSON and sent to client
 	type passUser struct {
 		Names  []string `json:"names"`  // Slice of drivers' names
 		Ids    []int16  `json:"ids"`    // Slice of drivers' ids
@@ -133,15 +133,20 @@ func (c Controller) getAllUsers(w http.ResponseWriter, r *http.Request) {
 	// Slices to hold names and ids
 	names := make([]string, 0)
 	ids := make([]int16, 0)
-	// Iterate through rows returned filling slices with infor
+	// Iterate through rows returned filling slices with info
 	for rows.Next() {
 		var (
 			firstname string
 			lastname  string
 			id        int16
 		)
-		rows.Scan(&firstname, &lastname, &id)
-		names = append(names, firstname+" "+lastname)
+		err = rows.Scan(&firstname, &lastname, &id)
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		names = append(names, bm.Sanitize(firstname+" "+lastname))
 		ids = append(ids, id)
 	}
 	i := int(sender.ID)
@@ -154,9 +159,17 @@ func (c Controller) getAllUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	// Turn struct into JSON and respond with it
 	j, err := json.Marshal(pU)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(j)
+	_, err = w.Write(j)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 // Creates a user in the database
@@ -168,7 +181,7 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !sender.Admin {
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 	if !sender.Changed {
@@ -213,7 +226,7 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 		go sendNewUserEmail(username, pass, firstname, lastname)
 	}
 	// Get password hash
-	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.MinCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Println(err)
@@ -231,11 +244,7 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 		FirstName:  firstname,
 		LastName:   lastname,
 		FullTime:   fulltime,
-		Changed:    false,
-		Admin:      false,
-		Sup:        false,
-		Analyst:    false,
-		SessionKey: gotp.RandomSecret(16), // Temp value for session, never valid
+		SessionKey: gotp.RandomSecret(32), // Temp value for session, never valid
 		Points:     0,
 		Added:      time.Now().Format("2006-1-02 15:04:05"),
 	}
@@ -246,7 +255,7 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	// Display success message informing if part/full time driver was created
+	// Display success message informing if part/fulltime driver was created
 	// In case admin misses the small checkbox
 	if u.FullTime {
 		out := "Fulltime driver has been added to the database!"
@@ -287,7 +296,7 @@ func (c Controller) logInUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Something went wrong, pleae try again."))
+		_, _ = w.Write([]byte("Something went wrong, pleae try again."))
 		return
 	}
 	// Set user's session key
@@ -299,7 +308,7 @@ func (c Controller) logInUser(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		out := fmt.Sprintln("Something went wrong")
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 		return
 	}
 	// If signing in with temporary password, make user change it
@@ -353,12 +362,12 @@ func (c Controller) changeUserPassword(w http.ResponseWriter, r *http.Request) {
 	sk, err := c.cookieSignIn(w, r)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Something went wrong with creating your session."))
+		_, _ = w.Write([]byte("Something went wrong with creating your session."))
 		return
 	}
 	u.SessionKey = sk
 	// Hash their new password and store it in struct
-	hash, err := bcrypt.GenerateFromPassword([]byte(pass1), bcrypt.MinCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(pass1), bcrypt.DefaultCost)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -366,14 +375,13 @@ func (c Controller) changeUserPassword(w http.ResponseWriter, r *http.Request) {
 	u.Password = string(hash)
 	// They have changed password, so they are definately not using temp pass any more
 	u.Changed = true
-	// Create go routine to handle username change email
-	// Update user in database to contain this new session
+	// Update user in database to contain this new session and new password
 	update := `UPDATE users SET sessionkey=$1, changed=$2, password=$3 WHERE id=$4`
 	_, err = c.db.Exec(update, u.SessionKey, u.Changed, u.Password, u.ID)
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong")
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 		return
 	}
 	// Send password change email
@@ -394,15 +402,20 @@ func (c Controller) logoutUser(w http.ResponseWriter, r *http.Request) {
 	// Fetch session
 	sess, err := c.store.Get(r, "dpm_cookie")
 	// Even if session somehow does not exit at this stage, store.Get
-	// generates a new session so if this step fails, seomthing weird is going on
+	// generates a new session so if this step fails, something weird is going on
 	if err != nil {
 		fmt.Println(err)
-		http.Redirect(w, r, "/", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	// Expire session
 	sess.Options.MaxAge = -1
-	c.store.Save(r, w, sess)
+	err = c.store.Save(r, w, sess)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	// Update user in db with invalid session
 	update := `UPDATE users SET sessionkey=$1 WHERE id=$2`
 	_, err = c.db.Exec(update, u.SessionKey, u.ID)
@@ -413,7 +426,7 @@ func (c Controller) logoutUser(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/login", http.StatusFound)
 }
 
-// This handles reseting a user's password on admin request
+// resetPassword handles resetting a user's password on admin request
 func (c Controller) resetPassword(w http.ResponseWriter, r *http.Request) {
 	// If user not logged in, redirect
 	sender, err := c.getUser(w, r)
@@ -423,15 +436,21 @@ func (c Controller) resetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 	// If user is not an admin, 404
 	if !sender.Admin {
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 	// Sanitize username
-	username := bm.Sanitize(r.FormValue("username"))
+	username := bm.Sanitize(strings.TrimSpace(r.FormValue("username")))
 	// If user is trying to reset their own password, do not allow it
 	// Send message back stating this
 	if sender.Username == username {
 		out := "Please do not try to reset your own password."
+		c.resetPasswordMessage(w, r, out)
+		return
+	}
+	// If admin is trying to reset the password of a testing account, send message and return
+	if username == "testing@testing.com" {
+		out := "Can't reset the password of a testing account"
 		c.resetPasswordMessage(w, r, out)
 		return
 	}
@@ -451,7 +470,7 @@ func (c Controller) resetPassword(w http.ResponseWriter, r *http.Request) {
 	// Send email telling user than an admin has reset your password
 	go sendResetPasswordEmail(u.Username, pass, u.FirstName, u.LastName)
 	// Get password hash
-	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.MinCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Println(err)
@@ -462,7 +481,7 @@ func (c Controller) resetPassword(w http.ResponseWriter, r *http.Request) {
 	u.Password = string(hash)
 	// Change to false because they are now using a temp password
 	u.Changed = false
-	// Update user in the db to reflect, new pass, new value for changed, and
+	// Update user in the db to reflect new pass, new value for changed, and
 	// invalid session key
 	update := `UPDATE users SET password=$1, changed=$2, sessionkey=$3 WHERE id=$4`
 	_, err = c.db.Exec(update, u.Password, u.Changed, u.SessionKey, u.ID)
@@ -476,6 +495,7 @@ func (c Controller) resetPassword(w http.ResponseWriter, r *http.Request) {
 	c.resetPasswordMessage(w, r, out)
 }
 
+// callAutoSubmit autogenerates a list of DPMS from whentowork and submits them
 func (c Controller) callAutoSubmit(w http.ResponseWriter, r *http.Request) {
 	// Get user and validate
 	sender, err := c.getUser(w, r)
@@ -495,17 +515,25 @@ func (c Controller) callAutoSubmit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Regenerate DPMS
-	// This is ineffecient because I already generate these when the user submits a get to /dpm/all
+	// This is inefficient because I already generate these when the user submits a get to /dpm/all
 	// The reason why I generate again is to help protect against the unlikely odds of someone changing data on their end and sending it back to me to submit
 	dpms, err := autoGen()
 	// If error, render the autogenErr template stating this
 	if err != nil {
-		err = c.tpl.ExecuteTemplate(w, "autogenErr.gohtml", nil)
+		n := navbar{
+			Admin:   sender.Admin,
+			Sup:     sender.Sup,
+			Analyst: sender.Analyst,
+		}
+		auto := err.Error()
+		err = c.tpl.ExecuteTemplate(w, "autogenErr.gohtml", map[string]interface{}{
+			"Nav": n, "Err": auto,
+		})
 		if err != nil {
 			out := fmt.Sprintln("Something went wrong, please try again")
 			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(out))
+			_, _ = w.Write([]byte(out))
 			return
 		}
 		return
@@ -526,7 +554,7 @@ func (c Controller) callAutoSubmit(w http.ResponseWriter, r *http.Request) {
 			out := fmt.Sprintln("Something went wrong, please try again")
 			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(out))
+			_, _ = w.Write([]byte(out))
 			return
 		}
 		return
@@ -546,7 +574,7 @@ func (c Controller) sendApprovalLogic(w http.ResponseWriter, r *http.Request) {
 	}
 	// Only admins and analysts can do this
 	if !u.Admin && !u.Analyst {
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 	// Redirect is still on temporary password
@@ -561,9 +589,11 @@ func (c Controller) sendApprovalLogic(w http.ResponseWriter, r *http.Request) {
 	var rows *sql.Rows
 	if u.Admin {
 		// Query that gets most of the relevant information about each non-approved dpm
+		// language=sql
 		stmt = `SELECT id, createid, firstname, lastname, block, location, date, starttime, endtime, dpmtype, points, notes, created FROM dpms WHERE approved=false AND ignored=false ORDER BY created DESC`
 		// If analyst, there is a more complicated query to get the dpms
-	} else {
+	} else if u.Analyst {
+		// language=sql
 		stmt = `SELECT a.id, a.createid, a.firstname, a.lastname, a.block, a.location, a.date, a.starttime, a.endtime, a.dpmtype, a.points, a.notes, a.created FROM dpms a
 		JOIN users b ON b.id=a.userid
 		WHERE approved=false AND ignored=false AND managerid=$1 ORDER BY created DESC`
@@ -574,7 +604,7 @@ func (c Controller) sendApprovalLogic(w http.ResponseWriter, r *http.Request) {
 	if u.Admin {
 		rows, err = c.db.Query(stmt)
 		// If they are an analyst, I need to pass their id into the query
-	} else {
+	} else if u.Analyst {
 		rows, err = c.db.Query(stmt, u.ID)
 	}
 	defer rows.Close()
@@ -593,8 +623,6 @@ func (c Controller) sendApprovalLogic(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// Ensure that positive points start with a '+'
-		// Positive DPMS get autoapproved, and I am querying for DPMS where approved equals false
-		// This code should not run, until I add to ability to make approved dpms non-approved
 		if string(points[0]) != "-" {
 			points = "+" + points
 		}
@@ -607,26 +635,30 @@ func (c Controller) sendApprovalLogic(w http.ResponseWriter, r *http.Request) {
 		}
 		// Create DPMApprove struct to pass into slice
 		dd = dpmApprove{
-			ID:        id,
-			Name:      firstname + " " + lastname,
-			SupName:   supFirst + " " + supLast,
-			Block:     block,
-			Location:  location,
-			Date:      date,
-			StartTime: startTime,
-			EndTime:   endTime,
-			DPMType:   dpmType,
-			Points:    points,
-			Notes:     notes,
-			Created:   created,
+			ID:        bm.Sanitize(id),
+			Name:      bm.Sanitize(firstname + " " + lastname),
+			SupName:   bm.Sanitize(supFirst + " " + supLast),
+			Block:     bm.Sanitize(block),
+			Location:  bm.Sanitize(location),
+			Date:      bm.Sanitize(date),
+			StartTime: bm.Sanitize(startTime),
+			EndTime:   bm.Sanitize(endTime),
+			DPMType:   bm.Sanitize(dpmType),
+			Points:    bm.Sanitize(points),
+			Notes:     bm.Sanitize(notes),
+			Created:   bm.Sanitize(created),
 		}
 		ds = append(ds, dd)
 	}
 	// Turn slice into JSON and respond with it
 	j, err := json.Marshal(ds)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(j)
+	_, _ = w.Write(j)
 }
 
 // sendDriverLogic handles sending simplified DPMs to drivers
@@ -662,9 +694,13 @@ func (c Controller) sendDriverLogic(w http.ResponseWriter, r *http.Request) {
 	}
 	// Turn slice into JSON and respond with it
 	j, err := json.Marshal(ds)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(j)
+	_, _ = w.Write(j)
 }
 
 // approveDPMLogic handles logic for approving a DPM
@@ -694,13 +730,11 @@ func (c Controller) approveDPMLogic(w http.ResponseWriter, r *http.Request) {
 	a := approveDPM{}
 	// Get JSON from request body
 	decoder := json.NewDecoder(r.Body)
-	// Parse JSON to get points value
+	// Parse JSON to get points value and name
 	err = decoder.Decode(&a)
 	if err != nil {
-		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
 		return
 	}
 	// Parse the URL and get the id from the URL
@@ -842,7 +876,7 @@ func (c Controller) denyDPMLogic(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	// Update specified DPM to set ignored to false and set approved to true. Set approved to true to indicate that the dpm has been looked at
+	// Update specified DPM to set ignored to true and set approved to true. Set approved to true to indicate that the dpm has been looked at
 	update := `UPDATE dpms SET approved=true, ignored=true WHERE id=$1`
 	_, err = c.db.Exec(update, id)
 	if err != nil {
@@ -886,9 +920,11 @@ func (c Controller) usersCSV(w http.ResponseWriter, r *http.Request) {
 		points    int16
 		managerid int16
 	)
-	// String that will eventually hold all the csv data
-	// RIght now, I am creating the headers for the csv file
-	final := "ID,Username,Firstname,Lastname,Admin,Sup,Analyst,Fulltime,Points,Managerid\n"
+	// String builder that will eventually hold all the csv data
+	var final strings.Builder
+	final.Grow(20)
+	// Creating the headers for the csv file
+	_, _ = final.WriteString("ID,Username,First Name,Last Name,Admin,Sup,Analyst,Fulltime,Points,Managerid\n")
 	// Query database for required info
 	stmt := `SELECT id, username, firstname, lastname, admin, sup, analyst, fulltime, points, managerid FROM users ORDER BY lastname, firstname`
 	rows, err := c.db.Query(stmt)
@@ -900,26 +936,30 @@ func (c Controller) usersCSV(w http.ResponseWriter, r *http.Request) {
 	}
 	for rows.Next() {
 		// Extract data into variables
-		rows.Scan(&id, &username, &firstname, &lastname, &admin, &sup, &analyst, &fulltime, &points, &managerid)
+		err = rows.Scan(&id, &username, &firstname, &lastname, &admin, &sup, &analyst, &fulltime, &points, &managerid)
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		// Create a string with all the data separated by commas for the csv
-		out := fmt.Sprintf("%v,%s,%s,%s,%v,%v,%v,%v,%v,%v\n", id, username, firstname, lastname, admin, sup, analyst, fulltime, points, managerid)
-		// Append created string to final string
-		final += out
+		// Append created string to stringbuilder
+		final.WriteString(fmt.Sprintf("%v,%s,%s,%s,%v,%v,%v,%v,%v,%v\n", id, username, firstname, lastname, admin, sup, analyst, fulltime, points, managerid))
 	}
 	// Create a mutex lock so file writing does not cause problems
 	var mu sync.Mutex
 	// Lock this process so only one write happens at a time
 	mu.Lock()
 	defer mu.Unlock()
-	// Write file
-	d1 := []byte(final)
+	// Write file with contents of string builder
+	d1 := []byte(final.String())
 	err = ioutil.WriteFile("user.csv", d1, 0644)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	returnFile(w, r, "user.csv")
+	returnFile(w, "user.csv")
 }
 
 // dpmCSV creates a csv file with all the data from the dpms table
@@ -960,13 +1000,13 @@ func (c Controller) dpmCSV(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Convert dates from url string into golang time type
-	start, err := time.Parse("2006-2-1", startDate[0])
+	start, err := time.Parse("2006-1-2", startDate[0])
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusConflict)
 		return
 	}
-	end, err := time.Parse("2006-2-1", endDate[0])
+	end, err := time.Parse("2006-1-2", endDate[0])
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusConflict)
@@ -994,9 +1034,9 @@ func (c Controller) dpmCSV(w http.ResponseWriter, r *http.Request) {
 		endtime   string
 	)
 
-	// String that will eventually hold all the csv data
-	// Right now, I am creating the headers for the csv file
-	final := "First Name,Last Name,Block,Location,Start Time,End Time,Date,Type,Points,Notes,Created\n"
+	// String builder to hold all the data
+	var final strings.Builder
+	final.WriteString("First Name,Last Name,Block,Location,Start Time,End Time,Date,Type,Points,Notes,Created\n")
 	if u.Analyst {
 		if getAll {
 			stmt = `SELECT d.firstname, d.lastname, d.block, d.date, d.dpmtype, d.points, d.notes, d.created, d.location, d.starttime, d.endtime
@@ -1028,7 +1068,12 @@ func (c Controller) dpmCSV(w http.ResponseWriter, r *http.Request) {
 	}
 	for rows.Next() {
 		// Scan row data into variables
-		rows.Scan(&firstname, &lastname, &block, &date, &dpmtype, &points, &notes, &created, &location, &startTime, &endtime)
+		err = rows.Scan(&firstname, &lastname, &block, &date, &dpmtype, &points, &notes, &created, &location, &startTime, &endtime)
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		// Format date, created, startTime, and endTime into a more user friendly data format
 		date = formatDate(date)
 		created = formatCreatedDate(created)
@@ -1040,23 +1085,24 @@ func (c Controller) dpmCSV(w http.ResponseWriter, r *http.Request) {
 		out = strings.Replace(out, "\n", "", -1)
 		// Add newline to string
 		out += "\n"
-		// Append created string to final string
-		final += out
+		// Append created string to string builder
+		final.WriteString(out)
 	}
 	// Create a mutex lock so file writing does not cause problems
 	var mu sync.Mutex
 	// Lock this process so only one write happens at a time
 	mu.Lock()
 	defer mu.Unlock()
+	// Turn string builder contents into byte slice
+	d1 := []byte(final.String())
 	// Write file
-	d1 := []byte(final)
 	err = ioutil.WriteFile("dpm.csv", d1, 0644)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	returnFile(w, r, "dpm.csv")
+	returnFile(w, "dpm.csv")
 }
 
 // findUser tries to find a user in the database matching the input
@@ -1080,7 +1126,7 @@ func (c Controller) findUser(w http.ResponseWriter, r *http.Request) {
 	}
 	var userid int16
 	// Get name from form
-	name := r.FormValue("name")
+	name := strings.TrimSpace(r.FormValue("name"))
 	// If they are trying to reset password, redirect them
 	if name == "reset" {
 		http.Redirect(w, r, "/users/reset", http.StatusFound)
@@ -1091,7 +1137,7 @@ func (c Controller) findUser(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/users/list", http.StatusFound)
 		return
 	}
-	// Split name into first and last, if applicabale
+	// Split name into first and last, if applicable
 	ns := strings.Split(name, " ")
 	// Sanitize first name and put it in the format "%firstname%"
 	first := fmt.Sprintf("%%%s%%", bm.Sanitize(ns[0]))
@@ -1165,10 +1211,10 @@ func (c Controller) editUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get form information
-	username := bm.Sanitize(r.FormValue("username"))
-	firstname := bm.Sanitize(r.FormValue("firstname"))
-	lastname := bm.Sanitize(r.FormValue("lastname"))
-	points := bm.Sanitize(r.FormValue("points"))
+	username := bm.Sanitize(strings.TrimSpace(r.FormValue("username")))
+	firstname := bm.Sanitize(strings.TrimSpace(r.FormValue("firstname")))
+	lastname := bm.Sanitize(strings.TrimSpace(r.FormValue("lastname")))
+	points := bm.Sanitize(strings.TrimSpace(r.FormValue("points")))
 	// Get fulltime status
 	fulltime := false
 	if r.FormValue("fulltime") == "on" {
@@ -1314,7 +1360,7 @@ func (c Controller) deleteUser(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// sendPointsToAll sends each user a point balance via email
+// sendPointsToAll sends each user their point balance via email
 func (c Controller) sendPointsToAll(w http.ResponseWriter, r *http.Request) {
 	u, err := c.getUser(w, r)
 	// Validate user
@@ -1349,7 +1395,12 @@ func (c Controller) sendPointsToAll(w http.ResponseWriter, r *http.Request) {
 	)
 	// Scan values into variables and call email functions
 	for rows.Next() {
-		rows.Scan(&username, &points, &firstname, &lastname)
+		err = rows.Scan(&username, &points, &firstname, &lastname)
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		go sendPointsBalance(username, firstname, lastname, points)
 	}
 	w.WriteHeader(http.StatusOK)
@@ -1389,8 +1440,21 @@ func (c Controller) sendUserPoints(w http.ResponseWriter, r *http.Request) {
 		firstname string
 		lastname  string
 	)
-	stmt := `SELECT username, points, firstname, lastname FROM users WHERE username != 'testing@testing.com' AND id=$1`
-	err = c.db.QueryRow(stmt, id).Scan(&username, &points, &firstname, &lastname)
+	// Get user name of account based on id
+	stmt := `SELECT username FROM users WHERE id=$1`
+	err = c.db.QueryRow(stmt, id).Scan(&username)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// If this user is a testing account, return
+	if username == "testing@testing.com" {
+		w.WriteHeader(http.StatusFound)
+		return
+	}
+	stmt = `SELECT points, firstname, lastname FROM users WHERE username != 'testing@testing.com' AND id=$1`
+	err = c.db.QueryRow(stmt, id).Scan(&points, &firstname, &lastname)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)

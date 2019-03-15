@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"strconv"
 
-	csrf "github.com/gorilla/csrf"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 )
 
-// Navbar holds info for templates on what navbar tabs should be displayed
+// navbar holds info for templates on what navbar tabs should be displayed
 type navbar struct {
 	Admin   bool
 	Sup     bool
@@ -27,15 +27,10 @@ type Auto struct {
 	DPMS []dpmDriver
 }
 
-// Approval holds first and lastname as well as the point value for each non approved DPM in the db
+// Approval holds first and last name as well as the point value for each non approved DPM in the db
 type Approval struct {
 	Name   string
 	Points string
-}
-
-// ApprovalCSRF is a struct holding a list of approvals as well as a csrf input template field
-type ApprovalCSRF struct {
-	List []Approval
 }
 
 // Renders the index page
@@ -57,24 +52,11 @@ func (c Controller) renderIndexPage(w http.ResponseWriter, r *http.Request) {
 	stmt := `SELECT dpmtype FROM dpms WHERE userid=$1 AND approved=true AND ignored=false AND created > now() - interval '6 months' ORDER BY created DESC`
 	ss := make([]string, 0)
 	// Make query
-	rows, err := c.db.Query(stmt, sender.ID)
+	err = c.db.Select(&ss, stmt, sender.ID)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
-	}
-	// Make sure to close rows
-	defer rows.Close()
-	// Iterate over rows
-	var dpmtype string
-	for rows.Next() {
-		err = rows.Scan(&dpmtype)
-		if err != nil {
-			fmt.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		ss = append(ss, dpmtype)
 	}
 	// Struct to allow navbar to only show tabs user is allowed to see
 	n := navbar{
@@ -90,7 +72,7 @@ func (c Controller) renderIndexPage(w http.ResponseWriter, r *http.Request) {
 		out := fmt.Sprintln("Uh-Oh")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 		return
 	}
 	return
@@ -105,7 +87,7 @@ func (c Controller) renderDPM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !sender.Admin && !sender.Sup && !sender.Analyst {
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 	if !sender.Changed {
@@ -125,7 +107,7 @@ func (c Controller) renderDPM(w http.ResponseWriter, r *http.Request) {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 		return
 	}
 	return
@@ -154,13 +136,13 @@ func (c Controller) renderCreateUser(w http.ResponseWriter, r *http.Request) {
 		Analyst: u.Analyst,
 		Sup:     u.Sup,
 	}
-	//Render createuser template
+	// Render createuser template
 	err = c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"csrf": csrf.TemplateField(r), "Nav": n})
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 	}
 }
 
@@ -178,7 +160,7 @@ func (c Controller) renderLogin(w http.ResponseWriter, r *http.Request) {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 		return
 	}
 	return
@@ -205,7 +187,7 @@ func (c Controller) renderChangeUserPassword(w http.ResponseWriter, r *http.Requ
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 		return
 	}
 	return
@@ -235,7 +217,7 @@ func (c Controller) renderResetPassword(w http.ResponseWriter, r *http.Request) 
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 		return
 	}
 	return
@@ -280,7 +262,7 @@ func (c Controller) renderAutoGen(w http.ResponseWriter, r *http.Request) {
 			out := fmt.Sprintln("Something went wrong, please try again")
 			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(out))
+			_, _ = w.Write([]byte(out))
 			return
 		}
 		return
@@ -294,7 +276,7 @@ func (c Controller) renderAutoGen(w http.ResponseWriter, r *http.Request) {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 		return
 	}
 	return
@@ -384,7 +366,7 @@ func (c Controller) renderApprovals(w http.ResponseWriter, r *http.Request) {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 		return
 	}
 	return
@@ -417,7 +399,7 @@ func (c Controller) renderDataPage(w http.ResponseWriter, r *http.Request) {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 		return
 	}
 	return
@@ -425,29 +407,29 @@ func (c Controller) renderDataPage(w http.ResponseWriter, r *http.Request) {
 
 // renderFindUser renders this template, no data passed in
 func (c Controller) renderFindUser(w http.ResponseWriter, r *http.Request) {
-	sender, err := c.getUser(w, r)
+	u, err := c.getUser(w, r)
 	// If user is not signed in, redirect
 	if err != nil {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
 	// user needs to be admin or sup to do this
-	if !sender.Admin {
+	if !u.Admin {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	// if user has not changed password, redirect
-	if !sender.Changed {
+	if !u.Changed {
 		http.Redirect(w, r, "/change", http.StatusFound)
 		return
 	}
-	//Render finduser template
+	// Render finduser template
 	err = c.tpl.ExecuteTemplate(w, "findUser.gohtml", map[string]interface{}{"csrf": csrf.TemplateField(r)})
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 	}
 }
 
@@ -558,13 +540,13 @@ func (c Controller) renderEditUser(w http.ResponseWriter, r *http.Request) {
 		"points":    bm.Sanitize(points),
 		"url":       r.URL.String(),
 	}
-	//Render userpage template
+	// Render userpage template
 	err = c.tpl.ExecuteTemplate(w, "userpage.gohtml", data)
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 		return
 	}
 }
@@ -595,14 +577,19 @@ func (c Controller) renderUserList(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	// Slices to hold names and ids
 	users := make([]map[string]string, 0)
-	// Iterate through rows returned filling slices with infor
+	// Iterate through rows returned filling slices with info
 	for rows.Next() {
 		var (
 			firstname string
 			lastname  string
 			id        string
 		)
-		rows.Scan(&firstname, &lastname, &id)
+		err = rows.Scan(&firstname, &lastname, &id)
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		m := map[string]string{
 			"firstname": firstname,
 			"lastname":  lastname,
@@ -624,6 +611,6 @@ func (c Controller) renderUserList(w http.ResponseWriter, r *http.Request) {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 	}
 }

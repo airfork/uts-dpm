@@ -1,6 +1,6 @@
 package main
 
-// User defines what a user should look like
+// user defines what a user should look like
 type user struct {
 	ID         int16  `json:"id"`          // User ID in the database, unique
 	ManagerID  int16  `json:"managerID"`   // ID of the drivers manager
@@ -10,15 +10,15 @@ type user struct {
 	LastName   string `json:"lastName"`    // Last name of the user
 	FullTime   bool   `json:"fullTime"`    // Is user a fulltime driver
 	Changed    bool   `json:"changed"`     // Have they changed their initial password?
-	Admin      bool   `json:"admin"`       // Admin priveleges?
-	Sup        bool   `json:"sup"`         // Supervisor priveleges?
-	Analyst    bool   `json:"analyst"`     // Analyst priveleges
+	Admin      bool   `json:"admin"`       // Admin privileges?
+	Sup        bool   `json:"sup"`         // Supervisor privileges?
+	Analyst    bool   `json:"analyst"`     // Analyst privileges
 	Points     int16  `json:"points"`      // How many points a driver has
 	SessionKey string `json:"session_key"` // Session key that tracks if the user is signed in or not
 	Added      string `json:"added"`       // Time user was added to the system
 }
 
-// DPM holds all the information about a submitted DPM
+// dpm holds all the information about a submitted DPM
 type dpm struct {
 	ID        int16  `json:"id"`        // ID of the DPM in the database, unique
 	CreateID  int16  `json:"createID"`  // UserID relates to user ID of person who created the DPM
@@ -27,7 +27,7 @@ type dpm struct {
 	LastName  string `json:"lastName"`  // Last name of the user
 	Block     string `json:"block"`     // Block number
 	Location  string `json:"location"`  // Location
-	Date      string `json:"date"`      // Data DPM is issued for
+	Date      string `json:"date"`      // Date DPM is issued for
 	StartTime string `json:"startTime"` // Start time for the DPM
 	EndTime   string `json:"endTime"`   // End time for the DPM
 	DPMType   string `json:"dpmtype"`   // Type of DPM
@@ -38,7 +38,7 @@ type dpm struct {
 	Ignored   bool   `json:"ignored"`   // If the DPM has been seen but ignored
 }
 
-// DPMDriver is used for sending dpm info to the client when they
+// dpmDriver is used for sending dpm info to the client when they
 // want to view their dpms
 type dpmDriver struct {
 	FirstName string `json:"firstName"` // First name of the user
@@ -53,7 +53,7 @@ type dpmDriver struct {
 	Notes     string `json:"notes"`     // Any extra notes about the DPM
 }
 
-// DPMRes is solely for getting response from client. Not all the required information exists client side
+// dpmRes is solely for getting response from client. Not all the required information exists client side
 // the full DPM struct to be used
 type dpmRes struct {
 	Name      string // Inputed name, needs to be split into first and Last
@@ -69,7 +69,7 @@ type dpmRes struct {
 	Points    string
 }
 
-// DPMApprove is used for sending to admin's approval page
+// dpmApprove is used for sending to admin's approval page
 type dpmApprove struct {
 	ID        string `json:"id"`        // ID of DPM
 	Name      string `json:"name"`      // Full name of the driver

@@ -90,7 +90,7 @@ func generateDPM(d *dpmRes) *dpm {
 		EndTime:   bm.Sanitize(d.EndTime),
 		DPMType:   dpmType,
 		Points:    points,
-		Notes:     bm.Sanitize(d.Notes),
+		Notes:     bm.Sanitize(strings.TrimSpace(d.Notes)),
 		Created:   time.Now().Format("2006-1-02 15:04:05"),
 	}
 	return dpm
@@ -133,7 +133,10 @@ func (c Controller) createSession(w http.ResponseWriter, r *http.Request) (strin
 	sid, _ := bcrypt.GenerateFromPassword(securecookie.GenerateRandomKey(32), bcrypt.MinCost)
 	session.Values["id"] = string(sid)
 	// Save it before we write to the response/return from the handler.
-	session.Save(r, w)
+	err = session.Save(r, w)
+	if err != nil {
+		return "", err
+	}
 	return string(sid), nil
 }
 
@@ -144,7 +147,7 @@ func (c Controller) cookieSignIn(w http.ResponseWriter, r *http.Request) (string
 	if err != nil {
 		out := fmt.Sprintln("There seems to have been a problem, please try and hopefully it goes away")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 		return "", err
 	}
 	return sk, nil
@@ -158,7 +161,7 @@ func (c Controller) loginError(w http.ResponseWriter, r *http.Request, message s
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 		return
 	}
 	return
@@ -172,7 +175,7 @@ func (c Controller) changePasswordError(w http.ResponseWriter, r *http.Request, 
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 		return
 	}
 	return
@@ -186,7 +189,7 @@ func (c Controller) resetPasswordMessage(w http.ResponseWriter, r *http.Request,
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 		return
 	}
 	return
@@ -211,7 +214,7 @@ func (c Controller) createUserMessage(w http.ResponseWriter, r *http.Request, me
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 		return
 	}
 	return
@@ -240,7 +243,7 @@ func (c Controller) createUserFill(w http.ResponseWriter, r *http.Request, first
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 		return
 	}
 	return
@@ -253,7 +256,7 @@ func (c Controller) resetUserFill(w http.ResponseWriter, r *http.Request, userna
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(out))
+		_, _ = w.Write([]byte(out))
 		return
 	}
 	return
@@ -282,39 +285,54 @@ func formatCreatedDate(date string) string {
 	return fmt.Sprintf("%s-%s-%s %s:%s:%s\n", month, day, year, hour, minute, second)
 }
 
-func returnFile(w http.ResponseWriter, r *http.Request, filename string) {
-	//Check if file exists and open
+func returnFile(w http.ResponseWriter, filename string) {
+	// Check if file exists and open
 	openfile, err := os.Open(filename)
-	defer openfile.Close() //Close after function return
+	defer openfile.Close() // Close after function return
 	if err != nil {
-		//File not found, send 404
+		// File not found, send 404
 		http.Error(w, "File not found.", 404)
 		return
 	}
 
-	//File is found, create and send the correct headers
+	// File is found, create and send the correct headers
 
-	//Get the Content-Type of the file
-	//Create a buffer to store the header of the file in
+	// Get the Content-Type of the file
+	// Create a buffer to store the header of the file in
 	fileHeader := make([]byte, 512)
-	//Copy the headers into the FileHeader buffer
-	openfile.Read(fileHeader)
-	//Get content type of file
+	// Copy the headers into the FileHeader buffer
+	_, err = openfile.Read(fileHeader)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Get content type of file
 	fileContentType := http.DetectContentType(fileHeader)
 
-	//Get the file size
-	fileStat, _ := openfile.Stat()                     //Get info from file
-	fileSize := strconv.FormatInt(fileStat.Size(), 10) //Get file size as a string
+	// Get the file size
+	fileStat, _ := openfile.Stat()                     // Get info from file
+	fileSize := strconv.FormatInt(fileStat.Size(), 10) // Get file size as a string
 
-	//Send the headers
+	// Send the headers
 	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 	w.Header().Set("Content-Type", fileContentType)
 	w.Header().Set("Content-Length", fileSize)
 
-	//Send the file
-	//We read 512 bytes from the file already, so we reset the offset back to 0
-	openfile.Seek(0, 0)
-	io.Copy(w, openfile) //'Copy' the file to the client
+	// Send the file
+	// We read 512 bytes from the file already, so we reset the offset back to 0
+	_, err = openfile.Seek(0, 0)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	_, err = io.Copy(w, openfile) // 'Copy' the file to the client
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	return
 }
 

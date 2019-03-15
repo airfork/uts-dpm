@@ -42,7 +42,7 @@
         </div>
         <div class="row">
             <div class="col s12">
-                <form action={{.url}} method="POST" id="edit-form">
+                <form method="POST" id="edit-form" action={{.url}}>
                     <div class="input-field col s12 m12 l4">
                         <input id="username" type="text" name="username" required
                         {{if .username}} value={{.username}} {{end}}>
