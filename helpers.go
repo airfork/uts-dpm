@@ -20,7 +20,7 @@ var typeMap = map[string]int16{
 	"Type G: 200 Hours Safe (+2 Points)":                    2,
 	"Type G: Voluntary Clinic/Road Test Passed (+2 Points)": 2,
 	"Type L: 1-5 Minutes Late to OFF (-1 Point)":            -1,
-	"Type A: Missed Email Announcment (-2 Points)":          -2,
+	"Type A: Missed Email Announcement (-2 Points)":          -2,
 	"Type A: 1-5 Minutes Late to BLK (-5 Points)":           -5,
 	"Type A: Improper Shutdown (-2 Points)":                 -2,
 	"Type A: Off-Route (-2 Points)":                         -2,
@@ -29,7 +29,7 @@ var typeMap = map[string]int16{
 	"Type A: Improper Bus Log (-5 Points)":                  -5,
 	"Type A: Timesheet/Improper Book Change (-5 Points)":    -5,
 	"Type A: 6-15 Minutes Late to Blk (-3 Points)":          -3,
-	"Type B: Attendence Infraction (-10 Points)":            -10,
+	"Type B: Attendance Infraction (-10 Points)":            -10,
 	"Type B: Passenger Inconvenience (-5 Points)":           -5,
 	"Type B: Moving Downed Bus (-10 Points)":                -10,
 	"Type B: Improper 10-50 Procedure (-10 Points)":         -10,
@@ -59,7 +59,7 @@ func generateDPM(d *dpmRes) *dpm {
 		ns = append(ns[:0], ns[1:]...)
 		last = bm.Sanitize(strings.Join(ns, " "))
 	}
-	// Get id of person recieving dpm
+	// Get id of person receiving dpm
 	id64, err := strconv.ParseInt(bm.Sanitize(d.ID), 10, 64)
 	userID := int16(id64)
 	if err != nil {

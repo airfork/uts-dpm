@@ -6,3 +6,4 @@ js-pre/
 *.sh
 package-lock.json
 password.go
+.idea/*
