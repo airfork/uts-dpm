@@ -7,3 +7,4 @@ js-pre/
 package-lock.json
 password.go
 .idea/*
+.idea/workspace.xml

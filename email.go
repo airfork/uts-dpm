@@ -22,7 +22,7 @@ func sendPasswordChanged(recipient, firstname, lastname string) {
 		Product: hermes.Product{
 			// Appears in header & footer of e-mails
 			Name:      "University Transit Service",
-			Link:      "https://www.airfork.icu/",
+			Link:      "https://www.utsdpm.com/",
 			Copyright: "Copyright © 2019 University Transit Service. All rights reserved.",
 		},
 	}
@@ -66,7 +66,7 @@ func sendResetPasswordEmail(recipient, pass, firstname, lastname string) {
 		Product: hermes.Product{
 			// Appears in header & footer of e-mails
 			Name:      "University Transit Service",
-			Link:      "https://www.airfork.icu/",
+			Link:      "https://www.utsdpm.com/",
 			Copyright: "Copyright © 2019 University Transit Service. All rights reserved.",
 		},
 	}
@@ -87,7 +87,7 @@ func sendResetPasswordEmail(recipient, pass, firstname, lastname string) {
 					Button: hermes.Button{
 						// Color: "#22BC66", // Optional action button color
 						Text: "Log In",
-						Link: "https://www.airfork.icu/login",
+						Link: "https://www.utsdpm.com/login",
 					},
 				},
 			},
@@ -127,7 +127,7 @@ func sendNewUserEmail(recipient, pass, firstname, lastname string) {
 		Product: hermes.Product{
 			// Appears in header & footer of e-mails
 			Name:      "University Transit Service",
-			Link:      "https://www.airfork.icu/",
+			Link:      "https://www.utsdpm.com/",
 			Copyright: "Copyright © 2019 University Transit Service. All rights reserved.",
 		},
 	}
@@ -147,7 +147,7 @@ func sendNewUserEmail(recipient, pass, firstname, lastname string) {
 					Button: hermes.Button{
 						// Color: "#22BC66", // Optional action button color
 						Text: "Log In",
-						Link: "https://www.airfork.icu/login",
+						Link: "https://www.utsdpm.com/login",
 					},
 				},
 			},
@@ -187,7 +187,7 @@ func sendPointsBalance(recipient, firstname, lastname, points string) {
 		Product: hermes.Product{
 			// Appears in header & footer of e-mails
 			Name:      "University Transit Service",
-			Link:      "https://www.airfork.icu/",
+			Link:      "https://www.utsdpm.com/",
 			Copyright: "Copyright © 2019 University Transit Service. All rights reserved.",
 		},
 	}
@@ -242,7 +242,7 @@ func sendDPMEmail(recipient, firstname, lastname, dpmtype string) {
 		Product: hermes.Product{
 			// Appears in header & footer of e-mails
 			Name:      "University Transit Service",
-			Link:      "https://www.airfork.icu/",
+			Link:      "https://www.utsdpm.com/",
 			Copyright: "Copyright © 2019 University Transit Service. All rights reserved.",
 		},
 	}
