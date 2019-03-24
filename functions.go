@@ -441,58 +441,11 @@ func (c Controller) resetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 	// Sanitize username
 	username := bm.Sanitize(strings.TrimSpace(r.FormValue("username")))
-	// If user is trying to reset their own password, do not allow it
-	// Send message back stating this
-	if sender.Username == username {
-		out := "Please do not try to reset your own password."
+	if c.resetPassHelper(w, r, username, sender) {
+		// Display success message
+		out := "User password successfully reset"
 		c.resetPasswordMessage(w, r, out)
-		return
 	}
-	// If admin is trying to reset the password of a testing account, send message and return
-	if username == "testing@testing.com" {
-		out := "Can't reset the password of a testing account"
-		c.resetPasswordMessage(w, r, out)
-		return
-	}
-	u := &user{}
-	// Get user's id, username, and sessionkey from db
-	stmt := `SELECT id, username, sessionkey, firstname, lastname FROM users WHERE username=$1 LIMIT 1`
-	err = c.db.QueryRowx(stmt, username).StructScan(u)
-	// Assume, to client, that error is because could not find username in db
-	if err != nil {
-		fmt.Println(err)
-		out := "Could not find user with that username in the database."
-		c.resetPasswordMessage(w, r, out)
-		return
-	}
-	// Generate random password for user
-	pass := gotp.RandomSecret(16)
-	// Send email telling user than an admin has reset your password
-	go sendResetPasswordEmail(u.Username, pass, u.FirstName, u.LastName)
-	// Get password hash
-	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Println(err)
-		return
-	}
-	// Invalidate session for user so they have to sign in with new password
-	u.SessionKey = gotp.RandomSecret(32)
-	u.Password = string(hash)
-	// Change to false because they are now using a temp password
-	u.Changed = false
-	// Update user in the db to reflect new pass, new value for changed, and
-	// invalid session key
-	update := `UPDATE users SET password=$1, changed=$2, sessionkey=$3 WHERE id=$4`
-	_, err = c.db.Exec(update, u.Password, u.Changed, u.SessionKey, u.ID)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Println(err)
-		return
-	}
-	// Display success message
-	out := "User password successfully reset"
-	c.resetPasswordMessage(w, r, out)
 }
 
 // callAutoSubmit autogenerates a list of DPMS from whentowork and submits them
@@ -1283,10 +1236,12 @@ func (c Controller) editUser(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	// If reset is true, render the reset password form with the username filled in
+	// If reset is true, reset password
 	if reset {
-		c.resetUserFill(w, r, username)
-		return
+		// Let the function handle the redirect/error displaying
+		if !c.resetPassHelper(w, r, username, u) {
+			return
+		}
 	}
 	http.Redirect(w, r, r.URL.String(), http.StatusFound)
 	return

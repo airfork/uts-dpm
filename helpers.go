@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gorilla/csrf"
+	"github.com/xlzd/gotp"
 
 	"github.com/gorilla/securecookie"
 	"golang.org/x/crypto/bcrypt"
@@ -20,7 +21,7 @@ var typeMap = map[string]int16{
 	"Type G: 200 Hours Safe (+2 Points)":                    2,
 	"Type G: Voluntary Clinic/Road Test Passed (+2 Points)": 2,
 	"Type L: 1-5 Minutes Late to OFF (-1 Point)":            -1,
-	"Type A: Missed Email Announcement (-2 Points)":          -2,
+	"Type A: Missed Email Announcement (-2 Points)":         -2,
 	"Type A: 1-5 Minutes Late to BLK (-5 Points)":           -5,
 	"Type A: Improper Shutdown (-2 Points)":                 -2,
 	"Type A: Off-Route (-2 Points)":                         -2,
@@ -344,4 +345,57 @@ func redirect(w http.ResponseWriter, r *http.Request) bool {
 		return true
 	}
 	return false
+}
+
+func (c Controller) resetPassHelper(w http.ResponseWriter, r *http.Request, username string, sender *user) bool {
+	// If user is trying to reset their own password, do not allow it
+	// Send message back stating this
+	if sender.Username == username {
+		out := "Please do not try to reset your own password."
+		c.resetPasswordMessage(w, r, out)
+		return false
+	}
+	// If admin is trying to reset the password of a testing account, send message and return
+	if username == "testing@testing.com" {
+		out := "Can't reset the password of a testing account"
+		c.resetPasswordMessage(w, r, out)
+		return false
+	}
+	u := &user{}
+	// Get user's id, username, and sessionkey from db
+	stmt := `SELECT id, username, sessionkey, firstname, lastname FROM users WHERE username=$1 LIMIT 1`
+	err := c.db.QueryRowx(stmt, username).StructScan(u)
+	// Assume, to client, that error is because could not find username in db
+	if err != nil {
+		fmt.Println(err)
+		out := "Could not find user with that username in the database."
+		c.resetPasswordMessage(w, r, out)
+		return false
+	}
+	// Generate random password for user
+	pass := gotp.RandomSecret(16)
+	// Send email telling user than an admin has reset your password
+	go sendResetPasswordEmail(u.Username, pass, u.FirstName, u.LastName)
+	// Get password hash
+	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println(err)
+		return false
+	}
+	// Invalidate session for user so they have to sign in with new password
+	u.SessionKey = gotp.RandomSecret(32)
+	u.Password = string(hash)
+	// Change to false because they are now using a temp password
+	u.Changed = false
+	// Update user in the db to reflect new pass, new value for changed, and
+	// invalid session key
+	update := `UPDATE users SET password=$1, changed=$2, sessionkey=$3 WHERE id=$4`
+	_, err = c.db.Exec(update, u.Password, u.Changed, u.SessionKey, u.ID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println(err)
+		return false
+	}
+	return true
 }
