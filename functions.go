@@ -189,9 +189,10 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	u := &user{}
-	username := bm.Sanitize(r.FormValue("email"))
-	firstname := bm.Sanitize(r.FormValue("firstName"))
-	lastname := bm.Sanitize(r.FormValue("lastName"))
+
+	username := bm.Sanitize(strings.TrimSpace(r.FormValue("email")))
+	firstname := bm.Sanitize(strings.TrimSpace(r.FormValue("firstName")))
+	lastname := bm.Sanitize(strings.TrimSpace(r.FormValue("lastName")))
 	// Ensure username and firstname are not empty
 	// Ideally these are not necessary as they are required fields, along with lastname which I am not checking for here
 	if username == "" {
