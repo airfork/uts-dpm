@@ -15,36 +15,38 @@
 <body>
     <nav class="blue darken-4">
         <div class="nav-wrapper">
-          <a href="/" class="brand-logo">Home</a>
-          <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-          <ul class="right hide-on-med-and-down">
-            {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}} 
-            <li><a href="/dpm">DPM</a></li>
-            <li class="active"><a href="/dpm/auto">Autogen</a></li>
-            {{end}}
-            {{if or .Nav.Analyst .Nav.Admin}}
-            <li><a href="/data">Data</a></li>
-            <li><a href="/approve">Approvals</a></li>
-            {{end}}
-            {{if .Nav.Admin}}
-            <li><a href="/users/find">Users</a></li>
-            {{end}}
-          </ul>
+            <a href="/" class="brand-logo">Home</a>
+            <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+            <ul class="right hide-on-med-and-down">
+                {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}}
+                <li><a href="/dpm">DPM</a></li>
+                <li class="active"><a href="/dpm/auto">Autogen</a></li>
+                {{end}}
+                {{if or .Nav.Analyst .Nav.Admin}}
+                <li><a href="/data">Data</a></li>
+                <li><a href="/approve">Approvals</a></li>
+                {{end}}
+                {{if .Nav.Admin}}
+                <li><a href="/users/find">Users</a></li>
+                {{end}}
+                <li><a href="/logout">Logout</a></li>
+            </ul>
         </div>
     </nav>
     
     <ul class="sidenav" id="mobile-demo">
-    {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}} 
-    <li><a href="/dpm">DPM</a></li>
-    <li><a href="/dpm/auto">Autogen</a></li>
-    {{end}}
-    {{if or .Nav.Analyst .Nav.Admin}}
-    <li><a href="/data">Data</a></li>
-    <li><a href="/approve">Approvals</a></li>
-    {{end}}
-    {{if .Nav.Admin}}
-    <li><a href="/users/find">Users</a></li>
-    {{end}}
+        {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}}
+        <li><a href="/dpm">DPM</a></li>
+        <li><a href="/dpm/auto">Autogen</a></li>
+        {{end}}
+        {{if or .Nav.Analyst .Nav.Admin}}
+        <li><a href="/data">Data</a></li>
+        <li><a href="/approve">Approvals</a></li>
+        {{end}}
+        {{if .Nav.Admin}}
+        <li><a href="/users/find">Users</a></li>
+        {{end}}
+        <li><a href="/logout">Logout</a></li>
     </ul>
 
 <div class="container">
