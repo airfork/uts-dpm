@@ -1,7 +1,10 @@
 node_modules/
 dpm
+js-pre/
 *.csv
 *.txt
+*.sh
 package-lock.json
-.idea/
+password.go
+.idea/*
 .idea/workspace.xml
