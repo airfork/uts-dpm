@@ -46,7 +46,7 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 		Addr:         ":" + os.Getenv("PORT"),
-		Handler:      csrf.Protect([]byte(os.Getenv("CSRF_KEY")), csrf.Secure(production))(r),
+		Handler:      csrf.Protect([]byte(os.Getenv("CSRF_KEY")), csrf.Secure(false))(r), //TODO: Set false back to production
 	}
 	r.HandleFunc("/", c.index)
 	r.HandleFunc("/dpm", c.createDPM).Methods("POST")
