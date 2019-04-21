@@ -19,10 +19,10 @@ document.getElementById('send-btn').onclick = function() {
             } else { // send toast to user on fail
                 M.toast({html: 'Something went wrong, please try again.'});
             }
-        }
+        };
         request.send();
     }
-}
+};
 
 document.getElementById('reset-btn').onclick = function() {
     if(confirm('Are you sure you want to reset all part timer point balances to zero?')) {
@@ -38,7 +38,7 @@ document.getElementById('reset-btn').onclick = function() {
             } else { // send toast to user on fail
                 M.toast({html: 'Something went wrong, please try again.'});
             }
-        }
+        };
         request.send();
     }
-}
+};

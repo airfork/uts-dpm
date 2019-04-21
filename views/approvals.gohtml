@@ -1,79 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-  <link rel="shortcut icon" href="/views/favicon.ico">
-  <link rel="stylesheet" type="text/css" href="/assets/css/index.css" />
-  <title>DPM</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <link rel="shortcut icon" href="/views/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="/assets/css/index.css"/>
+    <link rel="stylesheet" type="text/css" href="/assets/css/approvals.css"/>
+    <title>DPM</title>
 </head>
 <body>
-    <nav class="blue darken-4">
-        <div class="nav-wrapper">
-            <a href="/" class="brand-logo">Home</a>
-            <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-            <ul class="right hide-on-med-and-down">
-                {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}}
+<nav class="blue darken-4">
+    <div class="nav-wrapper">
+        <a href="/" class="brand-logo">Home</a>
+        <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+        <ul class="right hide-on-med-and-down">
+            {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}}
                 <li><a href="/dpm">DPM</a></li>
                 <li><a href="/dpm/auto">Autogen</a></li>
-                {{end}}
-                {{if or .Nav.Analyst .Nav.Admin}}
+            {{end}}
+            {{if or .Nav.Analyst .Nav.Admin}}
                 <li><a href="/data">Data</a></li>
                 <li class="active"><a href="/approve">Approvals</a></li>
-                {{end}}
-                {{if .Nav.Admin}}
+            {{end}}
+            {{if .Nav.Admin}}
                 <li><a href="/users/find">Users</a></li>
-                {{end}}
-                <li><a href="/logout">Logout</a></li>
-            </ul>
-        </div>
-    </nav>
-    
-    <ul class="sidenav" id="mobile-demo">
-        {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}}
+            {{end}}
+            <li><a href="/logout">Logout</a></li>
+        </ul>
+    </div>
+</nav>
+
+<ul class="sidenav" id="mobile-demo">
+    {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}}
         <li><a href="/dpm">DPM</a></li>
         <li><a href="/dpm/auto">Autogen</a></li>
-        {{end}}
-        {{if or .Nav.Analyst .Nav.Admin}}
+    {{end}}
+    {{if or .Nav.Analyst .Nav.Admin}}
         <li><a href="/data">Data</a></li>
         <li><a href="/approve">Approvals</a></li>
-        {{end}}
-        {{if .Nav.Admin}}
+    {{end}}
+    {{if .Nav.Admin}}
         <li><a href="/users/find">Users</a></li>
-        {{end}}
-        <li><a href="/logout">Logout</a></li>
-    </ul>
+    {{end}}
+    <li><a href="/logout">Logout</a></li>
+</ul>
 
-  <!-- Modal Structure -->
-  <div id="modal1" class="modal modal modal-fixed-footer">
-      <div class="modal-content" style="padding: 16px 24px;">
-      </div>
-      <div class="modal-footer">
-        <a href="#!" class="modal-close waves-effect waves-orange btn-flat approve" style="color: #ff8a50;">Approve</a>
-        <a href="#!" class="modal-close waves-effect waves-orange btn-flat close">Deny</a>
-      </div>
-  </div>
+<!-- Modal Structure -->
+<div id="modal1" class="modal modal modal-fixed-footer">
+    <div class="modal-content" style="padding: 16px 24px;">
+    </div>
+    <div class="modal-footer" id="foot">
+        <a href="#" class="btn-flat" id="edit" style="color: #5472d3;">Edit</a>
+        <a href="#" class="modal-close btn-flat approve" style="color: #ff8a50;">Approve</a>
+        <a href="#" class="modal-close btn-flat close">Deny</a>
+        <div id="edit-field" class="input-field" style="display: none;">
+            <input id="edit-points" type="number" max="100" min="-100" class="input">
+            <label id="edit-label" for="edit-points">Edit Points</label>
+        </div>
+    </div>
+</div>
 
-  <div class="container">
+<div class="container">
     <div class="row">
-      {{range .List}}
-      <div class="col s12 m6 l4 xl3 dpm">
-        <div class="card-panel">
+        {{range .List}}
+            <div class="col s12 m6 l4 xl3 dpm">
+                <div class="card-panel">
           <span class="dpm-content">
               {{.Name}} <br>
               {{.Points}}
           </span>
-        </div>
-      </div>
-      {{end}}
+                </div>
+            </div>
+        {{end}}
     </div>
     {{.csrf}}
-  </div>
-    
-    <script src="/assets/js/approval.js"></script>
+</div>
+
+<script src="/assets/js/approval.js"></script>
 </body>
 </html>

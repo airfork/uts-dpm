@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	mailgun "github.com/mailgun/mailgun-go"
+	"github.com/mailgun/mailgun-go"
 	"github.com/matcornic/hermes/v2"
 )
 
@@ -226,14 +226,25 @@ func sendPointsBalance(recipient, firstname, lastname, points string) {
 	sendMessage(mg, sender, subject, emailText, body, recipient)
 }
 
-func sendDPMEmail(recipient, firstname, lastname, dpmtype string) {
+func sendDPMEmail(recipient, firstname, lastname, dpmtype string, points int) {
+	var pointString string
+	switch {
+	case points == 0, points < -1:
+		pointString = fmt.Sprintf("(%d Points)", points)
+	case points == -1:
+		pointString = fmt.Sprintf("(%d Point)", points)
+	case points == 1:
+		pointString = fmt.Sprintf("(+%d Point)", points)
+	default:
+		pointString = fmt.Sprintf("(+%d Points)", points)
+	}
 	// Add space to dpmtype to make string manipulation easier
 	dpmtype += " "
 	// Gets letter of DPM, eg. G
 	letter := fmt.Sprintf("[%s]", dpmtype[5:6])
 	// Gets the part of dpm past Type[G]:, but minus the points in parenthesis
 	description := strings.Trim(strings.Replace(dpmtype[8:len(dpmtype)-12], "(", "", -1), " ")
-	out := fmt.Sprintf("Type %s DPM: %s", letter, dpmtype[8:])
+	out := fmt.Sprintf("Type %s DPM: %s%s", letter, description, pointString)
 	subject := fmt.Sprintf("%s: %s", dpmtype[0:6], description)
 	message := fmt.Sprintf("This email is to inform you that you have received a %s. If you have any issues with this, please contact Allison Day directly.", out)
 	h := hermes.Hermes{

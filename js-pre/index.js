@@ -39,7 +39,7 @@ request.onload = function() {
         dataList[i] = data[i];
     }
     // Add event listener to each dpm that pulls up more information
-    const list = document.querySelectorAll('.dpm')
+    const list = document.querySelectorAll('.dpm');
     for (var i = 0; i < list.length; i++) {
         // Push item to object list so I know which dpm is being clicked
         objectList.push(list[i]);
@@ -47,7 +47,7 @@ request.onload = function() {
             // Each object is mapped by index to dpm data
             // Do find dpm data based on index of clicked dpm
             var list = dataList[objectList.indexOf(this)];
-            var timeObj = timeAndDateFormat(list.startTime, list.endTime, list.date)
+            var timeObj = timeAndDateFormat(list.startTime, list.endTime, list.date);
             modaltext.innerHTML = `
             <h4>${list.firstName} ${list.lastName}</h4>
             <p>Points: ${list.points}</p>
@@ -78,7 +78,7 @@ function timeAndDateFormat(startTime, endTime, date) {
     var startMinute = startTime.substring(14, 16);
     var endHour = endTime.substring(11, 13);
     var endMinute = endTime.substring(14, 16);
-    var fulldate = `${month}-${day}-${year}`
+    var fulldate = `${month}-${day}-${year}`;
     var fulltime = startHour + startMinute;
     var fullEndTime = endHour + endMinute;
     var t = {};
