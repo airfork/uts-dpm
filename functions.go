@@ -750,14 +750,13 @@ func (c Controller) approveDPMLogic(w http.ResponseWriter, r *http.Request) {
 		ns = append(ns[:0], ns[1:]...)
 		last = bm.Sanitize(strings.Join(ns, " "))
 	}
-	// Convert points into int16
-	points32, err := strconv.Atoi(a.Points)
+	// Convert points into int
+	points, err := strconv.Atoi(a.Points)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Println(err)
 		return
 	}
-	points := int16(points32)
 	// Update user's point balance to reflect the new points
 	update = `UPDATE users set points=points + $1 WHERE firstname=$2 AND lastname=$3`
 	_, err = c.db.Exec(update, points, first, last)
@@ -769,7 +768,7 @@ func (c Controller) approveDPMLogic(w http.ResponseWriter, r *http.Request) {
 
 	if username != "testing@testing.com" {
 		// Send point email
-		go sendDPMEmail(username, firstname, lastname, dpmtype)
+		go sendDPMEmail(username, firstname, lastname, dpmtype, points)
 	}
 	w.WriteHeader(http.StatusOK)
 }
@@ -1460,5 +1459,84 @@ func (c Controller) resetPartTimePoints(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+	return
+}
+
+// updateDPMPoints updates the points value for a specific DPM
+func (c Controller) updateDPMPoints(w http.ResponseWriter, r *http.Request) {
+	u, err := c.getUser(w, r)
+	// Validate user
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		fmt.Println(err)
+		return
+	}
+	// Only admins and analyst can do this
+	if !u.Admin && !u.Analyst {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// Redirect if still on temporary password
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+	// Temporary struct to hold response from client
+	type pointStruct struct {
+		Points string
+	}
+	a := pointStruct{}
+	// Get JSON from request body
+	decoder := json.NewDecoder(r.Body)
+	// Parse JSON to get points value and name
+	err = decoder.Decode(&a)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Parse the URL and get the id from the URL
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	var managerid int
+	// If not an admin, make sure they have access to this dpm
+	if !u.Admin {
+		// Select the manager ID for the driver who owns this DPM
+		stmt := `SELECT managerid FROM users a
+		JOIN dpms b ON a.id=b.userid
+		WHERE b.id=$1;`
+		err = c.db.QueryRow(stmt, id).Scan(&managerid)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Println(err)
+			return
+		}
+		// If ids do not match, abort
+		if managerid != int(u.ID) {
+			fmt.Println("Not authorized")
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+	}
+	points, err := strconv.Atoi(a.Points)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Update specified DPM to reflect new points value
+	update := `UPDATE dpms SET points=$1 WHERE id=$2`
+	_, err = c.db.Exec(update, points, id)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
 	return
 }
