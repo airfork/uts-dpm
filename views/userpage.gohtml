@@ -1,129 +1,140 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-  <link rel="shortcut icon" href="/views/favicon.ico">
-  <link rel="stylesheet" type="text/css" href="/assets/css/index.css" />
-  <link rel="stylesheet" type="text/css" href="/assets/css/dpm.css" />
-  <title>DPM</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#0d47a1">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#0d47a1">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="#0d47a1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <link rel="shortcut icon" href="/views/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="/assets/css/index.css"/>
+    <link rel="stylesheet" type="text/css" href="/assets/css/dpm.css"/>
+    <title>DPM</title>
 </head>
 <body>
-    <nav class="blue darken-4">
-        <div class="nav-wrapper">
-            <a href="/" class="brand-logo">Home</a>
-            <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-            <ul class="right hide-on-med-and-down">
-                <li><a href="/dpm">DPM</a></li>
-                <li><a href="/dpm/auto">Autogen</a></li>
-                <li><a href="/data">Data</a></li>
-                <li><a href="/approve">Approvals</a></li>
-                <li  class="active"><a href="/users/find">Users</a></li>
-                <li><a href="/logout">Logout</a></li>
-            </ul>
-        </div>
-    </nav>
-    
-    <ul class="sidenav" id="mobile-demo">
-        <li><a href="/dpm">DPM</a></li>
-        <li><a href="/dpm/auto">Autogen</a></li>
-        <li><a href="/data">Data</a></li>
-        <li><a href="/approve">Approvals</a></li>
-        <li><a href="/users/find">Users</a></li>
-        <li><a href="/logout">Logout</a></li>
-    </ul>
-
-    <div class="container">
-        <div class="row">
-            <h4>Edit User</h4>
-            <hr>
-        </div>
-        <div class="row">
-            <div class="col s12">
-                <form method="POST" id="edit-form" action={{.url}}>
-                    <div class="input-field col s12 m12 l4">
-                        <input id="username" type="text" name="username" required
-                        {{if .username}} value={{.username}} {{end}}>
-                        <label for="username"
-                        {{if .username}} class="active" {{end}}>Username</label>
-                    </div>
-                    <div class="input-field col s12 m6 l4">
-                        <input id="firstname" type="text" name="firstname" required
-                        {{if .firstname}} value={{.firstname}} {{end}}>
-                        <label for="firstname"
-                        {{if .firstname}} class="active" {{end}}>First Name</label>
-                    </div>
-                    <div class="input-field col s12 m6 l4">
-                        <input id="lastname" type="text" name="lastname" required
-                        {{if .lastname}} value={{.lastname}} {{end}}>
-                        <label for="lastname"
-                        {{if .lastname}} class="active" {{end}}>Last Name</label>
-                    </div>
-                    <div class="input-field col s12 m4">
-                        <input id="points" type="number" name="points" required
-                        value={{.points}}>
-                        <label for="points"
-                        class="active">Points</label>
-                    </div>
-                    <div class="input-field col s12 m4">
-                        <select name="manager">
-                            {{if .manager}}
-                            {{range .manager}}
-                            <option value={{.ID}}>{{.Name}}</option>
-                            {{end}}
-                            {{end}}
-                        </select>
-                        <label>Manager</label>
-                    </div>
-                    <div class="input-field col s12 m4">
-                        <select name="role">
-                            {{if .role}}
-                            {{range .role}}
-                            <option value="{{.}}">{{.}}</option>
-                            {{end}}
-                            {{end}}
-                        </select>
-                        <label>Role</label>
-                    </div>
-                    <div class="input-field col s6">
-                        <p>
-                            <label>
-                                <input type="checkbox" name="fulltime" {{if .fulltime}} checked {{end}}/>
-                                <span>Fulltime</span>
-                            </label>
-                        </p>
-                    </div>
-                    <div class="input-field col s6">
-                        <p>
-                            <label>
-                                <input type="checkbox" name="reset" />
-                                <span>Reset Password</span>
-                            </label>
-                        </p>
-                    </div>
-                    {{.csrf}}
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="fixed-action-btn click-to-toggle">
-        <a class="btn-floating btn-large waves-effect waves-orange tooltipped" style="background-color: #e94c1d;" data-position="left" data-tooltip="List Options">
-            <i class="material-icons">list</i>
-        </a>
-        <ul>
-            <li><a data-position="left" data-tooltip="Delete User" class="btn tooltipped btn-floating orange accent-2"><i class="material-icons" id="delete-btn">delete_forever</i></a></li>
-            <li><a data-position="left" data-tooltip="Email User's Point Balance" class="btn tooltipped btn-floating orange accent-3"><i class="material-icons" id="email-btn">email</i></a></li>
-            <li><a data-position="left" data-tooltip="Update User" class="btn-floating orange accent-4 tooltipped" id="send-btn"><i class="material-icons">send</i></a></li>
+<nav class="blue darken-4">
+    <div class="nav-wrapper">
+        <a href="/" class="brand-logo">Home</a>
+        <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+        <ul class="right hide-on-med-and-down">
+            <li><a href="/dpm">DPM</a></li>
+            <li><a href="/dpm/auto">Autogen</a></li>
+            <li><a href="/data">Data</a></li>
+            <li><a href="/approve">Approvals</a></li>
+            <li class="active"><a href="/users/find">Users</a></li>
+            <li><a href="/logout">Logout</a></li>
         </ul>
     </div>
+</nav>
+
+<ul class="sidenav" id="mobile-demo">
+    <li><a href="/dpm">DPM</a></li>
+    <li><a href="/dpm/auto">Autogen</a></li>
+    <li><a href="/data">Data</a></li>
+    <li><a href="/approve">Approvals</a></li>
+    <li><a href="/users/find">Users</a></li>
+    <li><a href="/logout">Logout</a></li>
+</ul>
+
+<div class="container">
+    <div class="row">
+        <h4>Edit User</h4>
+        <hr>
+    </div>
+    <div class="row">
+        <div class="col s12">
+            <form method="POST" id="edit-form" action={{.url}}>
+                <div class="input-field col s12 m12 l4">
+                    <input id="username" type="text" name="username" required
+                            {{if .username}} value={{.username}} {{end}}>
+                    <label for="username"
+                            {{if .username}} class="active" {{end}}>Username</label>
+                </div>
+                <div class="input-field col s12 m6 l4">
+                    <input id="firstname" type="text" name="firstname" required
+                            {{if .firstname}} value={{.firstname}} {{end}}>
+                    <label for="firstname"
+                            {{if .firstname}} class="active" {{end}}>First Name</label>
+                </div>
+                <div class="input-field col s12 m6 l4">
+                    <input id="lastname" type="text" name="lastname" required
+                            {{if .lastname}} value={{.lastname}} {{end}}>
+                    <label for="lastname"
+                            {{if .lastname}} class="active" {{end}}>Last Name</label>
+                </div>
+                <div class="input-field col s12 m4">
+                    <input id="points" type="number" name="points" required
+                           value={{.points}}>
+                    <label for="points"
+                           class="active">Points</label>
+                </div>
+                <div class="input-field col s12 m4">
+                    <select name="manager">
+                        {{if .manager}}
+                            {{range .manager}}
+                                <option value={{.ID}}>{{.Name}}</option>
+                            {{end}}
+                        {{end}}
+                    </select>
+                    <label>Manager</label>
+                </div>
+                <div class="input-field col s12 m4">
+                    <select name="role">
+                        {{if .role}}
+                            {{range .role}}
+                                <option value="{{.}}">{{.}}</option>
+                            {{end}}
+                        {{end}}
+                    </select>
+                    <label>Role</label>
+                </div>
+                <div class="input-field col s6">
+                    <p>
+                        <label>
+                            <input type="checkbox" name="fulltime" {{if .fulltime}} checked {{end}}/>
+                            <span>Fulltime</span>
+                        </label>
+                    </p>
+                </div>
+                <div class="input-field col s6">
+                    <p>
+                        <label>
+                            <input type="checkbox" name="reset"/>
+                            <span>Reset Password</span>
+                        </label>
+                    </p>
+                </div>
+                {{.csrf}}
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="fixed-action-btn click-to-toggle">
+    <a class="btn-floating btn-large waves-effect waves-orange tooltipped" style="background-color: #e94c1d;"
+       data-position="left" data-tooltip="List Options">
+        <i class="material-icons">list</i>
+    </a>
+    <ul>
+        <li><a data-position="left" data-tooltip="Delete User" class="btn tooltipped btn-floating orange accent-2"><i
+                        class="material-icons" id="delete-btn">delete_forever</i></a></li>
+        <li><a data-position="left" data-tooltip="Email User's Point Balance"
+               class="btn tooltipped btn-floating orange accent-3"><i class="material-icons"
+                                                                      id="email-btn">email</i></a></li>
+        <li><a data-position="left" data-tooltip="Update User" class="btn-floating orange accent-4 tooltipped"
+               id="send-btn"><i class="material-icons">send</i></a></li>
+    </ul>
+</div>
 
 
-    <script src="/assets/js/editUser.js"></script>
+<script src="/assets/js/editUser.js"></script>
 </body>
 </html>
 

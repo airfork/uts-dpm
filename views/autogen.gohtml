@@ -1,91 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-  <link rel="shortcut icon" href="/views/favicon.ico">
-  <link rel="stylesheet" type="text/css" href="/assets/css/index.css" />
-  <link rel="stylesheet" type="text/css" href="/assets/css/dpm.css" />
-  <title>DPM</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#0d47a1">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#0d47a1">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="#0d47a1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <link rel="shortcut icon" href="/views/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="/assets/css/index.css"/>
+    <link rel="stylesheet" type="text/css" href="/assets/css/dpm.css"/>
+    <title>DPM</title>
 </head>
 <body>
-    <nav class="blue darken-4">
-        <div class="nav-wrapper">
-            <a href="/" class="brand-logo">Home</a>
-            <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-            <ul class="right hide-on-med-and-down">
-                {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}}
+<nav class="blue darken-4">
+    <div class="nav-wrapper">
+        <a href="/" class="brand-logo">Home</a>
+        <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+        <ul class="right hide-on-med-and-down">
+            {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}}
                 <li><a href="/dpm">DPM</a></li>
                 <li class="active"><a href="/dpm/auto">Autogen</a></li>
-                {{end}}
-                {{if or .Nav.Analyst .Nav.Admin}}
+            {{end}}
+            {{if or .Nav.Analyst .Nav.Admin}}
                 <li><a href="/data">Data</a></li>
                 <li><a href="/approve">Approvals</a></li>
-                {{end}}
-                {{if .Nav.Admin}}
+            {{end}}
+            {{if .Nav.Admin}}
                 <li><a href="/users/find">Users</a></li>
-                {{end}}
-                <li><a href="/logout">Logout</a></li>
-            </ul>
-        </div>
-    </nav>
-    
-    <ul class="sidenav" id="mobile-demo">
-        {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}}
+            {{end}}
+            <li><a href="/logout">Logout</a></li>
+        </ul>
+    </div>
+</nav>
+
+<ul class="sidenav" id="mobile-demo">
+    {{if or .Nav.Sup .Nav.Admin .Nav.Analyst}}
         <li><a href="/dpm">DPM</a></li>
         <li><a href="/dpm/auto">Autogen</a></li>
-        {{end}}
-        {{if or .Nav.Analyst .Nav.Admin}}
+    {{end}}
+    {{if or .Nav.Analyst .Nav.Admin}}
         <li><a href="/data">Data</a></li>
         <li><a href="/approve">Approvals</a></li>
-        {{end}}
-        {{if .Nav.Admin}}
+    {{end}}
+    {{if .Nav.Admin}}
         <li><a href="/users/find">Users</a></li>
-        {{end}}
-        <li><a href="/logout">Logout</a></li>
-    </ul>
+    {{end}}
+    <li><a href="/logout">Logout</a></li>
+</ul>
 
 <div class="container">
     <table class="striped">
         <thead>
-            <tr>
-                <th>Name</th>
-                <th>Block/Time</th>
-                <th>Type</th>
-            </tr>
+        <tr>
+            <th>Name</th>
+            <th>Block/Time</th>
+            <th>Type</th>
+        </tr>
         </thead>
 
         <tbody>
-            {{with .dpms}}
+        {{with .dpms}}
             {{range .}}
-            <tr>
-                <td>{{.FirstName}} {{.LastName}}</td>
-                <td>[{{.Block}}] {{.StartTime}}-{{.EndTime}}</td>
-                <td>{{.DPMType}}</td>
-            </tr>
+                <tr>
+                    <td>{{.FirstName}} {{.LastName}}</td>
+                    <td>[{{.Block}}] {{.StartTime}}-{{.EndTime}}</td>
+                    <td>{{.DPMType}}</td>
+                </tr>
             {{end}}
-            {{end}}
+        {{end}}
         </tbody>
-    </table>     
+    </table>
 </div>
 
-    <div class="fixed-action-btn">
-        <form action="/dpm/auto" method="POST" id="auto-form">
-            {{.csrf}}
-            <a class="btn-floating btn-large waves-effect waves-orange tooltipped" data-position="left" data-tooltip="Submit DPMs" onclick="document.getElementById('auto-form').submit();">
+<div class="fixed-action-btn">
+    <form action="/dpm/auto" method="POST" id="auto-form">
+        {{.csrf}}
+        <a class="btn-floating btn-large waves-effect waves-orange tooltipped" data-position="left"
+           data-tooltip="Submit DPMs" onclick="document.getElementById('auto-form').submit();">
             <i class="large material-icons">send</i>
         </a>
-        </form>
-    </div>
+    </form>
+</div>
 
-    <script>
-        // initialize elements
-        M.AutoInit();
-    </script>
+<script>
+    // initialize elements
+    M.AutoInit();
+</script>
 
 </body>
 </html>
