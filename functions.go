@@ -641,6 +641,32 @@ func (c Controller) sendDriverLogic(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		var pointString string
+		points, err := strconv.Atoi(dd.Points)
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		switch {
+		case points == 0, points < -1:
+			pointString = fmt.Sprintf("(%d Points)", points)
+		case points == -1:
+			pointString = fmt.Sprintf("(%d Point)", points)
+		case points == 1:
+			pointString = fmt.Sprintf("(+%d Point)", points)
+		default:
+			pointString = fmt.Sprintf("(+%d Points)", points)
+		}
+		dpmtype := dd.DPMType
+		// Add space to dpmtype to make string manipulation easier
+		dpmtype += " "
+		// Gets letter of DPM, eg. G
+		letter := fmt.Sprintf("%s", dpmtype[5:6])
+		// Gets the part of dpm past Type[G]:, but minus the points in parenthesis
+		description := strings.Trim(strings.Replace(dpmtype[8:len(dpmtype)-12], "(", "", -1), " ")
+		out := fmt.Sprintf("Type %s: %s %s", letter, description, pointString)
+		dd.DPMType = out
 		if string(dd.Points[0]) != "-" {
 			dd.Points = "+" + dd.Points
 		}

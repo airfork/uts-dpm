@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
@@ -47,18 +48,50 @@ func (c Controller) renderIndexPage(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/change", http.StatusFound)
 		return
 	}
-	// Get the type of each DPM a user has
+	var (
+		dpmtype string
+		points int
+	)
+	// Get the type and points of each DPM a user has
 	// Need to get approved DPMs that are not being ignored
-	stmt := `SELECT dpmtype FROM dpms WHERE userid=$1 AND approved=true AND ignored=false AND created > now() - interval '6 months' ORDER BY created DESC`
+	stmt := `SELECT dpmtype, points FROM dpms WHERE userid=$1 AND approved=true AND ignored=false AND created > now() - interval '6 months' ORDER BY created DESC`
 	ss := make([]string, 0)
 	// Make query
-	err = c.db.Select(&ss, stmt, sender.ID)
+	rows, err := c.db.Query(stmt, sender.ID)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	// Struct to allow navbar to only show tabs user is allowed to see
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&dpmtype, &points)
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		var pointString string
+		switch {
+		case points == 0, points < -1:
+			pointString = fmt.Sprintf("(%d Points)", points)
+		case points == -1:
+			pointString = fmt.Sprintf("(%d Point)", points)
+		case points == 1:
+			pointString = fmt.Sprintf("(+%d Point)", points)
+		default:
+			pointString = fmt.Sprintf("(+%d Points)", points)
+		}
+		// Add space to dpmtype to make string manipulation easier
+		dpmtype += " "
+		// Gets letter of DPM, eg. G
+		letter := fmt.Sprintf("%s", dpmtype[5:6])
+		// Gets the part of dpm past Type[G]:, but minus the points in parenthesis
+		description := strings.Trim(strings.Replace(dpmtype[8:len(dpmtype)-12], "(", "", -1), " ")
+		out := fmt.Sprintf("Type %s: %s %s", letter, description, pointString)
+		ss = append(ss, out)
+	}
+ 	// Struct to allow navbar to only show tabs user is allowed to see
 	n := navbar{
 		Admin:   sender.Admin,
 		Sup:     sender.Sup,
