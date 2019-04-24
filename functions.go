@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"html"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -191,8 +192,8 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 	u := &user{}
 
 	username := bm.Sanitize(strings.TrimSpace(r.FormValue("email")))
-	firstname := bm.Sanitize(strings.TrimSpace(r.FormValue("firstName")))
-	lastname := bm.Sanitize(strings.TrimSpace(r.FormValue("lastName")))
+	firstname := html.UnescapeString(bm.Sanitize(strings.TrimSpace(r.FormValue("firstName"))))
+	lastname := html.UnescapeString(bm.Sanitize(strings.TrimSpace(r.FormValue("lastName"))))
 	// Ensure username and firstname are not empty
 	// Ideally these are not necessary as they are required fields, along with lastname which I am not checking for here
 	if username == "" {
@@ -667,6 +668,11 @@ func (c Controller) sendDriverLogic(w http.ResponseWriter, r *http.Request) {
 		description := strings.Trim(strings.Replace(dpmtype[8:len(dpmtype)-12], "(", "", -1), " ")
 		out := fmt.Sprintf("Type %s: %s %s", letter, description, pointString)
 		dd.DPMType = out
+		dd.Notes = html.UnescapeString(dd.Notes)
+		dd.FirstName = html.UnescapeString(dd.FirstName)
+		dd.LastName = html.UnescapeString(dd.LastName)
+		dd.Block = html.UnescapeString(dd.Block)
+		dd.Location = html.UnescapeString(dd.Location)
 		if string(dd.Points[0]) != "-" {
 			dd.Points = "+" + dd.Points
 		}

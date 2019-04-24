@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html"
 	"io"
 	"net/http"
 	"os"
@@ -82,16 +83,16 @@ func generateDPM(d *dpmRes) *dpm {
 	dpm := &dpm{
 		CreateID:  createID,
 		UserID:    userID,
-		FirstName: first,
-		LastName:  last,
-		Block:     strings.ToUpper(bm.Sanitize(d.Block)),
-		Location:  strings.ToUpper(bm.Sanitize(d.Location)),
+		FirstName: html.UnescapeString(first),
+		LastName:  html.UnescapeString(last),
+		Block:     html.UnescapeString(strings.ToUpper(bm.Sanitize(d.Block))),
+		Location:  html.UnescapeString(strings.ToUpper(bm.Sanitize(d.Location))),
 		Date:      bm.Sanitize(d.Date),
 		StartTime: bm.Sanitize(d.StartTime),
 		EndTime:   bm.Sanitize(d.EndTime),
 		DPMType:   dpmType,
 		Points:    points,
-		Notes:     bm.Sanitize(strings.TrimSpace(d.Notes)),
+		Notes:     html.UnescapeString(bm.Sanitize(strings.TrimSpace(d.Notes))),
 		Created:   time.Now().Format("2006-1-02 15:04:05"),
 	}
 	return dpm
