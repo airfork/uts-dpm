@@ -3,9 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="4c2a6525-220a-40ef-ae83-10c67fab59cf" name="Default Changelist" comment="Added logout button and fixed font sizing error on the user page">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/functions.go" beforeDir="false" afterPath="$PROJECT_DIR$/functions.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates.go" beforeDir="false" afterPath="$PROJECT_DIR$/templates.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/email.go" beforeDir="false" afterPath="$PROJECT_DIR$/email.go" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -82,7 +80,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/functions.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="367">
+            <state relative-caret-position="13629">
               <caret line="664" column="31" selection-start-line="664" selection-start-column="31" selection-end-line="664" selection-end-column="31" />
             </state>
           </provider>
@@ -91,26 +89,26 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/templates.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="381">
+            <state relative-caret-position="1638">
               <caret line="87" column="33" selection-start-line="87" selection-start-column="33" selection-end-line="87" selection-end-column="33" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/email.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="56">
-              <caret line="224" selection-start-line="224" selection-end-line="224" />
+            <state relative-caret-position="486">
+              <caret line="249" column="35" selection-start-line="249" selection-start-column="35" selection-end-line="249" selection-end-column="35" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="232">
-              <caret line="50" column="30" lean-forward="true" selection-start-line="50" selection-start-column="30" selection-end-line="50" selection-end-column="30" />
+            <state relative-caret-position="253">
+              <caret line="51" column="62" selection-start-line="51" selection-start-column="62" selection-end-line="51" selection-end-column="62" />
               <folding>
                 <element signature="e#14#257#0" expanded="true" />
               </folding>
@@ -159,7 +157,6 @@
         <option value="$PROJECT_DIR$/assets/css/form.css" />
         <option value="$PROJECT_DIR$/assets/css/approvals.css" />
         <option value="$PROJECT_DIR$/assets/js/approval.js" />
-        <option value="$PROJECT_DIR$/email.go" />
         <option value="$PROJECT_DIR$/js-pre/approval.js" />
         <option value="$PROJECT_DIR$/views/approvals.gohtml" />
         <option value="$PROJECT_DIR$/views/index.gohtml" />
@@ -177,6 +174,7 @@
         <option value="$PROJECT_DIR$/functions.go" />
         <option value="$PROJECT_DIR$/templates.go" />
         <option value="$PROJECT_DIR$/main.go" />
+        <option value="$PROJECT_DIR$/email.go" />
       </list>
     </option>
   </component>
@@ -529,34 +527,34 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/email.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="56">
-          <caret line="224" selection-start-line="224" selection-end-line="224" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/functions.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="367">
+        <state relative-caret-position="13629">
           <caret line="664" column="31" selection-start-line="664" selection-start-column="31" selection-end-line="664" selection-end-column="31" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/templates.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="381">
+        <state relative-caret-position="1638">
           <caret line="87" column="33" selection-start-line="87" selection-start-column="33" selection-end-line="87" selection-end-column="33" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/main.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="232">
-          <caret line="50" column="30" lean-forward="true" selection-start-line="50" selection-start-column="30" selection-end-line="50" selection-end-column="30" />
+        <state relative-caret-position="253">
+          <caret line="51" column="62" selection-start-line="51" selection-start-column="62" selection-end-line="51" selection-end-column="62" />
           <folding>
             <element signature="e#14#257#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/email.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="486">
+          <caret line="249" column="35" selection-start-line="249" selection-start-column="35" selection-end-line="249" selection-end-column="35" />
         </state>
       </provider>
     </entry>
