@@ -83,16 +83,12 @@
     <form action="/dpm/auto" method="POST" id="auto-form">
         {{.csrf}}
         <a class="btn-floating btn-large waves-effect waves-orange tooltipped" data-position="left"
-           data-tooltip="Submit DPMs" onclick="document.getElementById('auto-form').submit();">
+           data-tooltip="Submit DPMs" id="auto-submit">
             <i class="large material-icons">send</i>
         </a>
     </form>
 </div>
 
-<script>
-    // initialize elements
-    M.AutoInit();
-</script>
-
+<script src="/assets/js/autogen.js"></script>
 </body>
 </html>
