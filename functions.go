@@ -273,7 +273,7 @@ func (c Controller) logInUser(w http.ResponseWriter, r *http.Request) {
 	// Struct for later use
 	u := &user{}
 	// Get user input
-	user := r.FormValue("username")
+	user := strings.TrimSpace(r.FormValue("username"))
 	pass := r.FormValue("password")
 	// Find user in database
 	err := c.db.QueryRowx("SELECT * FROM users WHERE username=$1 LIMIT 1", user).StructScan(u)

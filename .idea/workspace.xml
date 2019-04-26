@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4c2a6525-220a-40ef-ae83-10c67fab59cf" name="Default Changelist" comment="Added logout button and fixed font sizing error on the user page">
-      <change beforePath="$PROJECT_DIR$/functions.go" beforeDir="false" afterPath="$PROJECT_DIR$/functions.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helpers.go" beforeDir="false" afterPath="$PROJECT_DIR$/helpers.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -108,7 +107,7 @@
         <entry file="file://$APPLICATION_CONFIG_DIR$/consoles/db/9c5cb30b-c4b6-49ee-8c1c-82c340039375/console.sql">
           <provider selected="true" editor-type-id="text-editor">
             <state>
-              <caret column="20" selection-start-column="20" selection-end-column="20" />
+              <caret column="20" lean-forward="true" selection-start-column="20" selection-end-column="20" />
             </state>
           </provider>
         </entry>
@@ -582,7 +581,7 @@
     <entry file="file://$APPLICATION_CONFIG_DIR$/consoles/db/9c5cb30b-c4b6-49ee-8c1c-82c340039375/console.sql">
       <provider selected="true" editor-type-id="text-editor">
         <state>
-          <caret column="20" selection-start-column="20" selection-end-column="20" />
+          <caret column="20" lean-forward="true" selection-start-column="20" selection-end-column="20" />
         </state>
       </provider>
     </entry>
