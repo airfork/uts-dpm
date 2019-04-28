@@ -98,9 +98,16 @@ func (c Controller) renderIndexPage(w http.ResponseWriter, r *http.Request) {
 		Analyst: sender.Analyst,
 	}
 	// Render index.gohtml template
-	err = c.tpl.ExecuteTemplate(w, "index.gohtml", map[string]interface{}{
-		"Nav": n, "Types": ss,
-	})
+	// Display message if they have no DPMs in the system
+	if len(ss) == 0 {
+		err = c.tpl.ExecuteTemplate(w, "index.gohtml", map[string]interface{}{
+			"Nav": n, "empty": true,
+		})
+	} else {
+		err = c.tpl.ExecuteTemplate(w, "index.gohtml", map[string]interface{}{
+			"Nav": n, "Types": ss,
+		})
+	}
 	if err != nil {
 		out := fmt.Sprintln("Uh-Oh")
 		fmt.Println(err)
