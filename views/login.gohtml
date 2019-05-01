@@ -32,7 +32,7 @@
                     </svg>
                     <span class="hidden">Username</span></label>
                 <input id="login__username" type="text" name="username" class="form__input browser-default"
-                       placeholder="Username" required>
+                       placeholder="Username" {{if .username}} value="{{.username}}" {{end}} required>
             </div>
 
             <div class="form__field">

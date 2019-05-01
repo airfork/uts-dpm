@@ -156,9 +156,9 @@ func (c Controller) cookieSignIn(w http.ResponseWriter, r *http.Request) (string
 }
 
 // loginError renders login with an error message
-func (c Controller) loginError(w http.ResponseWriter, r *http.Request, message string) {
+func (c Controller) loginError(w http.ResponseWriter, r *http.Request, message, username string) {
 	// Render login template
-	err := c.tpl.ExecuteTemplate(w, "login.gohtml", map[string]interface{}{"message": message, "csrf": csrf.TemplateField(r)})
+	err := c.tpl.ExecuteTemplate(w, "login.gohtml", map[string]interface{}{"message": message, "username": username, "csrf": csrf.TemplateField(r)})
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)

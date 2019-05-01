@@ -281,7 +281,7 @@ func (c Controller) logInUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 		out := "Username or password was incorrect, please try again."
-		c.loginError(w, r, out)
+		c.loginError(w, r, out, html.UnescapeString(bm.Sanitize(user)))
 		return
 	}
 	// Validate password
@@ -289,9 +289,12 @@ func (c Controller) logInUser(w http.ResponseWriter, r *http.Request) {
 	// If passwords do not match, render template with message
 	if err != nil {
 		fmt.Println(err)
-		out := "Username or password was incorrect, please try again."
-		c.loginError(w, r, out)
-		return
+		err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte((strings.TrimSpace(pass))))
+		if err != nil {
+			out := "Username or password was incorrect, please try again."
+			c.loginError(w, r, out, html.UnescapeString(bm.Sanitize(user)))
+			return
+		}
 	}
 	// Create a session for the user
 	sk, err := c.cookieSignIn(w, r)
@@ -336,9 +339,12 @@ func (c Controller) changeUserPassword(w http.ResponseWriter, r *http.Request) {
 	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(og))
 	// If passwords do not match, inform user
 	if err != nil {
-		out := "Please ensure that you are inputting your old password correctly."
-		c.changePasswordError(w, r, out)
-		return
+		err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(strings.TrimSpace(og)))
+		if err != nil {
+			out := "Please ensure that you are inputting your old password correctly."
+			c.changePasswordError(w, r, out)
+			return
+		}
 	}
 	// Get both copies of new password and ensure they are the same
 	pass1 := r.FormValue("pass1")
@@ -354,7 +360,13 @@ func (c Controller) changeUserPassword(w http.ResponseWriter, r *http.Request) {
 		c.changePasswordError(w, r, out)
 		return
 	}
-	// If user enters temporary password for their new password, complain
+	// Check if password has trailing or leading whitespace
+	if len(strings.TrimSpace(pass1)) < len(pass1) {
+		out := "Please make sure that your password does not contain any trailing or leading whitespace."
+		c.changePasswordError(w, r, out)
+		return
+	}
+	// If user enters their temporary password for their new password, complain
 	if pass1 == og {
 		out := "Please make your new password different from your temporary one."
 		c.changePasswordError(w, r, out)
@@ -375,7 +387,7 @@ func (c Controller) changeUserPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	u.Password = string(hash)
-	// They have changed password, so they are definately not using temp pass any more
+	// They have changed password, so they are definitely not using temp pass any more
 	u.Changed = true
 	// Update user in database to contain this new session and new password
 	update := `UPDATE users SET sessionkey=$1, changed=$2, password=$3 WHERE id=$4`
