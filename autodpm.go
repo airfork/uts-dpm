@@ -190,11 +190,12 @@ func autoGen() ([]dpmDriver, error) {
 			re = regexp.MustCompile(`[\w- \(\)\\*&@!#\+=_\{\}\[\]:';\.\?]+"\)`)
 			// If location is missing, skip
 			location := string(re.Find([]byte(s)))
-			if len(location) < 3 {
+			if len(location) < 5 {
 				fmt.Println("Line has no location, skipping")
 				position++
 				continue
 			}
+			notes := location[3:]
 			location = location[0:3]
 			// Make sure location is capitalized
 			location = strings.ToUpper(location)
@@ -223,6 +224,15 @@ func autoGen() ([]dpmDriver, error) {
 				} else if color == "ff0000" {
 					d.DPMType = "Type D: DNS/Did Not Show (-10 Points)"
 					d.Points = "-10"
+					notes = strings.Replace(notes, "DNS", "", -1)
+					notes = strings.Replace(notes, "-", "", 1)
+					notes = strings.Replace(notes, ")", "", -1)
+					notes = strings.Replace(notes, "(", "", -1)
+					notes = strings.Replace(notes, `"`, "", -1)
+					notes = strings.TrimSpace(notes)
+					if len(notes) != 0 {
+						d.Notes = notes
+					}
 					dpms = append(dpms, d)
 				}
 			}
