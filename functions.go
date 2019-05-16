@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"html"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/tealeg/xlsx"
 	"github.com/xlzd/gotp"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -858,8 +858,8 @@ func (c Controller) denyDPMLogic(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// usersCSV gets data from the users table and creates a csv file
-func (c Controller) usersCSV(w http.ResponseWriter, r *http.Request) {
+// usersXLSX gets data from the users table and creates an excel file
+func (c Controller) usersXLSX(w http.ResponseWriter, r *http.Request) {
 	u, err := c.getUser(w, r)
 	// Validate user
 	if err != nil {
@@ -877,27 +877,19 @@ func (c Controller) usersCSV(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/change", http.StatusFound)
 		return
 	}
-
-	// Create a bunch of variables to extract row data into
+	// variables to extract row data into
 	var (
-		id        int16
-		username  string
 		firstname string
 		lastname  string
-		admin     bool
-		sup       bool
-		analyst   bool
-		fulltime  bool
-		points    int16
-		managerid int16
+		points    string
+		manager   string
 	)
-	// String builder that will eventually hold all the csv data
-	var final strings.Builder
-	final.Grow(20)
-	// Creating the headers for the csv file
-	_, _ = final.WriteString("ID,Username,First Name,Last Name,Admin,Sup,Analyst,Fulltime,Points,Managerid\n")
 	// Query database for required info
-	stmt := `SELECT id, username, firstname, lastname, admin, sup, analyst, fulltime, points, managerid FROM users ORDER BY lastname, firstname`
+	stmt := `SELECT u.lastname, u.firstname, u.points, b.firstname || ' ' || b.lastname AS manager
+			FROM users AS u
+			INNER JOIN users AS b ON u.managerid=b.id
+			WHERE u.username != 'testing@testing.com'
+			ORDER BY lastname, firstname`
 	rows, err := c.db.Query(stmt)
 	defer rows.Close()
 	if err != nil {
@@ -905,36 +897,91 @@ func (c Controller) usersCSV(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	// Prepare for writing to excel sheet
+	var file *xlsx.File
+	var sheet *xlsx.Sheet
+	var row *xlsx.Row
+	var cell *xlsx.Cell
+	var style *xlsx.Style
+
+	style = xlsx.NewStyle()
+	style.Font.Bold = true
+	file = xlsx.NewFile()
+	sheet, err = file.AddSheet("Users")
+	if err != nil {
+		fmt.Printf(err.Error())
+		return
+	}
+	headers := []string{
+		"Last Name",
+		"First Name",
+		"Points",
+		"Manager",
+	}
+
+	// Add headers
+	row = sheet.AddRow()
+	for _, header := range headers {
+		cell = row.AddCell()
+		cell.SetStyle(style)
+		cell.Value = header
+	}
+
+	// new style for text wrapping
+	style = xlsx.NewStyle()
+	style.Alignment.WrapText = true
 	for rows.Next() {
+		row = sheet.AddRow()
 		// Extract data into variables
-		err = rows.Scan(&id, &username, &firstname, &lastname, &admin, &sup, &analyst, &fulltime, &points, &managerid)
+		err = rows.Scan(&lastname, &firstname, &points, &manager)
 		if err != nil {
 			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		// Create a string with all the data separated by commas for the csv
-		// Append created string to stringbuilder
-		final.WriteString(fmt.Sprintf("%v,%s,%s,%s,%v,%v,%v,%v,%v,%v\n", id, username, firstname, lastname, admin, sup, analyst, fulltime, points, managerid))
+		if string(points[0]) != "-" {
+			points = "+" + points
+		}
+		rowValues := []string{
+			html.UnescapeString(lastname),
+			html.UnescapeString(firstname),
+			points,
+			html.UnescapeString(manager),
+		}
+		for _, value := range rowValues {
+			cell = row.AddCell()
+			cell.SetStyle(style)
+			cell.Value = value
+		}
 	}
 	// Create a mutex lock so file writing does not cause problems
 	var mu sync.Mutex
 	// Lock this process so only one write happens at a time
 	mu.Lock()
 	defer mu.Unlock()
-	// Write file with contents of string builder
-	d1 := []byte(final.String())
-	err = ioutil.WriteFile("user.csv", d1, 0644)
+	err = sheet.SetColWidth(0, 1, 20)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	returnFile(w, "user.csv")
+	err = sheet.SetColWidth(3, 3, 20)
+	if err != nil {
+		fmt.Printf(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = file.Save("Users.xlsx")
+	if err != nil {
+		fmt.Printf(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+	returnFile(w, "Users.xlsx")
 }
 
-// dpmCSV creates a csv file with all the data from the dpms table
-func (c Controller) dpmCSV(w http.ResponseWriter, r *http.Request) {
+// dpmXLSX creates an excel file data from the dpms table
+func (c Controller) dpmXLSX(w http.ResponseWriter, r *http.Request) {
 	u, err := c.getUser(w, r)
 	// Validate user
 	if err != nil {
@@ -1003,31 +1050,30 @@ func (c Controller) dpmCSV(w http.ResponseWriter, r *http.Request) {
 		location  string
 		startTime string
 		endtime   string
+		approved  bool
+		ignored   bool
 	)
 
-	// String builder to hold all the data
-	var final strings.Builder
-	final.WriteString("First Name,Last Name,Block,Location,Start Time,End Time,Date,Type,Points,Notes,Created\n")
 	if u.Analyst {
 		if getAll {
-			stmt = `SELECT d.firstname, d.lastname, d.block, d.date, d.dpmtype, d.points, d.notes, d.created, d.location, d.starttime, d.endtime
+			stmt = `SELECT d.firstname, d.lastname, d.block, d.date, d.dpmtype, d.points, d.notes, d.created, d.location, d.starttime, d.endtime, d.approved, d.ignored
 			FROM dpms d INNER JOIN users u ON d.userid=u.id
 			WHERE u.managerid = $1
-			ORDER BY date`
+			ORDER BY date DESC, created DESC`
 			rows, err = c.db.Query(stmt, u.ID)
 		} else {
-			stmt = `SELECT d.firstname, d.lastname, d.block, d.date, d.dpmtype, d.points, d.notes, d.created, d.location, d.starttime, d.endtime
+			stmt = `SELECT d.firstname, d.lastname, d.block, d.date, d.dpmtype, d.points, d.notes, d.created, d.location, d.starttime, d.endtime, d.approved, d.ignored
 			FROM dpms d INNER JOIN users u ON d.userid=u.id
 			WHERE u.managerid = $1 AND created <= $2 AND created >= $3
-			ORDER BY date`
+			ORDER BY date DESC, created DESC`
 			rows, err = c.db.Query(stmt, u.ID, endDate[0], startDate[0])
 		}
 	} else {
 		if getAll {
-			stmt = `SELECT firstname, lastname, block, date, dpmtype, points, notes, created, location, starttime, endtime FROM dpms ORDER BY date`
+			stmt = `SELECT firstname, lastname, block, date, dpmtype, points, notes, created, location, starttime, endtime, approved, ignored FROM dpms ORDER BY date DESC, created DESC`
 			rows, err = c.db.Query(stmt)
 		} else {
-			stmt = `SELECT firstname, lastname, block, date, dpmtype, points, notes, created, location, starttime, endtime FROM dpms WHERE created <= $1 AND created >= $2 ORDER BY date`
+			stmt = `SELECT firstname, lastname, block, date, dpmtype, points, notes, created, location, starttime, endtime, approved, ignored FROM dpms WHERE created <= $1 AND created >= $2 ORDER BY date DESC, created DESC`
 			rows, err = c.db.Query(stmt, endDate[0], startDate[0])
 		}
 	}
@@ -1037,9 +1083,53 @@ func (c Controller) dpmCSV(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	// Prepare for writing to excel sheet
+	var file *xlsx.File
+	var sheet *xlsx.Sheet
+	var row *xlsx.Row
+	var cell *xlsx.Cell
+	var style *xlsx.Style
+
+	style = xlsx.NewStyle()
+	style.Font.Bold = true
+	file = xlsx.NewFile()
+	sheet, err = file.AddSheet("DPMs")
+	if err != nil {
+		fmt.Printf(err.Error())
+		return
+	}
+	headers := []string{
+		"First Name",
+		"Last Name",
+		"Block",
+		"Location",
+		"Start Time",
+		"End Time",
+		"Date",
+		"Type",
+		"Points",
+		"Notes",
+		"Status",
+		"Created",
+	}
+
+	// Add headers
+	row = sheet.AddRow()
+	for _, header := range headers {
+		cell = row.AddCell()
+		cell.SetStyle(style)
+		cell.Value = header
+	}
+
+	// new style for text wrapping
+	style = xlsx.NewStyle()
+	style.Alignment.WrapText = true
 	for rows.Next() {
+		// Create row for values
+		row = sheet.AddRow()
 		// Scan row data into variables
-		err = rows.Scan(&firstname, &lastname, &block, &date, &dpmtype, &points, &notes, &created, &location, &startTime, &endtime)
+		err = rows.Scan(&firstname, &lastname, &block, &date, &dpmtype, &points, &notes, &created, &location, &startTime, &endtime, &approved, &ignored)
 		if err != nil {
 			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -1050,30 +1140,77 @@ func (c Controller) dpmCSV(w http.ResponseWriter, r *http.Request) {
 		created = formatCreatedDate(created)
 		startTime = startTime[11:13] + startTime[14:16]
 		endtime = endtime[11:13] + endtime[14:16]
-		// Create string with all the values separated by commas
-		out := fmt.Sprintf("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s", firstname, lastname, block, location, startTime, endtime, date, dpmtype, points, notes, created)
-		// Replace any newlines with empty strings, newlines get put in for some I never bothered to figured out
-		out = strings.Replace(out, "\n", "", -1)
-		// Add newline to string
-		out += "\n"
-		// Append created string to string builder
-		final.WriteString(out)
+		if string(points[0]) != "-" {
+			points = "+" + points
+		}
+		status := c.getStatus(approved, ignored)
+		rowValues := []string{
+			html.UnescapeString(firstname),
+			html.UnescapeString(lastname),
+			html.UnescapeString(block),
+			html.UnescapeString(location),
+			startTime,
+			endtime,
+			date,
+			dpmtype,
+			points,
+			html.UnescapeString(notes),
+			status,
+			created,
+		}
+		for _, value := range rowValues {
+			cell = row.AddCell()
+			cell.SetStyle(style)
+			cell.Value = value
+		}
 	}
 	// Create a mutex lock so file writing does not cause problems
 	var mu sync.Mutex
 	// Lock this process so only one write happens at a time
 	mu.Lock()
 	defer mu.Unlock()
-	// Turn string builder contents into byte slice
-	d1 := []byte(final.String())
-	// Write file
-	err = ioutil.WriteFile("dpm.csv", d1, 0644)
+	err = sheet.SetColWidth(0, 2, 20)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	returnFile(w, "dpm.csv")
+	err = sheet.SetColWidth(2, 6, 15)
+	if err != nil {
+		fmt.Printf(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = sheet.SetColWidth(7, 7, 40)
+	if err != nil {
+		fmt.Printf(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = sheet.SetColWidth(9, 9, 60)
+	if err != nil {
+		fmt.Printf(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = sheet.SetColWidth(10, 10, 30)
+	if err != nil {
+		fmt.Printf(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = sheet.SetColWidth(11, 11, 20)
+	if err != nil {
+		fmt.Printf(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = file.Save("DPMs.xlsx")
+	if err != nil {
+		fmt.Printf(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+	returnFile(w, "DPMs.xlsx")
 }
 
 // findUser tries to find a user in the database matching the input

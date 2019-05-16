@@ -87,7 +87,7 @@ function remove(id, row) {
             row.onclick = function() {
                 prepareModal('DPM denied', row);
                 modal.open();
-            }
+            };
             M.toast({html: 'DPM Denied'});
             modal.close();
         } else {
@@ -146,7 +146,7 @@ function prepareModal(optionalStatus, row) {
     <p>Created: ${createdFormat(list.created)}</p>
     <p>Status: ${status}</p>
     `;
-    let denied = false
+    let denied = false;
     if ((list.approved === false && list.ignored === true) || status === 'DPM denied') {
         denied = true;
     }

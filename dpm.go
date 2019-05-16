@@ -218,24 +218,24 @@ func (c Controller) dataPage(w http.ResponseWriter, r *http.Request) {
 	c.renderDataPage(w, r)
 }
 
-// GetUserCSV creates a csv file from the users table
-func (c Controller) getUserCSV(w http.ResponseWriter, r *http.Request) {
+// GetUserXLSX creates an excel file from the users table
+func (c Controller) getUserXLSX(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
 		return
 	}
-	c.usersCSV(w, r)
+	c.usersXLSX(w, r)
 }
 
-// GetDPMCSV creates a csv file from the dpm table
-func (c Controller) getDPMCSV(w http.ResponseWriter, r *http.Request) {
+// GetDPMXLSX creates an excel file from the dpm table
+func (c Controller) getDPMXLSX(w http.ResponseWriter, r *http.Request) {
 	// Redirect if not right domain
 	v := redirect(w, r)
 	if v {
 		return
 	}
-	c.dpmCSV(w, r)
+	c.dpmXLSX(w, r)
 }
 
 // findForm renders the find form and handles the searching for a user

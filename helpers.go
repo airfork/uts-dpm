@@ -400,3 +400,16 @@ func (c Controller) resetPassHelper(w http.ResponseWriter, r *http.Request, user
 	}
 	return true
 }
+
+// getStatus gets the status of a DPM based on the two booleans
+func (c Controller) getStatus(approved, ignored bool) string {
+	if approved == true && ignored == false {
+		return "DPM approved"
+	} else if approved == true && ignored == true {
+		return "DPM approved but not visible to driver"
+	} else if approved == false && ignored == false {
+		return "DPM has not been looked at"
+	} else {
+		return "DPM denied"
+	}
+}
