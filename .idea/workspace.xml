@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4c2a6525-220a-40ef-ae83-10c67fab59cf" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/views/data.gohtml" beforeDir="false" afterPath="$PROJECT_DIR$/views/data.gohtml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -47,11 +47,20 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/dpm.go">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="495">
               <caret line="230" column="30" selection-start-line="230" selection-start-column="30" selection-end-line="230" selection-end-column="30" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/views/data.gohtml">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="672">
+              <caret line="97" column="31" selection-start-line="97" selection-start-column="31" selection-end-line="97" selection-end-column="31" />
             </state>
           </provider>
         </entry>
@@ -140,7 +149,6 @@
         <option value="$PROJECT_DIR$/views/resetPassword.gohtml" />
         <option value="$PROJECT_DIR$/views/changePass.gohtml" />
         <option value="$PROJECT_DIR$/views/createUser.gohtml" />
-        <option value="$PROJECT_DIR$/views/data.gohtml" />
         <option value="$PROJECT_DIR$/views/dpm.gohtml" />
         <option value="$PROJECT_DIR$/views/findUser.gohtml" />
         <option value="$PROJECT_DIR$/views/autogenErr.gohtml" />
@@ -169,6 +177,7 @@
         <option value="$PROJECT_DIR$/functions.go" />
         <option value="$PROJECT_DIR$/main.go" />
         <option value="$PROJECT_DIR$/dpm.go" />
+        <option value="$PROJECT_DIR$/views/data.gohtml" />
       </list>
     </option>
   </component>
@@ -190,6 +199,11 @@
             <path>
               <item name="UTS-DPM" type="b2602c69:ProjectViewProjectNode" />
               <item name="UTS-DPM" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="UTS-DPM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="UTS-DPM" type="462c0819:PsiDirectoryNode" />
+              <item name="views" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -396,13 +410,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="315">
           <caret line="15" column="73" selection-start-line="15" selection-start-column="73" selection-end-line="15" selection-end-column="73" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/views/data.gohtml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="231">
-          <caret line="11" column="73" selection-start-line="11" selection-start-column="73" selection-end-line="11" selection-end-column="73" />
         </state>
       </provider>
     </entry>
@@ -619,6 +626,13 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="495">
           <caret line="230" column="30" selection-start-line="230" selection-start-column="30" selection-end-line="230" selection-end-column="30" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/views/data.gohtml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="672">
+          <caret line="97" column="31" selection-start-line="97" selection-start-column="31" selection-end-line="97" selection-end-column="31" />
         </state>
       </provider>
     </entry>

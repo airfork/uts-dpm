@@ -44,4 +44,5 @@
 
 #user-btn, #dpm-btn {
     color: #ff8a50;
+    cursor: pointer;
 }
