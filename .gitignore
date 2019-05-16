@@ -4,3 +4,4 @@ dpm
 *.txt
 password.go
 .vscode/
+*.xlsx
