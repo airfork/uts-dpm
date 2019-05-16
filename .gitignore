@@ -3,3 +3,4 @@ dpm
 *.csv
 *.txt
 password.go
+.vscode/

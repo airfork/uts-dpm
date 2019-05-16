@@ -20,8 +20,7 @@ request.open('GET', "/users/".concat(id, "/dpms/full"), true);
 
 request.onload = function () {
   if (request.status >= 200 && request.status < 400) {
-    var modaltext = document.querySelector('.modal-content'); // Success!
-
+    // Success!
     var data = JSON.parse(request.responseText); // Get items from data into dataList
 
     for (var i = 0; i < data.length; i++) {
@@ -34,13 +33,7 @@ request.onload = function () {
       objectList.push(rows[i]);
 
       rows[i].onclick = function () {
-        // Each object is mapped by index to dpm data
-        // Do find dpm data based on index of clicked dpm
-        var list = dataList[objectList.indexOf(this)];
-        var timeObj = timeAndDateFormat(list.startTime, list.endTime, list.date);
-        var status = getStatus(list.approved, list.ignored);
-        modaltext.innerHTML = "\n                <h4>".concat(list.firstName, " ").concat(list.lastName, "</h4>\n                <p>Supervisor: ").concat(list.supname, "</p>\n                <p>Points: ").concat(list.points, "</p>\n                <p>").concat(list.dpmtype, "</p>\n                <p>Block: ").concat(list.block, "</p>\n                <p>Location: ").concat(list.location, "</p>\n                <p>Date: ").concat(timeObj.date, "</p>\n                <p>Time: ").concat(timeObj.startTime, "-").concat(timeObj.endTime, "</p>\n                <p>Notes: ").concat(list.notes, "</p>\n                <p>Created: ").concat(createdFormat(list.created), "</p>\n                <p>Status: ").concat(status, "</p>\n                ");
-        removeBtnLogic(this, document.getElementById('delete'), list.id);
+        prepareModal('', this);
         modal.open();
       };
     }
@@ -70,12 +63,18 @@ function timeAndDateFormat(startTime, endTime, date) {
   return t;
 }
 
-function removeBtnLogic(row, button, id) {
-  button.onclick = function () {
-    if (confirm('Are you sure you want to remove this DPM?')) {
-      remove(id, row);
-    }
-  };
+function removeBtnLogic(row, button, id, denied) {
+  if (denied === true) {
+    button.classList.add('disabled');
+  } else {
+    button.classList.remove('disabled');
+
+    button.onclick = function () {
+      if (confirm('Are you sure you want to deny this DPM?')) {
+        remove(id, row);
+      }
+    };
+  }
 } // This deletes the DPM
 
 
@@ -89,9 +88,13 @@ function remove(id, row) {
 
   request.onload = function () {
     if (request.status >= 200 && request.status < 400) {
-      row.style.display = 'none';
+      row.onclick = function () {
+        prepareModal('DPM denied', row);
+        modal.open();
+      };
+
       M.toast({
-        html: 'DPM Removed'
+        html: 'DPM Denied'
       });
       modal.close();
     } else {
@@ -103,7 +106,7 @@ function remove(id, row) {
 
   request.onerror = function () {
     M.toast({
-      html: 'There was an error removing this DPM.'
+      html: 'There was an error denying this DPM.'
     });
   };
 
@@ -125,7 +128,7 @@ function getStatus(approved, ignored) {
   }
 
   if (approved === false && ignored === true) {
-    return 'DPM was denied';
+    return 'DPM denied';
   }
 } // Format the created field into more user friendly format
 
@@ -137,4 +140,21 @@ function createdFormat(createdDate) {
   var startHour = createdDate.substring(11, 13);
   var startMinute = createdDate.substring(14, 16);
   return "".concat(month, "/").concat(day, "/").concat(year, " @ ").concat(startHour).concat(startMinute);
+}
+
+function prepareModal(optionalStatus, row) {
+  // Each object is mapped by index to dpm data
+  // Do find dpm data based on index of clicked dpm
+  var modaltext = document.querySelector('.modal-content');
+  var list = dataList[objectList.indexOf(row)];
+  var timeObj = timeAndDateFormat(list.startTime, list.endTime, list.date);
+  var status = optionalStatus === '' ? getStatus(list.approved, list.ignored) : optionalStatus;
+  modaltext.innerHTML = "\n    <h4>".concat(list.firstName, " ").concat(list.lastName, "</h4>\n    <p>Supervisor: ").concat(list.supname, "</p>\n    <p>Points: ").concat(list.points, "</p>\n    <p>").concat(list.dpmtype, "</p>\n    <p>Block: ").concat(list.block, "</p>\n    <p>Location: ").concat(list.location, "</p>\n    <p>Date: ").concat(timeObj.date, "</p>\n    <p>Time: ").concat(timeObj.startTime, "-").concat(timeObj.endTime, "</p>\n    <p>Notes: ").concat(list.notes, "</p>\n    <p>Created: ").concat(createdFormat(list.created), "</p>\n    <p>Status: ").concat(status, "</p>\n    ");
+  var denied = false;
+
+  if (list.approved === false && list.ignored === true || status === 'DPM denied') {
+    denied = true;
+  }
+
+  removeBtnLogic(row, document.getElementById('delete'), list.id, denied);
 }

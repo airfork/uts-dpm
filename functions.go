@@ -1670,9 +1670,9 @@ func (c Controller) removeDPMPostLogic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var (
-		points int
+		points   int
 		approved bool
-		ignored bool
+		ignored  bool
 	)
 
 	// Get the points value for the DPM
@@ -1694,7 +1694,7 @@ func (c Controller) removeDPMPostLogic(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	_, err = c.db.Exec(`DELETE FROM dpms WHERE id=$1`, id)
+	_, err = c.db.Exec(`UPDATE dpms SET approved=false, ignored=true WHERE id=$1`, id)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusUnauthorized)
