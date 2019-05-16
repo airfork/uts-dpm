@@ -100,4 +100,6 @@ type dpmAdmin struct {
 	Notes     string `json:"notes"`     // Any extra notes about the DPM
 	Ignored   bool   `json:"ignored"`   // If the DPM is ignored or not
 	Approved  bool   `json:"approved"`  // If the DPM has been looked at or not
+	Created   string `json:"created"`   // The time the DPM was inserted into the db
+	Supname   string `json:"supname"`   // The name of the supervisor who created this DPM
 }

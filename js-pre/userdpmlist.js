@@ -38,6 +38,7 @@ request.onload = function () {
                 const status = getStatus(list.approved, list.ignored);
                 modaltext.innerHTML = `
                 <h4>${list.firstName} ${list.lastName}</h4>
+                <p>Supervisor: ${list.supname}</p>
                 <p>Points: ${list.points}</p>
                 <p>${list.dpmtype}</p>
                 <p>Block: ${list.block}</p>
@@ -45,6 +46,7 @@ request.onload = function () {
                 <p>Date: ${timeObj.date}</p>
                 <p>Time: ${timeObj.startTime}-${timeObj.endTime}</p>
                 <p>Notes: ${list.notes}</p>
+                <p>Created: ${createdFormat(list.created)}</p>
                 <p>Status: ${status}</p>
                 `;
                 removeBtnLogic(this, document.getElementById('delete'), list.id);
@@ -109,6 +111,7 @@ function remove(id, row) {
     request.send();
 }
 
+// Get the status of the DPM based on the approved and ignored fields of the DPM
 function getStatus(approved, ignored) {
     if (approved === true && ignored === false) {
         return 'DPM approved'
@@ -122,4 +125,15 @@ function getStatus(approved, ignored) {
     if (approved === false && ignored === true) {
         return 'DPM was denied'
     }
+}
+
+// Format the created field into more user friendly format
+function createdFormat(createdDate) {
+    const year = createdDate.substring(0, 4);
+    const month = createdDate.substring(5, 7);
+    const day = createdDate.substring(8, 10);
+    const startHour = createdDate.substring(11, 13);
+    const startMinute = createdDate.substring(14, 16);
+    return `${month}/${day}/${year} @ ${startHour}${startMinute}`;
+
 }

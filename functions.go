@@ -1607,8 +1607,9 @@ func (c Controller) sendUsersDPMs(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	dpms := make([]dpmAdmin, 0)
-	rows, err := c.db.Queryx(`SELECT id, firstname, lastname, block, location, date, starttime, endtime, dpmtype, points, notes, approved, ignored FROM dpms
-									WHERE userid=$1 ORDER BY date DESC, created DESC`, id)
+	rows, err := c.db.Queryx(`SELECT d.id, d.firstname, d.lastname, d.block, d.location, d.date, d.starttime, d.endtime, d.dpmtype, d.points, d.notes, d.approved, d.ignored, d.created, u.firstname || ' ' || u.lastname AS supname
+									FROM dpms AS d INNER JOIN users AS u ON d.createid=u.id
+									WHERE userid=$1 ORDER BY date DESC, created DESC;`, id)
 	defer rows.Close()
 	var dd dpmAdmin
 	for rows.Next() {

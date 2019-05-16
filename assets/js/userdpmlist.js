@@ -39,7 +39,7 @@ request.onload = function () {
         var list = dataList[objectList.indexOf(this)];
         var timeObj = timeAndDateFormat(list.startTime, list.endTime, list.date);
         var status = getStatus(list.approved, list.ignored);
-        modaltext.innerHTML = "\n                <h4>".concat(list.firstName, " ").concat(list.lastName, "</h4>\n                <p>Points: ").concat(list.points, "</p>\n                <p>").concat(list.dpmtype, "</p>\n                <p>Block: ").concat(list.block, "</p>\n                <p>Location: ").concat(list.location, "</p>\n                <p>Date: ").concat(timeObj.date, "</p>\n                <p>Time: ").concat(timeObj.startTime, "-").concat(timeObj.endTime, "</p>\n                <p>Notes: ").concat(list.notes, "</p>\n                <p>Status: ").concat(status, "</p>\n                ");
+        modaltext.innerHTML = "\n                <h4>".concat(list.firstName, " ").concat(list.lastName, "</h4>\n                <p>Supervisor: ").concat(list.supname, "</p>\n                <p>Points: ").concat(list.points, "</p>\n                <p>").concat(list.dpmtype, "</p>\n                <p>Block: ").concat(list.block, "</p>\n                <p>Location: ").concat(list.location, "</p>\n                <p>Date: ").concat(timeObj.date, "</p>\n                <p>Time: ").concat(timeObj.startTime, "-").concat(timeObj.endTime, "</p>\n                <p>Notes: ").concat(list.notes, "</p>\n                <p>Created: ").concat(createdFormat(list.created), "</p>\n                <p>Status: ").concat(status, "</p>\n                ");
         removeBtnLogic(this, document.getElementById('delete'), list.id);
         modal.open();
       };
@@ -108,7 +108,8 @@ function remove(id, row) {
   };
 
   request.send();
-}
+} // Get the status of the DPM based on the approved and ignored fields of the DPM
+
 
 function getStatus(approved, ignored) {
   if (approved === true && ignored === false) {
@@ -126,4 +127,14 @@ function getStatus(approved, ignored) {
   if (approved === false && ignored === true) {
     return 'DPM was denied';
   }
+} // Format the created field into more user friendly format
+
+
+function createdFormat(createdDate) {
+  var year = createdDate.substring(0, 4);
+  var month = createdDate.substring(5, 7);
+  var day = createdDate.substring(8, 10);
+  var startHour = createdDate.substring(11, 13);
+  var startMinute = createdDate.substring(14, 16);
+  return "".concat(month, "/").concat(day, "/").concat(year, " @ ").concat(startHour).concat(startMinute);
 }
