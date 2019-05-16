@@ -654,32 +654,6 @@ func (c Controller) sendDriverLogic(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		var pointString string
-		points, err := strconv.Atoi(dd.Points)
-		if err != nil {
-			fmt.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		switch {
-		case points == 0, points < -1:
-			pointString = fmt.Sprintf("(%d Points)", points)
-		case points == -1:
-			pointString = fmt.Sprintf("(%d Point)", points)
-		case points == 1:
-			pointString = fmt.Sprintf("(+%d Point)", points)
-		default:
-			pointString = fmt.Sprintf("(+%d Points)", points)
-		}
-		dpmtype := dd.DPMType
-		// Add space to dpmtype to make string manipulation easier
-		dpmtype += " "
-		// Gets letter of DPM, eg. G
-		letter := fmt.Sprintf("%s", dpmtype[5:6])
-		// Gets the part of dpm past Type[G]:, but minus the points in parenthesis
-		description := strings.Trim(strings.Replace(dpmtype[8:len(dpmtype)-12], "(", "", -1), " ")
-		out := fmt.Sprintf("Type %s: %s %s", letter, description, pointString)
-		dd.DPMType = out
 		dd.Notes = html.UnescapeString(dd.Notes)
 		dd.FirstName = html.UnescapeString(dd.FirstName)
 		dd.LastName = html.UnescapeString(dd.LastName)
@@ -1573,9 +1547,34 @@ func (c Controller) updateDPMPoints(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	var dpmtype, pointString string
+	err = c.db.QueryRow(`SELECT dpmtype FROM dpms WHERE id=$1`, id).Scan(&dpmtype)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Make sure DPM type is correct
+	switch {
+	case points == 0, points < -1:
+		pointString = fmt.Sprintf("(%d Points)", points)
+	case points == -1:
+		pointString = fmt.Sprintf("(%d Point)", points)
+	case points == 1:
+		pointString = fmt.Sprintf("(+%d Point)", points)
+	default:
+		pointString = fmt.Sprintf("(+%d Points)", points)
+	}
+	// Add space to dpmtype to make string manipulation easier
+	dpmtype += " "
+	// Gets letter of DPM, eg. G
+	letter := fmt.Sprintf("%s", dpmtype[5:6])
+	// Gets the part of dpm past Type[G]:, but minus the points in parenthesis
+	description := strings.Trim(strings.Replace(dpmtype[8:len(dpmtype)-12], "(", "", -1), " ")
+	out := fmt.Sprintf("Type %s: %s %s", letter, description, pointString)
 	// Update specified DPM to reflect new points value
-	update := `UPDATE dpms SET points=$1 WHERE id=$2`
-	_, err = c.db.Exec(update, points, id)
+	update := `UPDATE dpms SET points=$1, dpmtype=$2 WHERE id=$3`
+	_, err = c.db.Exec(update, points, out, id)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -1583,4 +1582,114 @@ func (c Controller) updateDPMPoints(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusCreated)
 	return
+}
+
+// sendUsersDPMSs gets complete DPM data for a user and sends it to an admin
+func (c Controller) sendUsersDPMs(w http.ResponseWriter, r *http.Request) {
+	u, err := c.getUser(w, r)
+	// Validate user
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		fmt.Println(err)
+		return
+	}
+	// Only admins can do this
+	if !u.Admin {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// Redirect if still on temporary password
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+	// Get user id from the url
+	vars := mux.Vars(r)
+	id := vars["id"]
+	dpms := make([]dpmAdmin, 0)
+	rows, err := c.db.Queryx(`SELECT id, firstname, lastname, block, location, date, starttime, endtime, dpmtype, points, notes, approved, ignored FROM dpms
+									WHERE userid=$1 ORDER BY date DESC, created DESC`, id)
+	defer rows.Close()
+	var dd dpmAdmin
+	for rows.Next() {
+		err = rows.StructScan(&dd)
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		dd.Notes = html.UnescapeString(dd.Notes)
+		dd.FirstName = html.UnescapeString(dd.FirstName)
+		dd.LastName = html.UnescapeString(dd.LastName)
+		dd.Block = html.UnescapeString(dd.Block)
+		dd.Location = html.UnescapeString(dd.Location)
+		if string(dd.Points[0]) != "-" {
+			dd.Points = "+" + dd.Points
+		}
+		dpms = append(dpms, dd)
+	}
+	// Turn slice into JSON and respond with it
+	j, err := json.Marshal(dpms)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(j)
+}
+
+// removeDPMPostLogic ignores a DPM after it has already been created.
+// This also adjusts the points balance to reflect the removal of the DPM
+func (c Controller) removeDPMPostLogic(w http.ResponseWriter, r *http.Request) {
+	u, err := c.getUser(w, r)
+	// Validate user
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		fmt.Println(err)
+		return
+	}
+	// Only admins can do this
+	if !u.Admin {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// Redirect if still on temporary password
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+	// Parse URL for id of DPM
+	vars := mux.Vars(r)
+	// Convert id to int
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	var points int
+	// Get the points value for the DPM
+	stmt := `SELECT points FROM dpms WHERE id=$1`
+	err = c.db.QueryRow(stmt, id).Scan(&points)
+	// If this fails, assume the ID is not valid and abort
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	points *= -1
+	_, err = c.db.Exec(`UPDATE users SET points = points + $1 
+							WHERE id = (SELECT userid FROM dpms WHERE id = $2);`, points, id)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	_, err = c.db.Exec(`DELETE FROM dpms WHERE id=$1`, id)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 }

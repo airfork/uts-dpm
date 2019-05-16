@@ -303,3 +303,33 @@ func (c Controller) resetPoints(w http.ResponseWriter, r *http.Request) {
 		c.resetPartTimePoints(w, r)
 	}
 }
+
+func (c Controller) showUsersDPMS(w http.ResponseWriter, r *http.Request) {
+	v := redirect(w, r)
+	if v {
+		return
+	}
+	if r.Method == "GET" {
+		c.renderUserDPMS(w, r)
+	}
+}
+
+func (c Controller) showFullUsersDPMS(w http.ResponseWriter, r *http.Request) {
+	v := redirect(w, r)
+	if v {
+		return
+	}
+	if r.Method == "GET" {
+		c.sendUsersDPMs(w, r)
+	}
+}
+
+func (c Controller) deleteDPM(w http.ResponseWriter, r *http.Request) {
+	v := redirect(w, r)
+	if v {
+		return
+	}
+	if r.Method == "DELETE" {
+		c.removeDPMPostLogic(w, r)
+	}
+}

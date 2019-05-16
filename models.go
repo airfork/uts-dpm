@@ -69,7 +69,7 @@ type dpmRes struct {
 	Points    string
 }
 
-// dpmApprove is used for sending to admin's approval page
+// dpmApprove is used for sending to approval page
 type dpmApprove struct {
 	ID        string `json:"id"`        // ID of DPM
 	Name      string `json:"name"`      // Full name of the driver
@@ -83,4 +83,21 @@ type dpmApprove struct {
 	Points    string `json:"points"`    // Number of points DPM is worth
 	Notes     string `json:"notes"`     // Any extra notes about the DPM
 	Created   string `json:"created"`   // Time DPM was created
+}
+
+// dpmAdmin is used for listing all the DPMs for one user
+type dpmAdmin struct {
+	ID        string `json:"id"`        // ID of the DPM
+	FirstName string `json:"firstName"` // First name of the user
+	LastName  string `json:"lastName"`  // Last name of the user
+	Block     string `json:"block"`     // Block number
+	Location  string `json:"location"`  // Location
+	Date      string `json:"date"`      // Data DPM is issued for
+	StartTime string `json:"startTime"` // Start time for the DPM
+	EndTime   string `json:"endTime"`   // End time for the DPM
+	DPMType   string `json:"dpmtype"`   // Type of DPM
+	Points    string `json:"points"`    // Number of points DPM is worth
+	Notes     string `json:"notes"`     // Any extra notes about the DPM
+	Ignored   bool   `json:"ignored"`   // If the DPM is ignored or not
+	Approved  bool   `json:"approved"`  // If the DPM has been looked at or not
 }

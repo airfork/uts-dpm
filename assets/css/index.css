@@ -36,3 +36,12 @@ nav {
 #no-dpms {
     color: white;
 }
+
+a {
+    color: #5472d3;
+    font-size: 1rem;
+}
+
+tr {
+    cursor: pointer;
+}

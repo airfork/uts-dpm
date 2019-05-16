@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
@@ -50,7 +51,7 @@ func (c Controller) renderIndexPage(w http.ResponseWriter, r *http.Request) {
 	}
 	var (
 		dpmtype string
-		points int
+		points  int
 	)
 	// Get the type and points of each DPM a user has
 	// Need to get approved DPMs that are not being ignored
@@ -91,7 +92,7 @@ func (c Controller) renderIndexPage(w http.ResponseWriter, r *http.Request) {
 		out := fmt.Sprintf("Type %s: %s %s", letter, description, pointString)
 		ss = append(ss, out)
 	}
- 	// Struct to allow navbar to only show tabs user is allowed to see
+	// Struct to allow navbar to only show tabs user is allowed to see
 	n := navbar{
 		Admin:   sender.Admin,
 		Sup:     sender.Sup,
@@ -579,6 +580,7 @@ func (c Controller) renderEditUser(w http.ResponseWriter, r *http.Request) {
 		"fulltime":  foundUser.FullTime,
 		"points":    bm.Sanitize(points),
 		"url":       r.URL.String(),
+		"id":        foundUser.ID,
 	}
 	// Render userpage template
 	err = c.tpl.ExecuteTemplate(w, "userpage.gohtml", data)
@@ -652,5 +654,91 @@ func (c Controller) renderUserList(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte(out))
+	}
+}
+
+// renderUserDPMs renders the list of DPMs for a specific user
+func (c Controller) renderUserDPMS(w http.ResponseWriter, r *http.Request) {
+	u, err := c.getUser(w, r)
+	// If user is not signed in, redirect
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+	// user needs to be admin to do this
+	if !u.Admin {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// if user has not changed password, redirect
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+	// Get user id from the url
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	type udpm struct {
+		Date    string
+		Dpmtype string
+	}
+
+	// Get DPM info from db
+	dpms := make([]udpm, 0)
+	// language=sql
+	stmt := `SELECT d.date, d.dpmtype, u.firstname || ' ' || u.lastname
+			FROM dpms as d
+			INNER JOIN users as u ON u.id = d.userid
+			WHERE userid=$1 ORDER BY date DESC, created DESC;`
+	rows, err := c.db.Query(stmt, id)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+	var name string
+	for rows.Next() {
+		var (
+			date    string
+			dpmtype string
+		)
+		err = rows.Scan(&date, &dpmtype, &name)
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		date = date[:10]
+		tm, err := time.Parse("2006-1-02", date)
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		d := udpm{
+			Date:    tm.Format("1/02/2006"),
+			Dpmtype: dpmtype,
+		}
+		dpms = append(dpms, d)
+	}
+	// Send data to template
+	n := navbar{
+		Admin:   u.Admin,
+		Sup:     u.Sup,
+		Analyst: u.Analyst,
+	}
+	data := map[string]interface{}{
+		"Nav":  n,
+		"dpms": dpms,
+		"id":   id,
+		"name": name,
+		"csrf": csrf.TemplateField(r),
+	}
+	err = c.tpl.ExecuteTemplate(w, "userdpmlist.gohtml", data)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }

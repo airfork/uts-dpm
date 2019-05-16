@@ -88,7 +88,7 @@ function timeAndDateFormat(startTime, endTime, date) {
   var startMinute = startTime.substring(14, 16);
   var endHour = endTime.substring(11, 13);
   var endMinute = endTime.substring(14, 16);
-  var fulldate = "".concat(month, "-").concat(day, "-").concat(year);
+    var fulldate = "".concat(month, "/").concat(day, "/").concat(year);
   var fulltime = startHour + startMinute;
   var fullEndTime = endHour + endMinute;
   var t = {};
@@ -137,7 +137,7 @@ function addButtonLogic(buttons, dpm, id, points, name) {
 function approve(id, points, name) {
   // Set post request URL and set headers
   var request = new XMLHttpRequest();
-  request.open('POST', "/dpm/approve/".concat(id), true); // Set JSON and CSRF token headers
+    request.open('PATCH', "/dpm/approve/".concat(id), true); // Set JSON and CSRF token headers
 
   request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
   request.setRequestHeader('X-CSRF-Token', csrf);
@@ -170,7 +170,7 @@ function approve(id, points, name) {
 function deny(id) {
   // Set post request URL and set headers
   var request = new XMLHttpRequest();
-  request.open('POST', "/dpm/deny/".concat(id), true); // Set JSON and CSRF token headers
+    request.open('PATCH', "/dpm/deny/".concat(id), true); // Set JSON and CSRF token headers
 
   request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
   request.setRequestHeader('X-CSRF-Token', csrf);

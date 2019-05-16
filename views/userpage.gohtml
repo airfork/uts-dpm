@@ -95,7 +95,7 @@
                     </select>
                     <label>Role</label>
                 </div>
-                <div class="input-field col s6">
+                <div class="input-field col s6 m4">
                     <p>
                         <label>
                             <input type="checkbox" name="fulltime" {{if .fulltime}} checked {{end}}/>
@@ -103,11 +103,18 @@
                         </label>
                     </p>
                 </div>
-                <div class="input-field col s6">
+                <div class="input-field col s6 m4">
                     <p>
                         <label>
                             <input type="checkbox" name="reset"/>
                             <span>Reset Password</span>
+                        </label>
+                    </p>
+                </div>
+                <div class="input-field col s12 m4">
+                    <p>
+                        <label>
+                            <span><a href="/users/{{.id}}/dpms">View DPMs</a></span>
                         </label>
                     </p>
                 </div>
