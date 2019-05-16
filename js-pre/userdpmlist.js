@@ -114,12 +114,12 @@ function getStatus(approved, ignored) {
         return 'DPM approved'
     }
     if (approved === true && ignored === true) {
-        return 'DPM denied'
+        return 'DPM was approved but driver can not longer view it'
     }
     if (approved === false && ignored === false) {
         return 'DPM has not been looked at'
     }
     if (approved === false && ignored === true) {
-        return 'This should not happen. If you see this, go ahead and delete this DPM'
+        return 'DPM was denied'
     }
 }

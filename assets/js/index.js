@@ -44,7 +44,7 @@ request.onload = function () {
 
       list[i].onclick = function () {
         // Each object is mapped by index to dpm data
-          // Find dpm data based on index of clicked dpm
+        // Find dpm data based on index of clicked dpm
         var list = dataList[objectList.indexOf(this)];
         var timeObj = timeAndDateFormat(list.startTime, list.endTime, list.date);
         modaltext.innerHTML = "\n            <h4>".concat(list.firstName, " ").concat(list.lastName, "</h4>\n            <p>Points: ").concat(list.points, "</p>\n            <p>").concat(list.dpmtype, "</p>\n            <p>Block: ").concat(list.block, "</p>\n            <p>Location: ").concat(list.location, "</p>\n            <p>Date: ").concat(timeObj.date, "</p>\n            <p>Time: ").concat(timeObj.startTime, "-").concat(timeObj.endTime, "</p>\n            <p>Notes: ").concat(list.notes, "</p>\n            ");
@@ -67,7 +67,7 @@ function timeAndDateFormat(startTime, endTime, date) {
   var startMinute = startTime.substring(14, 16);
   var endHour = endTime.substring(11, 13);
   var endMinute = endTime.substring(14, 16);
-    var fulldate = "".concat(month, "/").concat(day, "/").concat(year);
+  var fulldate = "".concat(month, "/").concat(day, "/").concat(year);
   var fulltime = startHour + startMinute;
   var fullEndTime = endHour + endMinute;
   var t = {};

@@ -848,7 +848,7 @@ func (c Controller) denyDPMLogic(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	// Update specified DPM to set ignored to true and set approved to true. Set approved to true to indicate that the dpm has been looked at
-	update := `UPDATE dpms SET approved=true, ignored=true WHERE id=$1`
+	update := `UPDATE dpms SET approved=false, ignored=true WHERE id=$1`
 	_, err = c.db.Exec(update, id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -1668,23 +1668,30 @@ func (c Controller) removeDPMPostLogic(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	var points int
+	var (
+		points int
+		approved bool
+		ignored bool
+	)
+
 	// Get the points value for the DPM
-	stmt := `SELECT points FROM dpms WHERE id=$1`
-	err = c.db.QueryRow(stmt, id).Scan(&points)
+	stmt := `SELECT points, approved, ignored FROM dpms WHERE id=$1`
+	err = c.db.QueryRow(stmt, id).Scan(&points, &approved, &ignored)
 	// If this fails, assume the ID is not valid and abort
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	points *= -1
-	_, err = c.db.Exec(`UPDATE users SET points = points + $1 
+	if !(approved == false && ignored == true) {
+		points *= -1
+		_, err = c.db.Exec(`UPDATE users SET points = points + $1 
 							WHERE id = (SELECT userid FROM dpms WHERE id = $2);`, points, id)
-	if err != nil {
-		fmt.Println(err)
-		w.WriteHeader(http.StatusUnauthorized)
-		return
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 	}
 	_, err = c.db.Exec(`DELETE FROM dpms WHERE id=$1`, id)
 	if err != nil {

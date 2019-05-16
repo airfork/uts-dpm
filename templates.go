@@ -351,9 +351,11 @@ func (c Controller) renderApprovals(w http.ResponseWriter, r *http.Request) {
 	// If user is analyst, a different query is needed
 	if u.Admin {
 		// Query that gets name and point value for each dpm
+		// language=sql
 		stmt = `SELECT firstname, lastname, points FROM dpms WHERE approved=false AND ignored=false ORDER BY created DESC`
 	} else {
 		// Get name and point value of each dpm whose manager is this person
+		// language=sql
 		stmt = `SELECT a.firstname, a.lastname, a.points FROM dpms a
 		JOIN users b ON b.id=a.userid
 		WHERE approved=false AND ignored=false AND managerid=$1 ORDER BY created DESC`
