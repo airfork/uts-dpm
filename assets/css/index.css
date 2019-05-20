@@ -8,7 +8,7 @@ body {
 
 .dpm-content {
     color: #002171;
-    font-size: 1.6rem;
+    font-size: 2.6rem;
 }
 
 .sidenav {
@@ -44,4 +44,17 @@ a {
 
 tr {
     cursor: pointer;
+}
+
+.cards-container {
+    display: grid;
+    padding: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-gap: 1rem;
+}
+
+.card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }

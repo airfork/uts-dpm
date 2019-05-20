@@ -68,15 +68,15 @@
         <h4 id="no-dpms">You have no DPMs right now. When you get one, it will show up here and you can click or tap on it to view more details.</h4>
     {{end}}
     <div class="row">
-        {{range .Types}}
-            <div class="col s12 m6 l4 xl3">
-                <div class="card-panel dpm">
-                <span class="dpm-content">
-                    {{.}}
-                </span>
+        <div class="col s12 cards-container">
+            {{range .Types}}
+                <div class="card dpm">
+                    <div class="card-content center-align vertical-align">
+                        <p class="dpm-content">{{.}}</p>
+                    </div>
                 </div>
-            </div>
-        {{end}}
+            {{end}}
+        </div>
     </div>
 </div>
 

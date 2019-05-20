@@ -72,16 +72,18 @@
 
 <div class="container">
     <div class="row">
-        {{range .List}}
-            <div class="col s12 m6 l4 xl3 dpm">
-                <div class="card-panel">
-          <span class="dpm-content">
-              {{.Name}} <br>
-              {{.Points}}
-          </span>
+        <div class="col s12 cards-container">
+            {{range .List}}
+                <div class="card dpm">
+                    <div class="card-content center-align vertical-align">
+                        <p class="dpm-content">
+                            {{.Name}} <br>
+                            {{.Points}}
+                        </p>
+                    </div>
                 </div>
-            </div>
-        {{end}}
+            {{end}}
+        </div>
     </div>
     {{.csrf}}
 </div>
