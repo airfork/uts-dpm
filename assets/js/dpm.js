@@ -51,7 +51,7 @@ function submitLogic() {
   var obj = {};
   obj.name = document.getElementById('autocomplete-input').value;
 
-  if (people.indexOf(obj.name) == -1) {
+  if (people.indexOf(obj.name) === -1) {
     return "name";
   }
 
@@ -59,14 +59,14 @@ function submitLogic() {
   obj.location = document.getElementById('location').value.toUpperCase();
   obj.date = document.getElementById('date').value;
 
-  if (obj.date == "") {
+  if (obj.date === "") {
     return "date";
   }
 
   obj.startTime = document.getElementById('starttime').value;
   obj.endTime = document.getElementById('endtime').value;
 
-  if (obj.startTime == "" || obj.endTime == "") {
+  if (obj.startTime === "" || obj.endTime === "") {
     return "time";
   }
 
@@ -141,15 +141,15 @@ document.addEventListener('DOMContentLoaded', function () {
   elems[0].onclick = function () {
     var submitted = submitLogic();
 
-    if (submitted == "name") {
+    if (submitted === "name") {
       M.toast({
         html: 'Please input a valid name.'
       });
-    } else if (submitted == "date") {
+    } else if (submitted === "date") {
       M.toast({
         html: 'Please provide a date.'
       });
-    } else if (submitted == "time") {
+    } else if (submitted === "time") {
       M.toast({
         html: 'Please input a start and end time.'
       });

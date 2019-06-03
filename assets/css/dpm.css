@@ -95,3 +95,7 @@
   border-right: 2px solid #ff5722 !important;
   border-bottom: 2px solid #ff5722 !important;
 }
+
+.dropdown-content {
+  backface-visibility:hidden
+}
