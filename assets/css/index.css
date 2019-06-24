@@ -42,7 +42,7 @@ a {
     font-size: 1rem;
 }
 
-tr {
+.clickable-list {
     cursor: pointer;
 }
 

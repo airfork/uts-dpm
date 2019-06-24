@@ -191,7 +191,7 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 	}
 	u := &user{}
 
-	username := bm.Sanitize(strings.TrimSpace(r.FormValue("email")))
+	username := html.UnescapeString(bm.Sanitize(strings.TrimSpace(r.FormValue("email"))))
 	firstname := html.UnescapeString(bm.Sanitize(strings.TrimSpace(r.FormValue("firstName"))))
 	lastname := html.UnescapeString(bm.Sanitize(strings.TrimSpace(r.FormValue("lastName"))))
 	// Ensure username and firstname are not empty
@@ -454,7 +454,7 @@ func (c Controller) resetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Sanitize username
-	username := bm.Sanitize(strings.TrimSpace(r.FormValue("username")))
+	username := html.UnescapeString(bm.Sanitize(strings.TrimSpace(r.FormValue("username"))))
 	if c.resetPassHelper(w, r, username, sender) {
 		// Display success message
 		out := "User password successfully reset"
@@ -1232,9 +1232,9 @@ func (c Controller) findUser(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/change", http.StatusFound)
 		return
 	}
-	var userid int16
+	var userid int
 	// Get name from form
-	name := strings.TrimSpace(r.FormValue("name"))
+	name := html.UnescapeString(strings.TrimSpace(r.FormValue("name")))
 	// If they are trying to reset password, redirect them
 	if name == "reset" {
 		http.Redirect(w, r, "/users/reset", http.StatusFound)
@@ -1248,14 +1248,14 @@ func (c Controller) findUser(w http.ResponseWriter, r *http.Request) {
 	// Split name into first and last, if applicable
 	ns := strings.Split(name, " ")
 	// Sanitize first name and put it in the format "%firstname%"
-	first := fmt.Sprintf("%%%s%%", bm.Sanitize(ns[0]))
+	first := html.UnescapeString(fmt.Sprintf("%%%s%%", bm.Sanitize(ns[0])))
 	last := ""
 	// Join indexes after 0 into last name string and sanitize
 	// If last name exists, form a different query
 	if len(ns) > 1 {
 		ns = append(ns[:0], ns[1:]...)
 		// Sanitize last name and put it in the format "%lastname%"
-		last = fmt.Sprintf("%%%s%%", bm.Sanitize(strings.Join(ns, " ")))
+		last = html.UnescapeString(fmt.Sprintf("%%%s%%", bm.Sanitize(strings.Join(ns, " "))))
 		// Try to find user based on first and last name
 		stmt := `SELECT id FROM users WHERE firstname LIKE $1 AND lastname LIKE $2 LIMIT 1`
 		err = c.db.QueryRow(stmt, first, last).Scan(&userid)
@@ -1319,9 +1319,9 @@ func (c Controller) editUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get form information
-	username := bm.Sanitize(strings.TrimSpace(r.FormValue("username")))
-	firstname := bm.Sanitize(strings.TrimSpace(r.FormValue("firstname")))
-	lastname := bm.Sanitize(strings.TrimSpace(r.FormValue("lastname")))
+	username := html.UnescapeString(bm.Sanitize(strings.TrimSpace(r.FormValue("username"))))
+	firstname := html.UnescapeString(bm.Sanitize(strings.TrimSpace(r.FormValue("firstname"))))
+	lastname := html.UnescapeString(bm.Sanitize(strings.TrimSpace(r.FormValue("lastname"))))
 	points := bm.Sanitize(strings.TrimSpace(r.FormValue("points")))
 	// Get fulltime status
 	fulltime := false
@@ -1366,7 +1366,7 @@ func (c Controller) editUser(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	// Return 409 if (probably malicious) user tries to assign manager another user to be managed by someone
+	// Return 409 if (probably malicious) user tries to assign another user to be managed by someone
 	// that is not a manger or admin
 	if !(isAdmin || isManager) {
 		w.WriteHeader(http.StatusConflict)

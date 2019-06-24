@@ -18,11 +18,6 @@
     <link rel="stylesheet" type="text/css" href="/assets/css/dpm.css"/>
     <title>DPM</title>
 </head>
-<style>
-    tbody tr {
-        cursor: pointer;
-    }
-</style>
 <body>
 <nav class="blue darken-4">
     <div class="nav-wrapper">
@@ -72,7 +67,7 @@
         <tbody>
         {{with .user}}
             {{range .}}
-                <tr onclick="window.location.href = '/users/edit/{{.id}}';">
+                <tr class="clickable-list" onclick="window.location.href = '/users/edit/{{.id}}';">
                     <td>{{.lastname}}</td>
                     <td>{{.firstname}}</td>
                 </tr>

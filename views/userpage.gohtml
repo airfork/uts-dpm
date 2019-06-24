@@ -76,24 +76,24 @@
                            class="active">Points</label>
                 </div>
                 <div class="input-field col s12 m4">
-                    <select name="manager">
+                    <select name="manager" id="manager-select">
                         {{if .manager}}
                             {{range .manager}}
                                 <option value={{.ID}}>{{.Name}}</option>
                             {{end}}
                         {{end}}
                     </select>
-                    <label>Manager</label>
+                    <label for="manager-select">Manager</label>
                 </div>
                 <div class="input-field col s12 m4">
-                    <select name="role">
+                    <select name="role" id="role-select">
                         {{if .role}}
                             {{range .role}}
                                 <option value="{{.}}">{{.}}</option>
                             {{end}}
                         {{end}}
                     </select>
-                    <label>Role</label>
+                    <label for="role-select">Role</label>
                 </div>
                 <div class="input-field col s6 m4">
                     <p>
