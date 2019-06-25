@@ -197,31 +197,6 @@ func (c Controller) resetPasswordMessage(w http.ResponseWriter, r *http.Request,
 	return
 }
 
-// createUserMessage renders createUser template with a message underneath
-func (c Controller) createUserMessage(w http.ResponseWriter, r *http.Request, message string) {
-	u, err := c.getUser(w, r)
-	if err != nil {
-		fmt.Println(err)
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
-	n := navbar{
-		Admin:   u.Admin,
-		Analyst: u.Analyst,
-		Sup:     u.Sup,
-	}
-	// Render createUser template
-	err = c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"message": message, "csrf": csrf.TemplateField(r), "Nav": n})
-	if err != nil {
-		out := fmt.Sprintln("Something went wrong, please try again")
-		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		_, _ = w.Write([]byte(out))
-		return
-	}
-	return
-}
-
 // createUserFill renders createUser template with some fields prefilled
 func (c Controller) createUserFill(w http.ResponseWriter, r *http.Request, firstname, lastname string) {
 	u, err := c.getUser(w, r)
@@ -230,6 +205,20 @@ func (c Controller) createUserFill(w http.ResponseWriter, r *http.Request, first
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
+	type manage struct {
+		Name string
+		ID   int
+	}
+	managerSlice := make([]manage, 0)
+	// language=sql
+	stmt := `SELECT firstname || ' ' || lastname AS name, id FROM users WHERE (analyst=true OR admin=true) ORDER BY name`
+	err = c.db.Select(&managerSlice, stmt)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	roles := []string{"Driver", "Admin", "Manager", "Supervisor"}
 	n := navbar{
 		Admin:   u.Admin,
 		Analyst: u.Analyst,
@@ -237,9 +226,9 @@ func (c Controller) createUserFill(w http.ResponseWriter, r *http.Request, first
 	}
 	// If lastname does exist, only pass in csrf and firstname, otherwise pass in token, first name, and lastname
 	if lastname == "" {
-		err = c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"firstname": firstname, "csrf": csrf.TemplateField(r), "Nav": n})
+		err = c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"firstname": firstname, "manager": managerSlice, "role": roles, "csrf": csrf.TemplateField(r), "Nav": n})
 	} else {
-		err = c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"firstname": firstname, "lastname": lastname, "csrf": csrf.TemplateField(r), "Nav": n})
+		err = c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"firstname": firstname, "lastname": lastname, "csrf": csrf.TemplateField(r), "manager": managerSlice, "role": roles, "Nav": n})
 	}
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")

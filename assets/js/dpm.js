@@ -31,12 +31,18 @@ request.onload = function () {
     });
   } else {
     // We reached our target server, but it returned an error
+    M.toast({
+      html: 'There was an error loading the resources for this page, please try again'
+    });
     console.log('Error');
   }
 };
 
 request.onerror = function () {
   // There was a connection error of some sort
+  M.toast({
+    html: 'There was an error, please try again'
+  });
   console.log("There was an error of sometype, please try again");
 };
 

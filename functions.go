@@ -161,6 +161,7 @@ func (c Controller) getAllUsers(w http.ResponseWriter, r *http.Request) {
 	// Turn struct into JSON and respond with it
 	j, err := json.Marshal(pU)
 	if err != nil {
+		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -189,43 +190,103 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/change", http.StatusFound)
 		return
 	}
-	u := &user{}
 
-	username := html.UnescapeString(bm.Sanitize(strings.TrimSpace(r.FormValue("email"))))
-	firstname := html.UnescapeString(bm.Sanitize(strings.TrimSpace(r.FormValue("firstName"))))
-	lastname := html.UnescapeString(bm.Sanitize(strings.TrimSpace(r.FormValue("lastName"))))
-	// Ensure username and firstname are not empty
-	// Ideally these are not necessary as they are required fields, along with lastname which I am not checking for here
-	if username == "" {
-		out := "Username cannot be empty."
-		c.createUserMessage(w, r, out)
+	type createUser struct {
+		Username string
+		Firstname string
+		Lastname string
+		Manager string
+		Role string
+		Fulltime bool
+		Queue bool
+	}
+
+	type response struct {
+		Error string
+	}
+
+	var create createUser
+	// Get JSON from request body
+	decoder := json.NewDecoder(r.Body)
+	// Parse JSON into createUser struct
+	err = decoder.Decode(&create)
+	if err != nil {
+		out := fmt.Sprintln("Something went wrong, please try again")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(out))
 		return
 	}
-	if firstname == "" {
-		out := "Please provide a first name"
-		c.createUserMessage(w, r, out)
+
+	create.Username = html.UnescapeString(bm.Sanitize(strings.TrimSpace(create.Username)))
+	create.Firstname = html.UnescapeString(bm.Sanitize(strings.TrimSpace(create.Firstname)))
+	create.Lastname = html.UnescapeString(bm.Sanitize(strings.TrimSpace(create.Lastname)))
+	create.Role = html.UnescapeString(bm.Sanitize(strings.TrimSpace(create.Role)))
+	// Ensure username and firstname are not empty
+	if create.Username == "" {
+		j, err := json.Marshal(response{Error: "Username cannot be empty."})
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, err = w.Write(j)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+	if create.Firstname == "" {
+		j, err := json.Marshal(response{Error: "Please provide a first name."})
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, err = w.Write(j)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		return
 	}
 	// Test credentials
 	var test bool
-	if username == "testing@testing.com" {
+	if create.Username == "testing@testing.com" {
 		test = true
 	}
-	err = c.db.QueryRowx("SELECT * FROM users WHERE username=$1 LIMIT 1", username).StructScan(u)
+	u := &user{}
+	err = c.db.QueryRowx("SELECT * FROM users WHERE username=$1 LIMIT 1", create.Username).StructScan(u)
 	// If no error, that means user with that username already exists
 	// Render template mentioning this
 	// Only give error if not testing
 	if err == nil && !test {
-		out := "The username name you are trying to register is already in use, please try a different username."
-		c.createUserMessage(w, r, out)
+		j, err := json.Marshal(response{Error: "The username name you are trying to register is already in use, please try a different username."})
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, err = w.Write(j)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		return
 	}
 	// Generate temp password
 	pass := gotp.RandomSecret(16)
 	// Create go routine to handle sending the email
 	// Only send email if not testing
-	if !test {
-		go sendNewUserEmail(username, pass, firstname, lastname)
+	if !test && !create.Queue {
+		go sendNewUserEmail(create.Username, pass, create.Firstname, create.Lastname)
 	}
 	// Get password hash
 	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
@@ -234,38 +295,94 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	// Determine if user is a fulltimer
-	fulltime := false
-	if r.FormValue("fullTimer") == "on" {
-		fulltime = true
+	var admin, sup, manager bool
+	if create.Role == "Admin" {
+		admin = true
+	} else if create.Role == "Supervisor" {
+		sup = true
+	} else if create.Role == "Manager" {
+		manager = true
+	} else if create.Role != "Driver" {
+		j, err := json.Marshal(response{Error: "Invalid role"})
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, err = w.Write(j)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		return
 	}
+	// Determine if user is a fulltimer
 	// Create user struct from form data
-	u = &user{
-		Username:   username,
+	u = &user {
+		Username:   create.Username,
 		Password:   string(hash),
-		FirstName:  firstname,
-		LastName:   lastname,
-		FullTime:   fulltime,
+		FirstName:  create.Firstname,
+		LastName:   create.Lastname,
+		FullTime:   create.Fulltime,
 		SessionKey: gotp.RandomSecret(32), // Temp value for session, never valid
 		Points:     0,
 		Added:      time.Now().Format("2006-1-02 15:04:05"),
 	}
-	userIn := `INSERT INTO users (username, password, firstname, lastname, fulltime, sessionkey, added) VALUES($1, $2, $3, $4, $5, $6, $7)`
-	_, err = c.db.Exec(userIn, u.Username, u.Password, u.FirstName, u.LastName, u.FullTime, u.SessionKey, u.Added)
+	// Start transaction to rollback in case of failure
+	tx, err := c.db.Begin()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Println(err)
 		return
 	}
-	// Display success message informing if part/fulltime driver was created
-	// In case admin misses the small checkbox
-	if u.FullTime {
-		out := "Fulltime driver has been added to the database!"
-		c.createUserMessage(w, r, out)
+	userIn := `INSERT INTO users (managerid, username, password, firstname, lastname, fulltime, admin, sup, analyst, sessionkey, added) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
+	_, err = tx.Exec(userIn, create.Manager, u.Username, u.Password, u.FirstName, u.LastName, u.FullTime, admin, sup, manager, u.SessionKey, u.Added)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println(err)
 		return
 	}
-	out := "Part time driver has been added to the database"
-	c.createUserMessage(w, r, out)
+	if create.Queue {
+		var userid int
+		// language=sql
+		stmt := "SELECT id FROM users WHERE username=$1 AND password=$2 AND firstname=$3 AND lastname=$4"
+		err = tx.QueryRow(stmt, u.Username, u.Password, u.FirstName, u.LastName).Scan(&userid)
+		if err != nil {
+			_ = tx.Rollback()
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Println(err)
+			return
+		}
+		stmt = "INSERT INTO queued_accounts (userid, queuedby) VALUES ($1, $2)"
+		_, err = tx.Exec(stmt, userid, sender.FirstName + " " + sender.LastName)
+		if err != nil {
+			_ = tx.Rollback()
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Println(err)
+			return
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		_ = tx.Rollback()
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println(err)
+		return
+	}
+	j, err := json.Marshal(response{Error: ""})
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	_, err = w.Write(j)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 // Logs in the user
