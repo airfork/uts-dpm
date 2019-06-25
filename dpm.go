@@ -351,3 +351,27 @@ func (c Controller) queueUsers(w http.ResponseWriter, r *http.Request) {
 		c.renderQueue(w, r)
 	}
 }
+
+// removeUserFromQueue allows an admin to remove a specific user from the queue
+// Responds to post requests to /users/dequeue/{id}
+func (c Controller) removeUserFromQueue(w http.ResponseWriter, r *http.Request) {
+	v := redirect(w, r)
+	if v {
+		return
+	}
+	if r.Method == "POST" {
+		c.dequeueUser(w, r)
+	}
+}
+
+// removeAllFromQueue allows an admin to remove all users from the queue
+// Responds to post requests to /users/dequeue
+func (c Controller) removeAllFromQueue(w http.ResponseWriter, r *http.Request) {
+	v := redirect(w, r)
+	if v {
+		return
+	}
+	if r.Method == "POST" {
+		c.dequeue(w, r)
+	}
+}

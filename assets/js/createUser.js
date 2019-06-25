@@ -5,6 +5,7 @@ M.AutoInit(); // Get the last input box on the page, which holds a csrf token, a
 var inputs = document.querySelectorAll('input');
 var csrf = inputs[inputs.length - 1].value;
 var createUserBtn = document.getElementById('createUser');
+document.getElementById('dequeue-btn').onclick = dequeueAll;
 
 if (createUserBtn !== null) {
   createUserBtn.onclick = function () {
@@ -138,7 +139,66 @@ function getData() {
 }
 
 function dequeue(id) {
-  if (confirm('Are you sure you want dequeue this user and add them to the system, this cannot be undone?')) {
-    console.log(id);
+  if (confirm('Are you sure you want dequeue this user and add them to the system, this action cannot be undone?')) {
+    var request = new XMLHttpRequest();
+    request.open('POST', '/users/dequeue/' + id, true);
+    request.setRequestHeader('X-CSRF-Token', csrf);
+
+    request.onload = function () {
+      if (request.status >= 200 && request.status < 400) {
+        var row = document.getElementById(id);
+        row.parentNode.removeChild(row);
+        M.toast({
+          html: 'User successfully removed from queue'
+        });
+      } else {
+        // We reached our target server, but it returned an error
+        console.log('Error');
+        M.toast({
+          html: 'There was an error, please try again'
+        });
+      }
+    };
+
+    request.onerror = function () {
+      // There was a connection error of some sort
+      M.toast({
+        html: 'There was an error, please try again'
+      });
+    };
+
+    request.send();
+  }
+}
+
+function dequeueAll() {
+  if (confirm('Are you sure you want to dequeue all users, the action cannot be undone?')) {
+    var request = new XMLHttpRequest();
+    request.open('POST', '/users/dequeue', true);
+    request.setRequestHeader('X-CSRF-Token', csrf);
+
+    request.onload = function () {
+      if (request.status >= 200 && request.status < 400) {
+        document.getElementById('queue-body').innerHTML = '';
+        M.toast({
+          html: 'All users successfully removed from queue'
+        });
+      } else {
+        // We reached our target server, but it returned an error
+        console.log('Error');
+        M.toast({
+          html: 'There was an error, please try again'
+        });
+      }
+    };
+
+    request.onerror = function () {
+      // There was a connection error of some sort
+      M.toast({
+        html: 'There was an error, please try again'
+      });
+    };
+
+    request.send();
   }
 }

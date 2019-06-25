@@ -57,10 +57,10 @@
         </tr>
         </thead>
 
-        <tbody>
+        <tbody id="queue-body">
         {{with .users}}
             {{range .}}
-                <tr class="clickable-list" onclick="dequeue({{.Userid}});">
+                <tr class="clickable-list" id="{{.Userid}}" onclick="dequeue({{.Userid}});">
                     <td>{{.Name}}</td>
                     <td>{{.QueuedBy}}</td>
                     <td>{{.Created}}</td>
@@ -70,6 +70,13 @@
         </tbody>
     </table>
     {{.csrf}}
+</div>
+
+<div class="fixed-action-btn">
+    <a id="dequeue-btn" data-position="left" data-tooltip="Remove all users from queue"
+       class="btn-floating btn-large waves-effect waves-orange tooltipped">
+        <i class="large material-icons">remove</i>
+    </a>
 </div>
 
 <script src="/assets/js/createUser.js"></script>

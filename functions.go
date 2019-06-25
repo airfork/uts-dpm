@@ -1959,3 +1959,144 @@ func (c Controller) removeDPMPostLogic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+// dequeueUser removes a specific user from the queue
+func(c Controller) dequeueUser(w http.ResponseWriter, r *http.Request) {
+	u, err := c.getUser(w, r)
+	// Validate user
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		fmt.Println(err)
+		return
+	}
+	// Only admins can do this
+	if !u.Admin {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// Redirect if still on temporary password
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+	// Parse URL for id of DPM
+	vars := mux.Vars(r)
+	// Convert id to int
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	var username, firstname, lastname string
+
+	// language=sql
+	stmt := `SELECT username, firstname, lastname FROM users u
+	INNER JOIN queued_accounts qa on u.id = qa.userid
+	WHERE u.id=$1;`
+	err = c.db.QueryRow(stmt, id).Scan(&username, &firstname, &lastname)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	pass := gotp.RandomSecret(16)
+	// Get password hash
+	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	stmt = `UPDATE users SET password=$1 WHERE id=$2`
+	_, err = c.db.Exec(stmt, string(hash), id)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	stmt = `DELETE FROM queued_accounts WHERE userid=$1`
+	_, err = c.db.Exec(stmt, id)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if username != "testing@testing.com" {
+		go sendNewUserEmail(username, pass, firstname, lastname)
+	} else {
+		fmt.Println("Would have sent email, but user is a test account")
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+// dequeue removes all users from the queue
+func (c Controller) dequeue(w http.ResponseWriter, r *http.Request) {
+	u, err := c.getUser(w, r)
+	// Validate user
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		fmt.Println(err)
+		return
+	}
+	// Only admins can do this
+	if !u.Admin {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// Redirect if still on temporary password
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+
+	type dequeue struct {
+		ID int
+		Username string
+		Firstname string
+		Lastname string
+	}
+	dSlice := make([]dequeue, 0)
+
+	// language=sql
+	stmt := `SELECT u.id, u.username, u.firstname, u.lastname FROM users u
+	INNER JOIN queued_accounts qa on u.id = qa.userid`
+	err = c.db.Select(&dSlice, stmt)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	for _, user := range dSlice {
+		// language=sql
+		pass := gotp.RandomSecret(16)
+		// Get password hash
+		hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		stmt = `UPDATE users SET password=$1 WHERE id=$2`
+		_, err = c.db.Exec(stmt, string(hash), user.ID)
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		stmt = `DELETE FROM queued_accounts WHERE userid=$1`
+		_, err = c.db.Exec(stmt, user.ID)
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		if user.Username != "testing@testing.com" {
+			go sendNewUserEmail(user.Username, pass, user.Firstname, user.Lastname)
+		} else {
+			fmt.Println("Would have sent email, but user is a test account")
+		}
+	}
+	w.WriteHeader(http.StatusOK)
+}
