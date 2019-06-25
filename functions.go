@@ -901,7 +901,7 @@ func (c Controller) approveDPMLogic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if username != "testing@testing.com" {
+	if username != "testing@testing.com" && !c.isUserQueued(username, firstname, lastname) {
 		// Send point email
 		go sendDPMEmail(username, firstname, lastname, dpmtype, points)
 	}
@@ -1628,7 +1628,9 @@ func (c Controller) sendPointsToAll(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		go sendPointsBalance(username, firstname, lastname, points)
+		if !c.isUserQueued(username, firstname, lastname) {
+			go sendPointsBalance(username, firstname, lastname, points)
+		}
 	}
 	w.WriteHeader(http.StatusOK)
 	return
@@ -1687,7 +1689,9 @@ func (c Controller) sendUserPoints(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	go sendPointsBalance(username, firstname, lastname, points)
+	if !c.isUserQueued(username, firstname, lastname) {
+		go sendPointsBalance(username, firstname, lastname, points)
+	}
 	w.WriteHeader(http.StatusOK)
 	return
 }

@@ -4,80 +4,81 @@ M.AutoInit(); // Get the last input box on the page, which holds a csrf token, a
 
 var inputs = document.querySelectorAll('input');
 var csrf = inputs[inputs.length - 1].value;
+var createUserBtn = document.getElementById('createUser');
 
-document.getElementById('createUser').onclick = function () {
-  var result = getData();
+if (createUserBtn !== null) {
+  createUserBtn.onclick = function () {
+    var result = getData();
 
-  if (result !== false) {
-    var proceed = false;
+    if (result !== false) {
+      var proceed = false;
 
-    if (result.queue === true) {
-      proceed = confirm('Are you sure you want to add this user without notifying them? Please ensure that all data is entered correctly.');
-    } else {
-      proceed = confirm('Are you sure you want to add and notify this user? Please ensure that all data is entered correctly.');
-    }
+      if (result.queue === true) {
+        proceed = confirm('Are you sure you want to add this user without notifying them? Please ensure that all data is entered correctly.');
+      } else {
+        proceed = confirm('Are you sure you want to add and notify this user? Please ensure that all data is entered correctly.');
+      }
 
-    if (proceed) {
-      var request = new XMLHttpRequest();
-      request.open('POST', '/users', true);
-      request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-      request.setRequestHeader('X-CSRF-Token', csrf);
+      if (proceed) {
+        var request = new XMLHttpRequest();
+        request.open('POST', '/users', true);
+        request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+        request.setRequestHeader('X-CSRF-Token', csrf);
 
-      request.onload = function () {
-        if (request.status >= 200 && request.status < 400) {
-          var data = JSON.parse(request.responseText);
+        request.onload = function () {
+          if (request.status >= 200 && request.status < 400) {
+            var data = JSON.parse(request.responseText);
 
-          if (data.Error !== "") {
+            if (data.Error !== "") {
+              M.toast({
+                html: data.Error
+              });
+              return;
+            } // Clear out text inputs
+
+
+            var inputList = document.querySelectorAll('input');
+
+            for (var i = 0; i < inputList.length - 1; i++) {
+              inputList[i].value = "";
+            } // Remove active class from labels
+
+
+            var labelList = document.querySelectorAll('label');
+
+            for (var i = 0; i < labelList.length; i++) {
+              labelList[i].classList.remove('active');
+            }
+
+            document.getElementById('manager-select').selectedIndex = 0;
+            document.getElementById('role-select').selectedIndex = 0;
+            document.getElementById('fulltime').checked = false;
+            document.getElementById('queue').checked = false;
+            M.AutoInit();
             M.toast({
-              html: data.Error
+              html: 'User successfully created'
             });
-            return;
-          } // Clear out text inputs
-
-
-          var inputList = document.querySelectorAll('input');
-          console.log(inputList);
-
-          for (var i = 0; i < inputList.length - 1; i++) {
-            inputList[i].value = "";
+          } else {
+            // We reached our target server, but it returned an error
+            console.log('Error');
+            M.toast({
+              html: 'There was an error, please try again'
+            });
           }
+        };
 
-          console.log(inputList); // Remove active class from labels
-
-          var labelList = document.querySelectorAll('label');
-
-          for (var i = 0; i < labelList.length; i++) {
-            labelList[i].classList.remove('active');
-          }
-
-          document.getElementById('manager-select').selectedIndex = 0;
-          document.getElementById('role-select').selectedIndex = 0;
-          document.getElementById('fulltime').checked = false;
-          document.getElementById('queue').checked = false;
-          M.AutoInit();
-          M.toast({
-            html: 'User successfully created'
-          });
-        } else {
-          // We reached our target server, but it returned an error
-          console.log('Error');
+        request.onerror = function () {
+          // There was a connection error of some sort
           M.toast({
             html: 'There was an error, please try again'
           });
-        }
-      };
+        };
 
-      request.onerror = function () {
-        // There was a connection error of some sort
-        M.toast({
-          html: 'There was an error, please try again'
-        });
-      };
-
-      request.send(JSON.stringify(result));
+        request.send(JSON.stringify(result));
+      }
     }
-  }
-}; // Get data from fields and prompt user if there are any missing ones
+  };
+} // Get data from fields and prompt user if there are any missing ones
 
 
 function getData() {
@@ -134,4 +135,10 @@ function getData() {
   }
 
   return obj;
+}
+
+function dequeue(id) {
+  if (confirm('Are you sure you want dequeue this user and add them to the system, this cannot be undone?')) {
+    console.log(id);
+  }
 }

@@ -304,6 +304,8 @@ func (c Controller) resetPoints(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// showUsersDPMS allows an admin to render the page where they can view all of a user's DPMs
+// Responds to get requests to /users/{id}/dpms
 func (c Controller) showUsersDPMS(w http.ResponseWriter, r *http.Request) {
 	v := redirect(w, r)
 	if v {
@@ -314,6 +316,8 @@ func (c Controller) showUsersDPMS(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// showFullUsersDPMS allows an admin to view mostly everything about the DPMS of a driver
+// Responds to get requests to /users/{id}/dpms/full
 func (c Controller) showFullUsersDPMS(w http.ResponseWriter, r *http.Request) {
 	v := redirect(w, r)
 	if v {
@@ -324,6 +328,8 @@ func (c Controller) showFullUsersDPMS(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// deleteDPM allows admin to delete a DPM
+// Responds to delete requests to /dpm/{id}
 func (c Controller) deleteDPM(w http.ResponseWriter, r *http.Request) {
 	v := redirect(w, r)
 	if v {
@@ -331,5 +337,17 @@ func (c Controller) deleteDPM(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == "DELETE" {
 		c.removeDPMPostLogic(w, r)
+	}
+}
+
+// queueUsers allows an admin to view and deal with the list of users that are in queue
+// Responds to get requests to /users/queue
+func (c Controller) queueUsers(w http.ResponseWriter, r *http.Request) {
+	v := redirect(w, r)
+	if v {
+		return
+	}
+	if r.Method == "GET" {
+		c.renderQueue(w, r)
 	}
 }

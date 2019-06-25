@@ -365,7 +365,9 @@ func (c Controller) resetPassHelper(w http.ResponseWriter, r *http.Request, user
 	// Generate random password for user
 	pass := gotp.RandomSecret(16)
 	// Send email telling user than an admin has reset your password
-	go sendResetPasswordEmail(u.Username, pass, u.FirstName, u.LastName)
+	if !c.isUserQueued(u.Username, u.FirstName, u.Password) {
+		go sendResetPasswordEmail(u.Username, pass, u.FirstName, u.LastName)
+	}
 	// Get password hash
 	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
 	if err != nil {
@@ -401,4 +403,20 @@ func (c Controller) getStatus(approved, ignored bool) string {
 	} else {
 		return "DPM denied"
 	}
+}
+
+// isUserQueued checks if a user is queued to be officially added
+func (c Controller) isUserQueued(username, firstname, lastname string) bool {
+	var email string
+	// language=sql
+	stmt := `SELECT username FROM users
+	INNER JOIN queued_accounts qa on users.id = qa.userid
+	WHERE username=$1 AND firstname=$2 AND lastname=$3;`
+	err := c.db.QueryRow(stmt, username, firstname, lastname).Scan(&email)
+	// Assume error is because this user is not queued
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	return true
 }

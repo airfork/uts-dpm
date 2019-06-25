@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#0d47a1">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#0d47a1">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="#0d47a1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <link rel="shortcut icon" href="/views/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="/assets/css/index.css"/>
+    <link rel="stylesheet" type="text/css" href="/assets/css/dpm.css"/>
+    <title>DPM</title>
+</head>
+<body>
+<nav class="blue darken-4">
+    <div class="nav-wrapper">
+        <a href="/" class="brand-logo">Home</a>
+        <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+        <ul class="right hide-on-med-and-down">
+            <li><a href="/dpm">DPM</a></li>
+            <li><a href="/dpm/auto">Autogen</a></li>
+            <li><a href="/data">Data</a></li>
+            <li><a href="/approve">Approvals</a></li>
+            <li class="active"><a href="/users/find">Users</a></li>
+            <li><a href="/logout">Logout</a></li>
+        </ul>
+    </div>
+</nav>
+
+<ul class="sidenav" id="mobile-demo">
+    <li><a href="/dpm">DPM</a></li>
+    <li><a href="/dpm/auto">Autogen</a></li>
+    <li><a href="/data">Data</a></li>
+    <li><a href="/approve">Approvals</a></li>
+    <li><a href="/users/find">Users</a></li>
+    <li><a href="/logout">Logout</a></li>
+</ul>
+
+<div class="container">
+    <div class="row">
+        <h4>Queued Users</h4>
+        <hr>
+    </div>
+    <table class="striped">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Queued By</th>
+            <th>Queued On</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {{with .users}}
+            {{range .}}
+                <tr class="clickable-list" onclick="dequeue({{.Userid}});">
+                    <td>{{.Name}}</td>
+                    <td>{{.QueuedBy}}</td>
+                    <td>{{.Created}}</td>
+                </tr>
+            {{end}}
+        {{end}}
+        </tbody>
+    </table>
+    {{.csrf}}
+</div>
+
+<script src="/assets/js/createUser.js"></script>
+</body>
+</html>

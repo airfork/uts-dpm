@@ -470,7 +470,7 @@ func (c Controller) renderFindUser(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
-	// user needs to be admin or sup to do this
+	// user needs to be admin to do this
 	if !u.Admin {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -756,5 +756,56 @@ func (c Controller) renderUserDPMS(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+// renderQueue renders the page where an admin can see the users queued up to be notified about being added to the system
+func (c Controller) renderQueue(w http.ResponseWriter, r *http.Request) {
+	u, err := c.getUser(w, r)
+	// If user is not signed in, redirect
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+	// user needs to be admin to do this
+	if !u.Admin {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// if user has not changed password, redirect
+	if !u.Changed {
+		http.Redirect(w, r, "/change", http.StatusFound)
+		return
+	}
+
+	type queuedUser struct {
+		Name string
+		QueuedBy string
+		Created string
+		Userid string
+	}
+	q := make([]queuedUser, 0)
+	// language=sql
+	stmt := `SELECT u.firstname || ' ' || u.lastname AS name, q.queuedby, q.created, q.userid
+			FROM queued_accounts q
+			INNER JOIN users u on q.userid = u.id;`
+	err = c.db.Select(&q, stmt)
+	if err != nil {
+		out := fmt.Sprintln("Something went wrong, please try again")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(out))
+	}
+	for i := range q {
+		timeSplit := strings.Split(q[i].Created[0:10], "-")
+		q[i].Created = fmt.Sprintf("%s-%s-%s", timeSplit[1], timeSplit[2], timeSplit[0])
+	}
+	// Render userQueue template
+	err = c.tpl.ExecuteTemplate(w, "userQueue.gohtml", map[string]interface{}{"csrf": csrf.TemplateField(r), "users": q})
+	if err != nil {
+		out := fmt.Sprintln("Something went wrong, please try again")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(out))
 	}
 }

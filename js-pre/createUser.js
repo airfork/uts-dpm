@@ -5,60 +5,62 @@ M.AutoInit();
 // Get the last input box on the page, which holds a csrf token, and store it
 const inputs = document.querySelectorAll('input');
 const csrf = inputs[inputs.length - 1].value;
+const createUserBtn = document.getElementById('createUser');
+if (createUserBtn !== null) {
+    createUserBtn.onclick = () => {
+        const result = getData();
+        if (result !== false) {
+            let proceed = false;
+            if (result.queue === true) {
+                proceed = confirm('Are you sure you want to add this user without notifying them? Please ensure that all data is entered correctly.');
+            } else {
+                proceed = confirm('Are you sure you want to add and notify this user? Please ensure that all data is entered correctly.');
+            }
+            if (proceed) {
+                const request = new XMLHttpRequest();
+                request.open('POST', '/users', true);
+                request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+                request.setRequestHeader('X-CSRF-Token', csrf);
+                request.onload = function() {
+                    if (request.status >= 200 && request.status < 400) {
+                        const data = JSON.parse(request.responseText);
+                        if (data.Error !== "") {
+                            M.toast({html: data.Error});
+                            return;
+                        }
+                        // Clear out text inputs
+                        const inputList = document.querySelectorAll('input');
+                        for (var i = 0; i < inputList.length - 1; i++) {
+                            inputList[i].value = "";
+                        }
+                        // Remove active class from labels
+                        const labelList = document.querySelectorAll('label');
+                        for (var i = 0; i < labelList.length; i++) {
+                            labelList[i].classList.remove('active');
+                        }
+                        document.getElementById('manager-select').selectedIndex = 0;
+                        document.getElementById('role-select').selectedIndex = 0;
+                        document.getElementById('fulltime').checked = false;
+                        document.getElementById('queue').checked = false;
+                        M.AutoInit();
+                        M.toast({html: 'User successfully created'});
+                    } else {
+                        // We reached our target server, but it returned an error
+                        console.log('Error');
+                        M.toast({html: 'There was an error, please try again'});
+                    }
+                };
 
-document.getElementById('createUser').onclick = () => {
-    const result = getData();
-    if (result !== false) {
-        let proceed = false;
-        if (result.queue === true) {
-            proceed = confirm('Are you sure you want to add this user without notifying them? Please ensure that all data is entered correctly.');
-        } else {
-            proceed = confirm('Are you sure you want to add and notify this user? Please ensure that all data is entered correctly.');
-        }
-        if (proceed) {
-            const request = new XMLHttpRequest();
-            request.open('POST', '/users', true);
-            request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-            request.setRequestHeader('X-CSRF-Token', csrf);
-            request.onload = function() {
-                if (request.status >= 200 && request.status < 400) {
-                    const data = JSON.parse(request.responseText);
-                    if (data.Error !== "") {
-                        M.toast({html: data.Error});
-                        return;
-                    }
-                    // Clear out text inputs
-                    const inputList = document.querySelectorAll('input');
-                    for (var i = 0; i < inputList.length - 1; i++) {
-                        inputList[i].value = "";
-                    }
-                    // Remove active class from labels
-                    const labelList = document.querySelectorAll('label');
-                    for (var i = 0; i < labelList.length; i++) {
-                        labelList[i].classList.remove('active');
-                    }
-                    document.getElementById('manager-select').selectedIndex = 0;
-                    document.getElementById('role-select').selectedIndex = 0;
-                    document.getElementById('fulltime').checked = false;
-                    document.getElementById('queue').checked = false;
-                    M.AutoInit();
-                    M.toast({html: 'User successfully created'});
-                } else {
-                    // We reached our target server, but it returned an error
-                    console.log('Error');
+                request.onerror = function() {
+                    // There was a connection error of some sort
                     M.toast({html: 'There was an error, please try again'});
-                }
-            };
+                };
 
-            request.onerror = function() {
-                // There was a connection error of some sort
-                M.toast({html: 'There was an error, please try again'});
-            };
-
-            request.send(JSON.stringify(result));
+                request.send(JSON.stringify(result));
+            }
         }
-    }
-};
+    };
+}
 
 // Get data from fields and prompt user if there are any missing ones
 function getData() {
@@ -97,4 +99,10 @@ function getData() {
         return false;
     }
     return obj;
+}
+
+function dequeue(id) {
+    if (confirm('Are you sure you want dequeue this user and add them to the system, this cannot be undone?')) {
+        console.log(id);
+    }
 }
