@@ -1575,6 +1575,14 @@ func (c Controller) deleteUser(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	// Delete potential entry from the queued_accounts table
+	stmt = `DELETE FROM queued_accounts WHERE userid=$1`
+	_, err = c.db.Exec(stmt, id)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	// Delete user from database
 	stmt = `DELETE FROM users WHERE id=$1`
 	_, err = c.db.Exec(stmt, id)
