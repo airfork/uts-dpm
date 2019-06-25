@@ -5,7 +5,11 @@ M.AutoInit(); // Get the last input box on the page, which holds a csrf token, a
 var inputs = document.querySelectorAll('input');
 var csrf = inputs[inputs.length - 1].value;
 var createUserBtn = document.getElementById('createUser');
-document.getElementById('dequeue-btn').onclick = dequeueAll;
+var dequeueBtn = document.getElementById('dequeue-btn');
+
+if (dequeueBtn !== null) {
+  dequeueBtn.onclick = dequeueAll;
+}
 
 if (createUserBtn !== null) {
   createUserBtn.onclick = function () {

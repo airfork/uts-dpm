@@ -6,8 +6,10 @@ M.AutoInit();
 const inputs = document.querySelectorAll('input');
 const csrf = inputs[inputs.length - 1].value;
 const createUserBtn = document.getElementById('createUser');
-
-document.getElementById('dequeue-btn').onclick = dequeueAll;
+const dequeueBtn = document.getElementById('dequeue-btn');
+if (dequeueBtn !== null) {
+    dequeueBtn.onclick = dequeueAll;
+}
 
 if (createUserBtn !== null) {
     createUserBtn.onclick = () => {
