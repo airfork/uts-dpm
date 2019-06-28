@@ -788,7 +788,7 @@ func (c Controller) renderQueue(w http.ResponseWriter, r *http.Request) {
 	// language=sql
 	stmt := `SELECT u.firstname || ' ' || u.lastname AS name, q.queuedby, q.created, q.userid
 			FROM queued_accounts q
-			INNER JOIN users u on q.userid = u.id ORDER BY q.created DESC, name;`
+			INNER JOIN users u on q.userid = u.id ORDER BY name;`
 	err = c.db.Select(&q, stmt)
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
