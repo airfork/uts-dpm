@@ -192,7 +192,7 @@ func (c Controller) renderCreateUser(w http.ResponseWriter, r *http.Request) {
 		Sup:     u.Sup,
 	}
 	// Render createuser template
-	err = c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"csrf": csrf.TemplateField(r), "Nav": n, "manager": managerSlice, "role": roles},)
+	err = c.tpl.ExecuteTemplate(w, "createUser.gohtml", map[string]interface{}{"csrf": csrf.TemplateField(r), "Nav": n, "manager": managerSlice, "role": roles})
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
 		fmt.Println(err)
@@ -779,16 +779,16 @@ func (c Controller) renderQueue(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type queuedUser struct {
-		Name string
+		Name     string
 		QueuedBy string
-		Created string
-		Userid string
+		Created  string
+		Userid   string
 	}
 	q := make([]queuedUser, 0)
 	// language=sql
 	stmt := `SELECT u.firstname || ' ' || u.lastname AS name, q.queuedby, q.created, q.userid
 			FROM queued_accounts q
-			INNER JOIN users u on q.userid = u.id;`
+			INNER JOIN users u on q.userid = u.id ORDER BY q.created DESC, name;`
 	err = c.db.Select(&q, stmt)
 	if err != nil {
 		out := fmt.Sprintln("Something went wrong, please try again")
