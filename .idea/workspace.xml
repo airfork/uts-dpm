@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="4c2a6525-220a-40ef-ae83-10c67fab59cf" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/functions.go" beforeDir="false" afterPath="$PROJECT_DIR$/functions.go" afterDir="false" />
-    </list>
+    <list default="true" id="4c2a6525-220a-40ef-ae83-10c67fab59cf" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,16 +64,16 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$APPLICATION_CONFIG_DIR$/consoles/db/9c5cb30b-c4b6-49ee-8c1c-82c340039375/console.sql">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="42">
-              <caret line="2" column="30" selection-start-line="2" selection-start-column="30" selection-end-line="2" selection-end-column="30" />
+            <state relative-caret-position="21">
+              <caret line="1" lean-forward="true" selection-start-line="1" selection-end-line="1" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/functions.go">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="765">
@@ -193,6 +191,7 @@
       <find>sendPointsBa</find>
       <find>edit</find>
       <find>sendNew</find>
+      <find>dele</find>
     </findStrings>
   </component>
   <component name="GOROOT" path="/usr/local/go" />
@@ -258,8 +257,8 @@
         <option value="$PROJECT_DIR$/main.go" />
         <option value="$PROJECT_DIR$/views/userQueue.gohtml" />
         <option value="$PROJECT_DIR$/js-pre/createUser.js" />
-        <option value="$APPLICATION_CONFIG_DIR$/consoles/db/9c5cb30b-c4b6-49ee-8c1c-82c340039375/console.sql" />
         <option value="$PROJECT_DIR$/functions.go" />
+        <option value="$APPLICATION_CONFIG_DIR$/consoles/db/9c5cb30b-c4b6-49ee-8c1c-82c340039375/console.sql" />
       </list>
     </option>
   </component>
@@ -297,7 +296,7 @@
     <property name="configurable.Global.GOPATH.is.expanded" value="true" />
     <property name="configurable.Module.GOPATH.is.expanded" value="true" />
     <property name="configurable.Project.GOPATH.is.expanded" value="true" />
-    <property name="database.console.LAST_STATE" value="false" />
+    <property name="database.console.LAST_STATE" value="true" />
     <property name="go.gopath.indexing.explicitly.defined" value="true" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
@@ -339,7 +338,7 @@
       <window_info anchor="bottom" id="Version Control" order="9" weight="0.32876712" />
       <window_info anchor="bottom" id="Terminal" order="10" weight="0.23287672" />
       <window_info anchor="bottom" id="Event Log" order="11" side_tool="true" weight="0.32911393" />
-      <window_info anchor="bottom" id="Database Console" order="12" weight="0.32771337" />
+      <window_info active="true" anchor="bottom" id="Database Console" order="12" visible="true" weight="0.32771337" />
       <window_info anchor="bottom" id="Messages" order="13" weight="0.32911393" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -709,17 +708,17 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$APPLICATION_CONFIG_DIR$/consoles/db/9c5cb30b-c4b6-49ee-8c1c-82c340039375/console.sql">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="42">
-          <caret line="2" column="30" selection-start-line="2" selection-start-column="30" selection-end-line="2" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/functions.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="765">
           <caret line="1584" column="5" selection-start-line="1584" selection-start-column="5" selection-end-line="1584" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$APPLICATION_CONFIG_DIR$/consoles/db/9c5cb30b-c4b6-49ee-8c1c-82c340039375/console.sql">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="21">
+          <caret line="1" lean-forward="true" selection-start-line="1" selection-end-line="1" />
         </state>
       </provider>
     </entry>
