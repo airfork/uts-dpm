@@ -11,8 +11,10 @@ require (
 	github.com/gorilla/sessions v1.1.3
 	github.com/heroku/x v0.0.0-20181102215100-85e5aa5e6aa1
 	github.com/jmoiron/sqlx v1.2.0
+	github.com/kr/pty v1.1.3 // indirect
 	github.com/lib/pq v1.0.0
 	github.com/mailgun/mailgun-go v2.0.0+incompatible
+	github.com/markbates/deplist v1.0.5 // indirect
 	github.com/matcornic/hermes/v2 v2.0.1
 	github.com/microcosm-cc/bluemonday v1.0.2
 	github.com/tealeg/xlsx v1.0.3

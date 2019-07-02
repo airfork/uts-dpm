@@ -231,7 +231,7 @@ func autoGen() ([]dpmDriver, error) {
 					notes = strings.Replace(notes, `"`, "", -1)
 					notes = strings.TrimSpace(notes)
 					if len(notes) != 0 {
-						d.Notes = notes
+						d.Notes = bm.Sanitize(notes)
 					}
 					dpms = append(dpms, d)
 				}
