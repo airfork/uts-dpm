@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mailgun/mailgun-go"
+	mailgun "github.com/mailgun/mailgun-go"
 	"github.com/matcornic/hermes/v2"
 )
 
@@ -53,7 +53,7 @@ func sendPasswordChanged(recipient, firstname, lastname string) {
 	mg := mailgun.NewMailgun(yourDomain, privateAPIKey)
 
 	sender := "DPM@utsdpm.com"
-	subject := "Password Has Been Reset"
+	subject := "Password Changed"
 
 	sendMessage(mg, sender, subject, emailText, body, recipient)
 }
@@ -145,10 +145,10 @@ func sendNewUserEmail(recipient, pass, firstname, lastname string) {
 				{
 					Instructions: `To get started, please copy your temporary password and use it sign in along with your email address.`,
 					Button: hermes.Button{
-						Color: "#0d47a1",
+						Color:     "#0d47a1",
 						TextColor: "#ffffff",
-						Text: "Log In",
-						Link: "https://www.utsdpm.com/login",
+						Text:      "Log In",
+						Link:      "https://www.utsdpm.com/login",
 					},
 				},
 			},
