@@ -145,7 +145,7 @@ func sendNewUserEmail(recipient, pass, firstname, lastname string) {
 				{
 					Instructions: `To get started, please copy your temporary password and use it sign in along with your email address.`,
 					Button: hermes.Button{
-						// Color: "#22BC66", // Optional action button color
+						Color: "#0d47a1",
 						Text: "Log In",
 						Link: "https://www.utsdpm.com/login",
 					},
