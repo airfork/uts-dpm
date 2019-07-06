@@ -192,13 +192,13 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type createUser struct {
-		Username string
+		Username  string
 		Firstname string
-		Lastname string
-		Manager string
-		Role string
-		Fulltime bool
-		Queue bool
+		Lastname  string
+		Manager   string
+		Role      string
+		Fulltime  bool
+		Queue     bool
 	}
 
 	type response struct {
@@ -320,7 +320,7 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 	}
 	// Determine if user is a fulltimer
 	// Create user struct from form data
-	u = &user {
+	u = &user{
 		Username:   create.Username,
 		Password:   string(hash),
 		FirstName:  create.Firstname,
@@ -356,7 +356,7 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		stmt = "INSERT INTO queued_accounts (userid, queuedby) VALUES ($1, $2)"
-		_, err = tx.Exec(stmt, userid, sender.FirstName + " " + sender.LastName)
+		_, err = tx.Exec(stmt, userid, sender.FirstName+" "+sender.LastName)
 		if err != nil {
 			_ = tx.Rollback()
 			w.WriteHeader(http.StatusInternalServerError)
@@ -1351,7 +1351,7 @@ func (c Controller) findUser(w http.ResponseWriter, r *http.Request) {
 	}
 	var userid int
 	// Get name from form
-	name := html.UnescapeString(strings.TrimSpace(r.FormValue("name")))
+	name := bm.Sanitize(html.UnescapeString(strings.TrimSpace(r.FormValue("name"))))
 	// If they are trying to reset password, redirect them
 	if name == "reset" {
 		http.Redirect(w, r, "/users/reset", http.StatusFound)
@@ -1969,7 +1969,7 @@ func (c Controller) removeDPMPostLogic(w http.ResponseWriter, r *http.Request) {
 }
 
 // dequeueUser removes a specific user from the queue
-func(c Controller) dequeueUser(w http.ResponseWriter, r *http.Request) {
+func (c Controller) dequeueUser(w http.ResponseWriter, r *http.Request) {
 	u, err := c.getUser(w, r)
 	// Validate user
 	if err != nil {
@@ -2060,10 +2060,10 @@ func (c Controller) dequeue(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type dequeue struct {
-		ID int
-		Username string
+		ID        int
+		Username  string
 		Firstname string
-		Lastname string
+		Lastname  string
 	}
 	dSlice := make([]dequeue, 0)
 
