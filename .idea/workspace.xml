@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="4c2a6525-220a-40ef-ae83-10c67fab59cf" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/autodpm.go" beforeDir="false" afterPath="$PROJECT_DIR$/autodpm.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates.go" beforeDir="false" afterPath="$PROJECT_DIR$/templates.go" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -76,11 +76,20 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/autodpm.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="564">
-              <caret line="226" column="92" selection-start-line="226" selection-start-column="92" selection-end-line="226" selection-end-column="92" />
+            <state relative-caret-position="414">
+              <caret line="226" column="4" selection-start-line="226" selection-start-column="4" selection-end-line="226" selection-end-column="4" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/templates.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="425">
+              <caret line="708" column="24" selection-start-line="708" selection-start-column="24" selection-end-line="708" selection-end-column="24" />
             </state>
           </provider>
         </entry>
@@ -120,6 +129,7 @@
       <find>edit</find>
       <find>sendNew</find>
       <find>dele</find>
+      <find>renderUserD</find>
     </findStrings>
   </component>
   <component name="GOROOT" path="/usr/local/go" />
@@ -175,7 +185,6 @@
         <option value="$PROJECT_DIR$/views/createUser.gohtml" />
         <option value="$PROJECT_DIR$/js-pre/dpm.js" />
         <option value="$PROJECT_DIR$/models.go" />
-        <option value="$PROJECT_DIR$/templates.go" />
         <option value="$PROJECT_DIR$/email.go" />
         <option value="$PROJECT_DIR$/helpers.go" />
         <option value="$PROJECT_DIR$/views/findUser.gohtml" />
@@ -187,6 +196,7 @@
         <option value="$APPLICATION_CONFIG_DIR$/consoles/db/9c5cb30b-c4b6-49ee-8c1c-82c340039375/console.sql" />
         <option value="$PROJECT_DIR$/assets/css/index.css" />
         <option value="$PROJECT_DIR$/autodpm.go" />
+        <option value="$PROJECT_DIR$/templates.go" />
       </list>
     </option>
   </component>
@@ -201,6 +211,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -217,7 +228,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -561,13 +571,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/templates.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="510">
-          <caret line="799" column="52" selection-start-line="799" selection-start-column="52" selection-end-line="799" selection-end-column="52" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/functions.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="32928">
@@ -650,8 +653,15 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/autodpm.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="564">
-          <caret line="226" column="92" selection-start-line="226" selection-start-column="92" selection-end-line="226" selection-end-column="92" />
+        <state relative-caret-position="414">
+          <caret line="226" column="4" selection-start-line="226" selection-start-column="4" selection-end-line="226" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/templates.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="425">
+          <caret line="708" column="24" selection-start-line="708" selection-start-column="24" selection-end-line="708" selection-end-column="24" />
         </state>
       </provider>
     </entry>

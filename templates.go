@@ -700,10 +700,20 @@ func (c Controller) renderUserDPMS(w http.ResponseWriter, r *http.Request) {
 		Dpmtype string
 	}
 
+	// Get name of user
+	var name string
+	// language=sql
+	stmt := `SELECT firstname || ' ' || lastname FROM users WHERE id = $1`
+	err = c.db.QueryRow(stmt, id).Scan(&name)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	// Get DPM info from db
 	dpms := make([]udpm, 0)
-	// language=sql
-	stmt := `SELECT d.date, d.dpmtype, u.firstname || ' ' || u.lastname
+	stmt = `SELECT d.date, d.dpmtype
 			FROM dpms as d
 			INNER JOIN users as u ON u.id = d.userid
 			WHERE userid=$1 ORDER BY date DESC, created DESC;`
@@ -714,13 +724,12 @@ func (c Controller) renderUserDPMS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer rows.Close()
-	var name string
 	for rows.Next() {
 		var (
 			date    string
 			dpmtype string
 		)
-		err = rows.Scan(&date, &dpmtype, &name)
+		err = rows.Scan(&date, &dpmtype)
 		if err != nil {
 			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
