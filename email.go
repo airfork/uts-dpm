@@ -85,9 +85,10 @@ func sendResetPasswordEmail(recipient, pass, firstname, lastname string) {
 				{
 					Instructions: `Please copy your temporary password and sign in to change your password.`,
 					Button: hermes.Button{
-						// Color: "#22BC66", // Optional action button color
-						Text: "Log In",
-						Link: "https://www.utsdpm.com/login",
+						Color:     "#0d47a1",
+						TextColor: "#ffffff",
+						Text:      "Log In",
+						Link:      "https://www.utsdpm.com/login",
 					},
 				},
 			},
