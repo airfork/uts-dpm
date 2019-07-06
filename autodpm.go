@@ -224,14 +224,18 @@ func autoGen() ([]dpmDriver, error) {
 				} else if color == "ff0000" {
 					d.DPMType = "Type D: DNS/Did Not Show (-10 Points)"
 					d.Points = "-10"
-					notes = strings.Replace(notes, "DNS", "", -1)
-					notes = strings.Replace(notes, "-", "", 1)
-					notes = strings.Replace(notes, ")", "", -1)
-					notes = strings.Replace(notes, "(", "", -1)
-					notes = strings.Replace(notes, `"`, "", -1)
-					notes = strings.TrimSpace(notes)
-					if len(notes) != 0 {
-						d.Notes = notes
+					// Get index of DNS and get rid of everything before it as well as "DNS"
+					index := strings.Index(notes, "DNS")
+					// If DNS is not found, don't worry about trying to get notes for it 
+					if index != -1 {
+						notes = notes[index + 3:]
+						notes = strings.Replace(notes, ")", "", -1)
+						notes = strings.Replace(notes, "(", "", -1)
+						notes = strings.Replace(notes, `"`, "", -1)
+						notes = strings.TrimSpace(notes)
+						if len(notes) != 0 {
+							d.Notes = notes
+						}
 					}
 					dpms = append(dpms, d)
 				}
