@@ -23,7 +23,7 @@ var typeMap = map[string]int16{
 	"Type G: Voluntary Clinic/Road Test Passed (+2 Points)": 2,
 	"Type L: 1-5 Minutes Late to OFF (-1 Point)":            -1,
 	"Type A: Missed Email Announcement (-2 Points)":         -2,
-	"Type A: 1-5 Minutes Late to BLK (-5 Points)":           -5,
+	"Type A: 1-5 Minutes Late to BLK (-1 Point)":            -1,
 	"Type A: Improper Shutdown (-2 Points)":                 -2,
 	"Type A: Off-Route (-2 Points)":                         -2,
 	"Type A: Out of Uniform (-5 Points)":                    -5,

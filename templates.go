@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"html"
 	"net/http"
 	"strconv"
 	"strings"
@@ -589,8 +590,8 @@ func (c Controller) renderEditUser(w http.ResponseWriter, r *http.Request) {
 	data := map[string]interface{}{
 		"csrf":      csrf.TemplateField(r),
 		"username":  bm.Sanitize(foundUser.Username),
-		"firstname": bm.Sanitize(foundUser.FirstName),
-		"lastname":  bm.Sanitize(foundUser.LastName),
+		"firstname": html.UnescapeString(bm.Sanitize(foundUser.FirstName)),
+		"lastname":  html.UnescapeString(bm.Sanitize(foundUser.LastName)),
 		"manager":   managerSlice,
 		"role":      roles,
 		"fulltime":  foundUser.FullTime,

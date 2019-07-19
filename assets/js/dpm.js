@@ -21,9 +21,16 @@ request.onload = function () {
     people = data.names;
     userID = data.userID;
     var dataobj = {};
-    people.forEach(function (name) {
-      dataobj[name] = null;
-    });
+
+    for (var i = 0; i < people.length; i++) {
+      people[i] = he.decode(people[i]);
+      dataobj[people[i]] = null;
+    } // people.forEach(function(name) {
+    //     name = unescape(name);
+    //     dataobj[name] = null;
+    // });
+
+
     var elems = document.querySelectorAll('.autocomplete');
     var instances = M.Autocomplete.init(elems, {
       data: dataobj,

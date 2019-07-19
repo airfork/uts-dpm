@@ -13,20 +13,25 @@ request.open('GET', '/users', true);
 request.onload = function() {
   if (request.status >= 200 && request.status < 400) {
     // Success!
-      const data = JSON.parse(request.responseText);
-      // Get ids, people, and the username
+    const data = JSON.parse(request.responseText);
+    // Get ids, people, and the username
     peopleIds = data.ids;
     people = data.names;
     userID = data.userID;
-      const dataobj = {};
-      people.forEach(function(name) {
-        dataobj[name] = null;
+    const dataobj = {};
+    for (let i = 0; i < people.length; i++) {
+        people[i] = he.decode(people[i]);
+        dataobj[people[i]] = null;
+    }
+    // people.forEach(function(name) {
+    //     name = unescape(name);
+    //     dataobj[name] = null;
+    // });
+    const elems = document.querySelectorAll('.autocomplete');
+    const instances = M.Autocomplete.init(elems, {
+        data: dataobj,
+        limit: 5,
     });
-      const elems = document.querySelectorAll('.autocomplete');
-      const instances = M.Autocomplete.init(elems, {
-          data: dataobj,
-          limit: 5,
-      });
 
   } else {
       // We reached our target server, but it returned an error
