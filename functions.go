@@ -218,7 +218,7 @@ func (c Controller) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	create.Username = html.UnescapeString(bm.Sanitize(strings.TrimSpace(create.Username)))
+	create.Username = strings.ToLower(html.UnescapeString(bm.Sanitize(strings.TrimSpace(create.Username))))
 	create.Firstname = html.UnescapeString(bm.Sanitize(strings.TrimSpace(create.Firstname)))
 	create.Lastname = html.UnescapeString(bm.Sanitize(strings.TrimSpace(create.Lastname)))
 	create.Role = html.UnescapeString(bm.Sanitize(strings.TrimSpace(create.Role)))
@@ -390,7 +390,7 @@ func (c Controller) logInUser(w http.ResponseWriter, r *http.Request) {
 	// Struct for later use
 	u := &user{}
 	// Get user input
-	user := strings.TrimSpace(r.FormValue("username"))
+	user := strings.ToLower(strings.TrimSpace(r.FormValue("username")))
 	pass := r.FormValue("password")
 	// Find user in database
 	err := c.db.QueryRowx("SELECT * FROM users WHERE username=$1 LIMIT 1", user).StructScan(u)
