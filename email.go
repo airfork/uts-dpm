@@ -245,7 +245,9 @@ func sendDPMEmail(recipient, firstname, lastname, dpmtype string, points int) {
 	// Gets letter of DPM, eg. G
 	letter := fmt.Sprintf("[%s]", dpmtype[5:6])
 	// Gets the part of dpm past Type[G]:, but minus the points in parenthesis
-	description := strings.Trim(strings.Replace(dpmtype[8:len(dpmtype)-12], "(", "", -1), " ")
+	colonIndex := strings.Index(dpmtype, ":") + 2
+	parenIndex := strings.Index(dpmtype, "(") - 1
+	description := dpmtype[colonIndex:parenIndex]
 	out := fmt.Sprintf("Type %s DPM: %s %s", letter, description, pointString)
 	subject := fmt.Sprintf("%s: %s", dpmtype[0:6], description)
 	message := fmt.Sprintf("This email is to inform you that you have received a %s. If you have any issues with this, please contact %s directly.", out, os.Getenv("BOSS"))
