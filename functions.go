@@ -836,7 +836,7 @@ func (c Controller) approveDPMLogic(w http.ResponseWriter, r *http.Request) {
 	}
 	var secondID, managerid int
 	var fulltime bool
-	var dpmtype, username, firstname, lastname string
+	var dpmtype, username, firstname, lastname, manager string
 	// This checks that this dpm id relates to a real dpm and gets the fulltime status, username, and dpm type of the driver
 	stmt := `SELECT a.id, a.fulltime, a.username, a.firstname, a.lastname, b.dpmtype FROM users a
 	JOIN dpms b ON a.id=b.userid
@@ -848,18 +848,23 @@ func (c Controller) approveDPMLogic(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
+
+	// Select the manager ID for the driver who owns this DPM
+	stmt = `SELECT id, firstname || ' ' || lastname AS manager
+				FROM users
+				WHERE id = (SELECT managerid
+    				FROM users a
+    				JOIN dpms b ON a.id=b.userid
+    				WHERE b.id=$1);`
+	err = c.db.QueryRow(stmt, id).Scan(&managerid, &manager)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println(err)
+		return
+	}
+
 	// If not an admin, make sure they have access to this dpm
 	if !u.Admin {
-		// Select the manager ID for the driver who owns this DPM
-		stmt := `SELECT managerid FROM users a
-		JOIN dpms b ON a.id=b.userid
-		WHERE b.id=$1;`
-		err = c.db.QueryRow(stmt, id).Scan(&managerid)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Println(err)
-			return
-		}
 		// If ids do not match, abort
 		if managerid != int(u.ID) {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -903,7 +908,7 @@ func (c Controller) approveDPMLogic(w http.ResponseWriter, r *http.Request) {
 
 	if username != "testing@testing.com" && !c.isUserQueued(username, firstname, lastname) {
 		// Send point email
-		go sendDPMEmail(username, firstname, lastname, dpmtype, points)
+		go sendDPMEmail(username, firstname, lastname, dpmtype, manager, points)
 	}
 	w.WriteHeader(http.StatusOK)
 }

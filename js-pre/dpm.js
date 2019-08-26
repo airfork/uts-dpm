@@ -43,7 +43,7 @@ request.onload = function() {
 request.onerror = function() {
   // There was a connection error of some sort
     M.toast({html: 'There was an error, please try again'});
-  console.log("There was an error of sometype, please try again")
+  console.log("There was an error of some type, please try again")
 };
 
 request.send();

@@ -50,7 +50,7 @@ request.onerror = function () {
   M.toast({
     html: 'There was an error, please try again'
   });
-  console.log("There was an error of sometype, please try again");
+  console.log("There was an error of some type, please try again");
 };
 
 request.send(); // Get the last input box on the page, which holds a csrf token, and store it
