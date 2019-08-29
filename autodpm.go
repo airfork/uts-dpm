@@ -157,14 +157,12 @@ func autoGen() ([]dpmDriver, error) {
 				position++
 				continue
 			}
+			// swl("952294753",2,"#000000","Brian Newman","959635624","07:00 - 14:20","   7.33 hours","OFF");
+			info := strings.Split(s, ",")
 			// Get hex color
-			re = regexp.MustCompile(`#\w+`)
-			color := string(re.Find([]byte(s)))
+			color := strings.Replace(strings.Trim(info[2], "\""), "#", "", 1)
 			// Get driver name
-			re = regexp.MustCompile(`"[^,]\D+",`)
-			name := string(re.Find([]byte(s)))
-			// Remove starting quote, ending comma, and ending quote
-			name = name[1 : len(name)-2]
+			name := strings.Trim(info[3], "\"")
 			// Get first and last name
 			ns := strings.Split(name, " ")
 			// Sanitize first name
@@ -176,38 +174,38 @@ func autoGen() ([]dpmDriver, error) {
 				last = bm.Sanitize(strings.Join(ns, " "))
 			}
 			// Get start and end time
-			re = regexp.MustCompile(`\d{2}:\d{2}`)
-			times := re.FindAllString(s, 2)
+			times := strings.Trim(info[5], "\"")
 			// If time does not match export format, skip
-			if len(times) != 2 {
+			if len(times) != 13 {
 				fmt.Println("Error getting time, skipping")
 				position++
 				continue
 			}
-			startTime := times[0]
-			endTime := times[1]
+			startTime := times[0:5]
+			endTime := times[8:]
 			// Get location
-			re = regexp.MustCompile(`("[A-Z- \(\)\\*&@!#\+=_\{\}\[\]:';\.\?]+"\)|"[A-Z]{2,3} )`)
 			// If location is missing, skip
-			location := string(re.Find([]byte(s)))
-			if len(strings.TrimSpace(location)) < 4 {
+			locationNotes := strings.Trim(info[7], "\"")
+			if len(strings.TrimSpace(locationNotes)) < 2 {
 				fmt.Println("Line has no location, skipping")
 				position++
 				continue
 			}
-			if len(location) == 4 {
-				location = location[1:3]
-			} else {
-				location = location[1:4]
+			location := strings.TrimSpace(locationNotes[0:3])
+			if strings.Contains(location, "-") {
+				location = location[0:2]
 			}
 			// Make sure location is capitalized
-			location = strings.ToUpper(strings.Trim(location, "\""))
+			location = strings.ToUpper(location)
 			// Get current date
 			date := time.Now().Format("2006-1-02")
 			// If color does not start with f, ignore it, only looking for red, FF0000, and gold, ffcc00
 			if color[1] == 'f' || color[1] == 'F' {
+				fmt.Println("*************************************")
+				fmt.Println(first, last, location)
+				fmt.Println("*************************************")
 				// Remove '3' and convert color to lowercase
-				color = strings.ToLower(color[1:])
+				color = strings.ToLower(color)
 				d := dpmDriver{
 					FirstName: html.UnescapeString(first),
 					LastName:  html.UnescapeString(last),
