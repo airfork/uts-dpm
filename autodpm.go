@@ -187,18 +187,21 @@ func autoGen() ([]dpmDriver, error) {
 			startTime := times[0]
 			endTime := times[1]
 			// Get location
-			re = regexp.MustCompile(`[\w- \(\)\\*&@!#\+=_\{\}\[\]:';\.\?]+"\)`)
+			re = regexp.MustCompile(`("[A-Z- \(\)\\*&@!#\+=_\{\}\[\]:';\.\?]+"\)|"[A-Z]{2,3} )`)
 			// If location is missing, skip
 			location := string(re.Find([]byte(s)))
-			if len(location) < 5 {
+			if len(strings.TrimSpace(location)) < 4 {
 				fmt.Println("Line has no location, skipping")
 				position++
 				continue
 			}
-			notes := location[3:]
-			location = location[0:3]
+			if len(location) == 4 {
+				location = location[1:3]
+			} else {
+				location = location[1:4]
+			}
 			// Make sure location is capitalized
-			location = strings.ToUpper(location)
+			location = strings.ToUpper(strings.Trim(location, "\""))
 			// Get current date
 			date := time.Now().Format("2006-1-02")
 			// If color does not start with f, ignore it, only looking for red, FF0000, and gold, ffcc00
@@ -225,15 +228,16 @@ func autoGen() ([]dpmDriver, error) {
 					d.DPMType = "Type D: DNS/Did Not Show (-10 Points)"
 					d.Points = "-10"
 					// Get index of DNS and get rid of everything before it as well as "DNS"
-					index := strings.Index(notes, "DNS")
+					index := strings.Index(s, "DNS")
 					// If DNS is not found, don't worry about trying to get notes for it 
 					if index != -1 {
-						notes = notes[index + 3:]
+						notes := s[index + 3:]
 						notes = strings.Replace(notes, ")", "", -1)
 						notes = strings.Replace(notes, "(", "", -1)
 						notes = strings.Replace(notes, `"`, "", -1)
-						notes = strings.TrimSpace(notes)
+						notes = strings.TrimSpace(strings.Trim(notes, ";"))
 						if len(notes) != 0 {
+							fmt.Println(notes)
 							d.Notes = notes
 						}
 					}
