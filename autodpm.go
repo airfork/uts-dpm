@@ -150,6 +150,9 @@ func autoGen() ([]dpmDriver, error) {
 		// Keeping track of indexing allows me to associate drivers to their blocks
 		f := position + num
 		for position < f {
+			if position >= len(shifts) {
+				return nil, errors.New("failed to parse all blocks. Please make sure that all blocks contain a value for location")
+			}
 			s := shifts[position]
 			// If shift is unassigned skip
 			// Only matching unassigned shifts because the number of shifts under a block include them
@@ -191,7 +194,12 @@ func autoGen() ([]dpmDriver, error) {
 				position++
 				continue
 			}
-			location := strings.TrimSpace(locationNotes[0:3])
+			var location string
+			if len(locationNotes) == 2 || len(locationNotes) == 3 {
+				location = strings.TrimSpace(locationNotes[:])
+			} else {
+				location = strings.TrimSpace(locationNotes[0:3])
+			}
 			if strings.Contains(location, "-") {
 				location = location[0:2]
 			}
