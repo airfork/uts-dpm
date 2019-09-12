@@ -88,8 +88,25 @@ function submitLogic() {
   obj.sender = userID;
   var id = peopleIds[people.indexOf(obj.name)];
   obj.id = id.toString();
-  obj.points = '0'; // Clear out text inputs
+  obj.points = '0'; // Create JSON, then POST to server
 
+  var jObj = JSON.stringify(obj);
+  return sendDPM(jObj);
+} // Actually sends the JSON
+
+
+function sendDPM(jOBJ) {
+  var request = new XMLHttpRequest();
+  request.open('POST', '/dpm', true); // Set JSON header as well as the CSRF token header, both very important
+
+  request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+  request.setRequestHeader('X-CSRF-Token', csrf);
+  request.send(jOBJ);
+  return request;
+}
+
+function clearInputs() {
+  // Clear out text inputs
   var inputList = document.querySelectorAll('.input');
 
   for (var i = 0; i < inputList.length; i++) {
@@ -104,21 +121,7 @@ function submitLogic() {
   } // Reset date picker
 
 
-  datePickerInit(); // Create JSON, then POST to server
-
-  var jObj = JSON.stringify(obj);
-  sendDPM(jObj);
-  return true;
-} // Actually sends the JSON
-
-
-function sendDPM(jOBJ) {
-  var request = new XMLHttpRequest();
-  request.open('POST', '/dpm', true); // Set JSON header as well as the CSRF token header, both very important
-
-  request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-  request.setRequestHeader('X-CSRF-Token', csrf);
-  request.send(jOBJ);
+  datePickerInit();
 } // Dealing with timepicker forms
 
 
@@ -154,22 +157,31 @@ document.addEventListener('DOMContentLoaded', function () {
   elems[0].onclick = function () {
     var submitted = submitLogic();
 
-    if (submitted === "name") {
+    if (submitted === 'name') {
       M.toast({
         html: 'Please input a valid name.'
       });
-    } else if (submitted === "date") {
+    } else if (submitted === 'date') {
       M.toast({
         html: 'Please provide a date.'
       });
-    } else if (submitted === "time") {
+    } else if (submitted === 'time') {
       M.toast({
         html: 'Please input a start and end time.'
       });
     } else {
-      M.toast({
-        html: 'DPM Submitted!'
-      });
+      submitted.onload = function () {
+        if (!(submitted.status >= 200 && submitted.status < 400)) {
+          M.toast({
+            html: 'There was an error, please try again'
+          });
+        } else {
+          clearInputs();
+          M.toast({
+            html: 'DPM Submitted!'
+          });
+        }
+      };
     }
   };
 });
