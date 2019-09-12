@@ -205,12 +205,13 @@ func autoGen() ([]dpmDriver, error) {
 			}
 			// Make sure location is capitalized
 			location = strings.ToUpper(location)
+			location = strings.Replace(location, "\"", "", -1)
 			// Get current date
 			date := time.Now().Format("2006-1-02")
 			// If color does not start with f, ignore it, only looking for red, FF0000, and gold, ffcc00
 			if color[1] == 'f' || color[1] == 'F' {
 				fmt.Println("*************************************")
-				fmt.Println(first, last, location)
+				fmt.Println(first, last, location, len(location))
 				fmt.Println("*************************************")
 				// Remove '3' and convert color to lowercase
 				color = strings.ToLower(color)
@@ -282,6 +283,8 @@ func autoSubmit(db *sqlx.DB, dpms []dpmDriver, sender int16) error {
 	dpmIn := `INSERT INTO dpms (createid, userid, firstname, lastname, block, date, starttime, endtime, dpmtype, points, notes, created, location, approved) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, false)`
 	// Iterate through the slice of dpms
 	for _, d := range dpms {
+		d.FirstName = strings.Replace(d.FirstName, "'", "’", -1)
+		d.LastName = strings.Replace(d.LastName, "'", "’", -1)
 		// Get id, and fulltimer bool based on first and last name
 		err = stmt.QueryRow(d.FirstName, d.LastName).Scan(&id)
 		// If error is not nil, assume it is because user not in db, not fatal, keep going
@@ -290,7 +293,7 @@ func autoSubmit(db *sqlx.DB, dpms []dpmDriver, sender int16) error {
 			fmt.Println(err)
 			continue
 		}
-		// Get current time
+		// Get current time’
 		created := time.Now().Format("2006-1-02 15:04:05")
 		if d.DPMType == "Type G: Good! (+1 Point)" {
 			// Set points
