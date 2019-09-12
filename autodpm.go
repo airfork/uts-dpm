@@ -210,9 +210,9 @@ func autoGen() ([]dpmDriver, error) {
 			date := time.Now().Format("2006-1-02")
 			// If color does not start with f, ignore it, only looking for red, FF0000, and gold, ffcc00
 			if color[1] == 'f' || color[1] == 'F' {
-				fmt.Println("*************************************")
+				fmt.Println("**************************************")
 				fmt.Println(first, last, location, len(location))
-				fmt.Println("*************************************")
+				fmt.Println("**************************************")
 				// Remove '3' and convert color to lowercase
 				color = strings.ToLower(color)
 				d := dpmDriver{
