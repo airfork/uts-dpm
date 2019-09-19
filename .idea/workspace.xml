@@ -3,14 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="97a23958-e34d-4cdb-bd32-1d8816a87dd3" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/609b3409-86a9-4be0-9d7e-570d4735b53b.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/609b3409-86a9-4be0-9d7e-570d4735b53b.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/609b3409-86a9-4be0-9d7e-570d4735b53b/storage_v2/_src_/database/d3c4jqvkl7ro1m.IIMPSQ/schema/public.abK9xQ.meta" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/609b3409-86a9-4be0-9d7e-570d4735b53b/storage_v2/_src_/database/d3c4jqvkl7ro1m.IIMPSQ/schema/public.abK9xQ.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/9c5cb30b-c4b6-49ee-8c1c-82c340039375/storage_v2/_src_/database/d3c4jqvkl7ro1m.IIMPSQ/schema/information_schema.FNRwLQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/9c5cb30b-c4b6-49ee-8c1c-82c340039375/storage_v2/_src_/database/d3c4jqvkl7ro1m.IIMPSQ/schema/pg_catalog.0S1ZNQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/js/dpm.js" beforeDir="false" afterPath="$PROJECT_DIR$/assets/js/dpm.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/js-pre/dpm.js" beforeDir="false" afterPath="$PROJECT_DIR$/js-pre/dpm.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/views/dpm.gohtml" beforeDir="false" afterPath="$PROJECT_DIR$/views/dpm.gohtml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />

@@ -28,7 +28,7 @@ var typeMap = map[string]int16{
 	"Type A: Improper Shutdown (-2 Points)":                 -2,
 	"Type A: Off-Route (-2 Points)":                         -2,
 	"Type A: Out of Uniform (-5 Points)":                    -5,
-	"Type A: Improper Radio Procedure (-5 Points)":          -5,
+	"Type A: Improper Radio Procedure (-2 Points)":          -2,
 	"Type A: Improper Bus Log (-5 Points)":                  -5,
 	"Type A: Timesheet/Improper Book Change (-5 Points)":    -5,
 	"Type A: 6-15 Minutes Late to Blk (-3 Points)":          -3,
