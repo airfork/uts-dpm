@@ -396,6 +396,7 @@ func (c Controller) logInUser(w http.ResponseWriter, r *http.Request) {
 	err := c.db.QueryRowx("SELECT * FROM users WHERE username=$1 LIMIT 1", user).StructScan(u)
 	// If they do not exist, complain
 	if err != nil {
+		fmt.Println("Here")
 		fmt.Println(err)
 		out := "Username or password was incorrect, please try again."
 		c.loginError(w, r, out, html.UnescapeString(bm.Sanitize(user)))
@@ -438,7 +439,7 @@ func (c Controller) logInUser(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/change", http.StatusFound)
 		return
 	}
-	// Redirect user after succesful login
+	// Redirect user after successful login
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
@@ -836,12 +837,12 @@ func (c Controller) approveDPMLogic(w http.ResponseWriter, r *http.Request) {
 	}
 	var secondID, managerid int
 	var fulltime bool
-	var dpmtype, username, firstname, lastname, manager string
+	var dpmtype, username, firstname, lastname, manager, date string
 	// This checks that this dpm id relates to a real dpm and gets the fulltime status, username, and dpm type of the driver
-	stmt := `SELECT a.id, a.fulltime, a.username, a.firstname, a.lastname, b.dpmtype FROM users a
+	stmt := `SELECT a.id, a.fulltime, a.username, a.firstname, a.lastname, b.dpmtype, b.date FROM users a
 	JOIN dpms b ON a.id=b.userid
 	WHERE b.id=$1;`
-	err = c.db.QueryRow(stmt, id).Scan(&secondID, &fulltime, &username, &firstname, &lastname, &dpmtype)
+	err = c.db.QueryRow(stmt, id).Scan(&secondID, &fulltime, &username, &firstname, &lastname, &dpmtype, &date)
 	// If this fails, assume the ID is not valid and abort
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -906,9 +907,15 @@ func (c Controller) approveDPMLogic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	sendDate, err := time.Parse(time.RFC3339, date)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	if username != "testing@testing.com" && !c.isUserQueued(username, firstname, lastname) {
 		// Send point email
-		go sendDPMEmail(username, firstname, lastname, dpmtype, manager, points)
+		go sendDPMEmail(username, firstname, lastname, dpmtype, sendDate.Format("01/02/06"), manager, points)
 	}
 	w.WriteHeader(http.StatusOK)
 }

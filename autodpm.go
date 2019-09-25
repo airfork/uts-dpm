@@ -226,7 +226,7 @@ func autoGen() ([]dpmDriver, error) {
 				}
 				// If color is gold, Good dpm
 				if color == "ffcc00" {
-					d.DPMType = "Type G: Good! (+1 Point)"
+					d.DPMType = "Type G: Picked Up Block (+1 Point)"
 					d.Points = "+1"
 					d.Notes = "Thanks!"
 					dpms = append(dpms, d)
@@ -295,7 +295,7 @@ func autoSubmit(db *sqlx.DB, dpms []dpmDriver, sender int16) error {
 		}
 		// Get current time’
 		created := time.Now().Format("2006-1-02 15:04:05")
-		if d.DPMType == "Type G: Good! (+1 Point)" {
+		if d.DPMType == "Type G: Picked Up Block (+1 Point)" {
 			// Set points
 			points = 1
 			// Execute query with values

@@ -18,6 +18,7 @@ import (
 )
 
 var typeMap = map[string]int16{
+	"Type G: Picked Up Block (+1 Point)":                    1,
 	"Type G: Good! (+1 Point)":                              1,
 	"Type G: 200 Hours Safe (+2 Points)":                    2,
 	"Type G: Voluntary Clinic/Road Test Passed (+2 Points)": 2,
