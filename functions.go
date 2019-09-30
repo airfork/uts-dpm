@@ -1179,19 +1179,22 @@ func (c Controller) dpmXLSX(w http.ResponseWriter, r *http.Request) {
 		location  string
 		startTime string
 		endtime   string
+		createdBy string
 		approved  bool
 		ignored   bool
 	)
 
 	if u.Analyst {
 		if getAll {
-			stmt = `SELECT d.firstname, d.lastname, d.block, d.date, d.dpmtype, d.points, d.notes, d.created, d.location, d.starttime, d.endtime, d.approved, d.ignored
+			stmt = `SELECT d.firstname, d.lastname, d.block, d.date, d.dpmtype, d.points, d.notes, d.created, d.location, d.starttime, d.endtime, d.approved, d.ignored,
+       		(SELECT firstname || ' ' || lastname AS supname FROM users WHERE d.createid=id)
 			FROM dpms d INNER JOIN users u ON d.userid=u.id
 			WHERE u.managerid = $1
 			ORDER BY date DESC, created DESC`
 			rows, err = c.db.Query(stmt, u.ID)
 		} else {
-			stmt = `SELECT d.firstname, d.lastname, d.block, d.date, d.dpmtype, d.points, d.notes, d.created, d.location, d.starttime, d.endtime, d.approved, d.ignored
+			stmt = `SELECT d.firstname, d.lastname, d.block, d.date, d.dpmtype, d.points, d.notes, d.created, d.location, d.starttime, d.endtime, d.approved, d.ignored,
+       		(SELECT firstname || ' ' || lastname AS supname FROM users WHERE d.createid=id)
 			FROM dpms d INNER JOIN users u ON d.userid=u.id
 			WHERE u.managerid = $1 AND created <= $2 AND created >= $3
 			ORDER BY date DESC, created DESC`
@@ -1199,10 +1202,14 @@ func (c Controller) dpmXLSX(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		if getAll {
-			stmt = `SELECT firstname, lastname, block, date, dpmtype, points, notes, created, location, starttime, endtime, approved, ignored FROM dpms ORDER BY date DESC, created DESC`
+			stmt = `SELECT d.firstname, d.lastname, d.block, d.date, d.dpmtype, d.points, d.notes, d.created, d.location, d.starttime, d.endtime, d.approved, d.ignored, u.firstname || ' ' || u.lastname AS supname FROM dpms d
+			INNER JOIN users u ON d.createid=u.id
+			ORDER BY date DESC, created DESC`
 			rows, err = c.db.Query(stmt)
 		} else {
-			stmt = `SELECT firstname, lastname, block, date, dpmtype, points, notes, created, location, starttime, endtime, approved, ignored FROM dpms WHERE created <= $1 AND created >= $2 ORDER BY date DESC, created DESC`
+			stmt = `SELECT d.firstname, d.lastname, d.block, d.date, d.dpmtype, d.points, d.notes, d.created, d.location, d.starttime, d.endtime, d.approved, d.ignored, u.firstname || ' ' || u.lastname AS supname FROM dpms d
+			INNER JOIN users u ON d.createid=u.id
+			WHERE created <= $1 AND created >= $2 ORDER BY date DESC, created DESC`
 			rows, err = c.db.Query(stmt, endDate[0], startDate[0])
 		}
 	}
@@ -1241,6 +1248,7 @@ func (c Controller) dpmXLSX(w http.ResponseWriter, r *http.Request) {
 		"Notes",
 		"Status",
 		"Created",
+		"Created By",
 	}
 
 	// Add headers
@@ -1258,7 +1266,7 @@ func (c Controller) dpmXLSX(w http.ResponseWriter, r *http.Request) {
 		// Create row for values
 		row = sheet.AddRow()
 		// Scan row data into variables
-		err = rows.Scan(&firstname, &lastname, &block, &date, &dpmtype, &points, &notes, &created, &location, &startTime, &endtime, &approved, &ignored)
+		err = rows.Scan(&firstname, &lastname, &block, &date, &dpmtype, &points, &notes, &created, &location, &startTime, &endtime, &approved, &ignored, &createdBy)
 		if err != nil {
 			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -1286,6 +1294,7 @@ func (c Controller) dpmXLSX(w http.ResponseWriter, r *http.Request) {
 			html.UnescapeString(notes),
 			status,
 			created,
+			createdBy,
 		}
 		for _, value := range rowValues {
 			cell = row.AddCell()
@@ -1329,6 +1338,12 @@ func (c Controller) dpmXLSX(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err = sheet.SetColWidth(11, 11, 20)
+	if err != nil {
+		fmt.Printf(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = sheet.SetColWidth(12, 12, 20)
 	if err != nil {
 		fmt.Printf(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
