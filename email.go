@@ -228,7 +228,7 @@ func sendPointsBalance(recipient, firstname, lastname, points string) {
 	sendMessage(mg, sender, subject, emailText, body, recipient)
 }
 
-func sendDPMEmail(recipient, firstname, lastname, dpmtype, manager string, points int) {
+func sendDPMEmail(recipient, firstname, lastname, dpmtype, date, manager string, points int) {
 	var pointString string
 	switch {
 	case points == 0, points < -1:
@@ -250,7 +250,7 @@ func sendDPMEmail(recipient, firstname, lastname, dpmtype, manager string, point
 	description := dpmtype[colonIndex:parenIndex]
 	out := fmt.Sprintf("Type %s DPM: %s %s", letter, description, pointString)
 	subject := fmt.Sprintf("%s: %s", dpmtype[0:6], description)
-	message := fmt.Sprintf("This email is to inform you that you have received a %s. If you have any issues with this, please contact %s directly.", out, manager)
+	message := fmt.Sprintf("This email is to inform you that you received a %s on %s. If you have any issues with this, please contact %s directly.", out, date, manager)
 	if (firstname + " " + lastname) == os.Getenv("BOSS") {
 		message = "You got a DPM, anyways I hope you're having a nice day!"
 	}
