@@ -121,7 +121,8 @@ func autoGen() ([]dpmDriver, error) {
 		// If block is not surrounded in []'s, get the number of shifts under it (ignore it)
 		// Add this number to position variable so that those shifts are passed over in slice iteration below
 		if !strings.Contains(block, "[") || !strings.Contains(block, "]") {
-			num := string(block[len(block)-1])
+			sliced := strings.Split(block, "\"")
+			num := sliced[len(sliced) - 1]
 			incrementAmount, err := strconv.Atoi(num)
 			if err != nil {
 				fmt.Println(err)
@@ -154,6 +155,7 @@ func autoGen() ([]dpmDriver, error) {
 				return nil, errors.New("failed to parse all blocks. Please make sure that all blocks contain a value for location")
 			}
 			s := shifts[position]
+			fmt.Println(s, blockNum)
 			// If shift is unassigned skip
 			// Only matching unassigned shifts because the number of shifts under a block include them
 			if s[0] == 'e' {
