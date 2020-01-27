@@ -307,7 +307,7 @@ func (c Controller) renderAutoGen(w http.ResponseWriter, r *http.Request) {
 		Analyst: u.Analyst,
 	}
 	// Call autogen and get slice out
-	dpms, err := autoGen()
+	dpms, err := autoGen(c.db)
 	// If error, render the autogenErr template stating this
 	if err != nil {
 		auto := err.Error()

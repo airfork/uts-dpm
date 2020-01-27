@@ -602,7 +602,7 @@ func (c Controller) callAutoSubmit(w http.ResponseWriter, r *http.Request) {
 	// Regenerate DPMS
 	// This is inefficient because I already generate these when the user submits a get to /dpm/all
 	// The reason why I generate again is to help protect against the unlikely odds of someone changing data on their end and sending it back to me to submit
-	dpms, err := autoGen()
+	dpms, err := autoGen(c.db)
 	// If error, render the autogenErr template stating this
 	if err != nil {
 		n := navbar{

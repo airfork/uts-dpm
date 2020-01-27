@@ -36,9 +36,9 @@ var days = map[string]string{
 
 // AutoGen parses the when2work page for the current date, of the server (EST), and generates a slice of DPMDriver's
 // which are a simplified version of a full DPM
-func autoGen() ([]dpmDriver, error) {
+func autoGen(db *sqlx.DB) ([]dpmDriver, error) {
 	// Check to make sure that no dpms have be autosubmitted for today
-	err := checkLastSubmission()
+	err := checkLastSubmission(db)
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +268,7 @@ func autoSubmit(db *sqlx.DB, dpms []dpmDriver, sender int16) error {
 		points int16
 	)
 	// Check to make sure that no dpms have been autosubmitted for today
-	err := checkLastSubmission()
+	err := checkLastSubmission(db)
 	if err != nil {
 		return err
 	}
@@ -323,7 +323,7 @@ func autoSubmit(db *sqlx.DB, dpms []dpmDriver, sender int16) error {
 		}
 	}
 	// If function has made it this far with no errors, update submission time
-	err = updateSubmitTime()
+	err = updateSubmitTime(db)
 	if err != nil {
 		return err
 	}
@@ -332,38 +332,32 @@ func autoSubmit(db *sqlx.DB, dpms []dpmDriver, sender int16) error {
 
 // checkLastSubmission checks text file to see when the last time autogen was called
 // Only allows you autosubmit the dpms once a day
-func checkLastSubmission() error {
-	// Read from file
-	readDate, err := ioutil.ReadFile("autogenTime.txt")
-	// If err, assume it is because does not exist and move on
+func checkLastSubmission(db *sqlx.DB) error {
+	var dateSubmitted string
+	// language=sql
+	err := db.QueryRow(`SELECT date_submitted FROM auto_submissions LIMIT 1`).Scan(&dateSubmitted)
 	if err != nil {
-		fmt.Println("Missing text file")
-		// Sanity check so if file is missing, the comparision/conversion of readDate does not panic
-		readDate = []byte("")
+		return errors.New("failed to check last submission")
 	}
-	// Get year, month, and day
-	year, month, day := time.Now().Date()
-	// Save these values into a string
-	date := fmt.Sprintf("%v %s %v", year, month, day)
-	// Check if date read from file is the same as the current date
-	// If so, return error
-	if date == string(readDate) {
-		return errors.New("autosubmit has already been called for today")
+	date := time.Now().Format("2006-01-02")
+	format := strings.Split(dateSubmitted, "T")
+	fmt.Println(date, format[0])
+	if date == format[0] {
+			return errors.New("autosubmit has already been called for today")
 	}
 	return nil
 }
 
-func updateSubmitTime() error {
-	// Get year, month, and day
-	year, month, day := time.Now().Date()
-	// Save these values into a string
-	date := fmt.Sprintf("%v %s %v", year, month, day)
-	// Write to file
-	d1 := []byte(date)
-	err := ioutil.WriteFile("autogenTime.txt", d1, 0644)
+func updateSubmitTime(db *sqlx.DB) error {
+	// language=sql
+	_, err := db.Exec(`TRUNCATE auto_submissions`)
 	if err != nil {
-		fmt.Println(err)
-		return errors.New("failed to write to file")
+		return errors.New("failed to clear database, DPMs still submitted")
+	}
+	_, err = db.Exec(`INSERT INTO auto_submissions (date_submitted) VALUES(NOW())`)
+	fmt.Println("Submitted")
+	if err != nil {
+		return errors.New("failed to update submission time, DPMs still submitted")
 	}
 	return nil
 }
