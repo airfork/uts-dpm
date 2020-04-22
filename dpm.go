@@ -246,9 +246,7 @@ func (c Controller) findForm(w http.ResponseWriter, r *http.Request) {
 	if v {
 		return
 	}
-	if r.Method == "POST" {
-		c.findUser(w, r)
-	} else {
+	if r.Method == "GET" {
 		c.renderFindUser(w, r)
 	}
 }

@@ -47,7 +47,7 @@
     <h4>Find User</h4>
     <div class="grid">
 
-        <form action="/users/find" method="POST" class="form login">
+        <form action="/users/list" method="GET" class="form login">
             <div class="form__field">
                 <label for="name_input">
                     <svg class="icon">
@@ -60,9 +60,7 @@
             <div class="form__field">
                 <input type="submit" value="Find">
             </div>
-            <p class="text--center">Find a user, or create one if they do not exist. This is case sensitive. Typing in
-                'reset' will allow you reset passwords. Typing in 'list' will list all users.</p>
-            {{.csrf}}
+            <p class="text--center">Find a user, or create one if they do not exist. Typing in 'reset' will allow you reset passwords. Typing in 'list' will list all users.</p>
         </form>
 
     </div>
