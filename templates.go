@@ -173,6 +173,11 @@ func (c Controller) renderCreateUser(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/change", http.StatusFound)
 		return
 	}
+	name := r.URL.Query().Get("name")
+	if len(strings.TrimSpace(name)) != 0 {
+		c.fillCreateUser(w, r)
+		return
+	}
 	type manage struct {
 		Name string
 		ID   int
@@ -627,11 +632,26 @@ func (c Controller) renderUserList(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/change", http.StatusFound)
 		return
 	}
-	// Get all users
-	rows, err := c.db.Query("SELECT firstname, lastname, id FROM users ORDER BY lastname")
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+	var rows *sql.Rows
+	search := r.URL.Query().Get("name")
+	if len(strings.TrimSpace(search)) == 0 || search == "list" {
+		// Get all users
+		rows, err = c.db.Query("SELECT firstname, lastname, id FROM users ORDER BY lastname")
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	} else if search == "reset" {
+		http.Redirect(w, r, "/users/reset", http.StatusFound)
 		return
+	} else {
+		query := fmt.Sprintf(`%%%s%%`, search)
+		stmt := `SELECT firstname, lastname, id FROM users WHERE firstname || ' ' || lastname ILIKE $1 ORDER BY lastname, firstname`
+		rows, err = c.db.Query(stmt, query)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	}
 	defer rows.Close()
 	// Slices to hold names and ids
@@ -655,6 +675,14 @@ func (c Controller) renderUserList(w http.ResponseWriter, r *http.Request) {
 			"id":        id,
 		}
 		users = append(users, m)
+	}
+	if len(users) == 0 {
+		http.Redirect(w, r, "/users/create?name=" + search, http.StatusFound)
+		return
+	}
+	if len(users) == 1 {
+		http.Redirect(w, r, "/users/edit/" + users[0]["id"], http.StatusFound)
+		return
 	}
 	n := navbar{
 		Admin:   u.Admin,

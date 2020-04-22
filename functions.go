@@ -1357,8 +1357,8 @@ func (c Controller) dpmXLSX(w http.ResponseWriter, r *http.Request) {
 	returnFile(w, "DPMs.xlsx")
 }
 
-// findUser tries to find a user in the database matching the input
-func (c Controller) findUser(w http.ResponseWriter, r *http.Request) {
+// fillCreateUser fills out the create user form
+func (c Controller) fillCreateUser(w http.ResponseWriter, r *http.Request) {
 	u, err := c.getUser(w, r)
 	// Validate user
 	if err != nil {
@@ -1376,57 +1376,23 @@ func (c Controller) findUser(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/change", http.StatusFound)
 		return
 	}
-	var userid int
-	// Get name from form
-	name := bm.Sanitize(html.UnescapeString(strings.TrimSpace(r.FormValue("name"))))
-	// If they are trying to reset password, redirect them
-	if name == "reset" {
-		http.Redirect(w, r, "/users/reset", http.StatusFound)
-		return
-	}
-	// List is keyword to show list of users
-	if name == "list" {
-		http.Redirect(w, r, "/users/list", http.StatusFound)
-		return
-	}
+	// Get search from url
+	name := bm.Sanitize(html.UnescapeString(strings.TrimSpace(r.URL.Query().Get("name"))))
 	// Split name into first and last, if applicable
 	ns := strings.Split(name, " ")
-	// Sanitize first name and put it in the format "%firstname%"
-	first := html.UnescapeString(fmt.Sprintf("%%%s%%", bm.Sanitize(ns[0])))
-	last := ""
+	var first, last string
+	first = ns[0]
 	// Join indexes after 0 into last name string and sanitize
 	// If last name exists, form a different query
 	if len(ns) > 1 {
 		ns = append(ns[:0], ns[1:]...)
-		// Sanitize last name and put it in the format "%lastname%"
-		last = html.UnescapeString(fmt.Sprintf("%%%s%%", bm.Sanitize(strings.Join(ns, " "))))
-		// Try to find user based on first and last name
-		stmt := `SELECT id FROM users WHERE firstname LIKE $1 AND lastname LIKE $2 LIMIT 1`
-		err = c.db.QueryRow(stmt, first, last).Scan(&userid)
-		// If error is not nil, assume user does not exist and redirect
-		if err != nil {
-			fmt.Println(err)
-			// Remove the %'s and render template
-			first = strings.Replace(first, "%", "", -1)
-			last = strings.Replace(last, "%", "", -1)
-			c.createUserFill(w, r, first, last)
-			return
-		}
+		last = html.UnescapeString(bm.Sanitize(strings.Join(ns, " ")))
+		c.createUserFill(w, r, first, last)
+		return
 	} else { // Handle first name only
-		stmt := `SELECT id FROM users WHERE firstname LIKE $1 LIMIT 1`
-		err = c.db.QueryRow(stmt, first).Scan(&userid)
-		// If error is not nil, assume user does not exist and send them to create user page
-		if err != nil {
-			fmt.Println(err)
-			// Remove the %'s and render template
-			first = strings.Replace(first, "%", "", -1)
-			c.createUserFill(w, r, first, last)
-			return
-		}
+		c.createUserFill(w, r, first, last)
+		return
 	}
-	url := fmt.Sprintf("/users/edit/%v", userid)
-	http.Redirect(w, r, url, http.StatusFound)
-	return
 }
 
 // editUser updates the user based on the data returned from the form

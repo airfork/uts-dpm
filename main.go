@@ -20,7 +20,7 @@ var tpl = template.Must(template.ParseGlob("views/*.gohtml"))
 var store = sessions.NewCookieStore(
 	[]byte(os.Getenv("SESSION_KEY")),
 	[]byte(os.Getenv("ENCRYPTION_KEY")))
-var production bool
+var production, csrfProtection bool
 
 func init() {
 	// Sets all cookies stored in this cookie store to have these values
@@ -34,6 +34,9 @@ func init() {
 	if os.Getenv("PRODUCTION") != "" {
 		production = true
 	}
+	if os.Getenv("NOCSRF") == "" {
+		csrfProtection = true
+	} 
 }
 
 func main() {
@@ -46,7 +49,7 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 		Addr:         ":" + os.Getenv("PORT"),
-		Handler:      csrf.Protect([]byte(os.Getenv("CSRF_KEY")), csrf.Secure(production))(r),
+		Handler:      csrf.Protect([]byte(os.Getenv("CSRF_KEY")), csrf.Secure(csrfProtection))(r),
 	}
 	r.HandleFunc("/", c.index)
 	r.HandleFunc("/approve", c.renderApprovals).Methods("GET")
@@ -72,7 +75,7 @@ func main() {
 	r.HandleFunc("/users/dequeue", c.removeAllFromQueue).Methods("POST")
 	r.HandleFunc("/users/edit/{id}", c.renderEditUser).Methods("GET")
 	r.HandleFunc("/users/edit/{id}", c.updateUser).Methods("POST", "DELETE")
-	r.HandleFunc("/users/find", c.findForm).Methods("GET", "POST")
+	r.HandleFunc("/users/find", c.findForm).Methods("GET")
 	r.HandleFunc("/users/list", c.renderUserList).Methods("GET")
 	r.HandleFunc("/users/points", c.sendPointsAll).Methods("POST")
 	r.HandleFunc("/users/points/{id}", c.sendPoints).Methods("POST")
