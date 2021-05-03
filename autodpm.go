@@ -77,11 +77,21 @@ func autoGen(db *sqlx.DB) ([]dpmDriver, error) {
 		return nil, errors.New("failed to get SID from when2work response")
 	}
 
+	// The 'w2wG4' part of the reference url below may change, slightly, between requests
+	// This ensures that the correct value is included in the url to avoid errors
+	re = regexp.MustCompile(`data-w2w="\/cgi-bin\/w2wG.?\.dll\/"`)
+	dllPath := string(re.Find(body))
+	if dllPath == "" {
+		return nil, errors.New("failed to get dll path from response")
+	}
+
+	dllPath = strings.Trim(strings.Replace(dllPath, "data-w2w=\"", "", 1), "\"")
+
 	// Get day of week, so that I am parsing the correct date
 	weekday := days[string(time.Now().Weekday())]
 	// Reference URL
 	// https://www7.whentowork.com/cgi-bin/w2wG4.dll/mgrschedule?SID=42041057341E7&lmi=1&view=Pos
-	response, err = http.Get("https://www7.whentowork.com/cgi-bin/w2wG4.dll/mgrschedule?" + sid + "&lmi=1&view=Pos&Day=" + weekday)
+	response, err = http.Get(fmt.Sprintf("https://www7.whentowork.com%smgrschedule?%s&lmi=1&view=Pos&Day=%s", dllPath, sid, weekday))
 	if err != nil {
 		fmt.Println(err)
 		return nil, errors.New("failed to pull up schedules page")
@@ -93,12 +103,17 @@ func autoGen(db *sqlx.DB) ([]dpmDriver, error) {
 	if err != nil {
 		return nil, errors.New("failed to read response from when2work")
 	}
+
+	// fmt.Println("*****************************")
+	// fmt.Println(string(body))
+
 	// Can't escape backticks in backticks, so I need to append this to regex so that it catches backticks
 	tick := "`"
 	// This gets shifts via regex
 	// either swl("952294753",2,"#000000","Brian Newman","959635624","07:00 - 14:20","   7.33 hours","OFF");
 	// or ewl("959635634",2,"#000000","17:20 - 01:00","   7.67 hours","JPA"); if the shift is unassigned]
 	re = regexp.MustCompile(`\wwl\("\d+",\d,"#\w+","[\w\d -:,~><^?@=|\\\[\]{}` + tick + `]+;`)
+	// fmt.Println(string(body))
 	shifts := re.FindAllString(string(body), -1)
 	if shifts == nil {
 		return nil, errors.New("failed to parse shifts")
@@ -122,7 +137,7 @@ func autoGen(db *sqlx.DB) ([]dpmDriver, error) {
 		// Add this number to position variable so that those shifts are passed over in slice iteration below
 		if !strings.Contains(block, "[") || !strings.Contains(block, "]") {
 			sliced := strings.Split(block, "\"")
-			num := sliced[len(sliced) - 1]
+			num := sliced[len(sliced)-1]
 			incrementAmount, err := strconv.Atoi(num)
 			if err != nil {
 				fmt.Println(err)
@@ -238,9 +253,9 @@ func autoGen(db *sqlx.DB) ([]dpmDriver, error) {
 					d.Points = "-10"
 					// Get index of DNS and get rid of everything before it as well as "DNS"
 					index := strings.Index(s, "DNS")
-					// If DNS is not found, don't worry about trying to get notes for it 
+					// If DNS is not found, don't worry about trying to get notes for it
 					if index != -1 {
-						notes := s[index + 3:]
+						notes := s[index+3:]
 						notes = strings.Replace(notes, ")", "", -1)
 						notes = strings.Replace(notes, "(", "", -1)
 						notes = strings.Replace(notes, `"`, "", -1)
@@ -343,7 +358,7 @@ func checkLastSubmission(db *sqlx.DB) error {
 	format := strings.Split(dateSubmitted, "T")
 	fmt.Println(date, format[0])
 	if date == format[0] {
-			return errors.New("autosubmit has already been called for today")
+		return errors.New("autosubmit has already been called for today")
 	}
 	return nil
 }
