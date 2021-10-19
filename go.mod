@@ -14,7 +14,7 @@ require (
 	github.com/lib/pq v1.0.0
 	github.com/mailgun/mailgun-go v2.0.0+incompatible
 	github.com/matcornic/hermes/v2 v2.0.1
-	github.com/microcosm-cc/bluemonday v1.0.2
+	github.com/microcosm-cc/bluemonday v1.0.16
 	github.com/tealeg/xlsx v1.0.3
 	github.com/xlzd/gotp v0.0.0-20181030022105-c8557ba2c119
 	golang.org/x/crypto v0.0.0-20190103213133-ff983b9c42bc
