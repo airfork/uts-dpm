@@ -348,14 +348,16 @@ func autoSubmit(db *sqlx.DB, dpms []dpmDriver, sender int16) error {
 // checkLastSubmission checks text file to see when the last time autogen was called
 // Only allows you autosubmit the dpms once a day
 func checkLastSubmission(db *sqlx.DB) error {
-	var dateSubmitted string
+	var alreadySubmitted int
 	// language=sql
-	err := db.QueryRow(`select * from auto_submissions where date_submitted = DATE(now()) LIMIT 1`).Scan(&dateSubmitted)
+	err := db.QueryRow(`select
+        case when date_submitted <> date(now()) then 0 else 1 end
+    from auto_submissions`).Scan(&alreadySubmitted)
 	if err != nil {
 		return errors.New("failed to check last submission")
 	}
 
-	if len(dateSubmitted) > 0 {
+	if alreadySubmitted == 1 {
 		return errors.New("autosubmit has already been called for today")
 	}
 	return nil
