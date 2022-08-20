@@ -350,14 +350,12 @@ func autoSubmit(db *sqlx.DB, dpms []dpmDriver, sender int16) error {
 func checkLastSubmission(db *sqlx.DB) error {
 	var dateSubmitted string
 	// language=sql
-	err := db.QueryRow(`SELECT date_submitted FROM auto_submissions LIMIT 1`).Scan(&dateSubmitted)
+	err := db.QueryRow(`select * from auto_submissions where date_submitted = DATE(now()) LIMIT 1`).Scan(&dateSubmitted)
 	if err != nil {
 		return errors.New("failed to check last submission")
 	}
-	date := time.Now().Format("2006-01-02")
-	format := strings.Split(dateSubmitted, "T")
-	fmt.Println(date, format[0])
-	if date == format[0] {
+
+	if len(dateSubmitted) > 0 {
 		return errors.New("autosubmit has already been called for today")
 	}
 	return nil
@@ -365,12 +363,7 @@ func checkLastSubmission(db *sqlx.DB) error {
 
 func updateSubmitTime(db *sqlx.DB) error {
 	// language=sql
-	_, err := db.Exec(`TRUNCATE auto_submissions`)
-	if err != nil {
-		return errors.New("failed to clear database, DPMs still submitted")
-	}
-	_, err = db.Exec(`INSERT INTO auto_submissions (date_submitted) VALUES(NOW())`)
-	fmt.Println("Submitted")
+	_, err := db.Exec(`UPDATE auto_submissions SET date_submitted=NOW()`)
 	if err != nil {
 		return errors.New("failed to update submission time, DPMs still submitted")
 	}
