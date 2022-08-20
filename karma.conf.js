@@ -25,7 +25,7 @@ module.exports = function (config) {
       suppressAll: true // removes the duplicated traces
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, './coverage/chat-app'),
+      dir: require('path').join(__dirname, './coverage/uts-dpm'),
       subdir: '.',
       reporters: [
         { type: 'html' },
