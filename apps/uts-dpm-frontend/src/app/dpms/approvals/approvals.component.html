@@ -1,0 +1,98 @@
+<h2 class="text-3xl mb-5 font-bold">Approvals</h2>
+<app-dpm-list [dpms]="dpms" [dpmClick]="showApprovalModal"></app-dpm-list>
+
+<input
+  type="checkbox"
+  id="dpmModal"
+  class="modal-toggle"
+  [(ngModel)]="modalOpen"
+/>
+<label for="dpmModal" class="modal cursor-pointer">
+  <label class="modal-box relative">
+    <div *ngIf="currentDpm">
+      <h3 class="text-xl font-bold mx-2 md:mx-4">{{ currentDpm.driver }}</h3>
+
+      <table
+        class="my-2 md:my-4 border-separate border-spacing-x-2 md:border-spacing-x-4 border-spacing-y-1.5 table-auto"
+      >
+        <tbody class="text-left align-text-top">
+          <tr *ngIf="currentDpm.createdBy" class="whitespace-nowrap">
+            <th>Created By:</th>
+            <td>{{ currentDpm.createdBy }}</td>
+          </tr>
+
+          <tr>
+            <th>Type:</th>
+            <td>{{ currentDpm.type }}</td>
+          </tr>
+
+          <tr>
+            <th>Points:</th>
+            <td>{{ format.points(currentDpm.points) }}</td>
+          </tr>
+
+          <tr>
+            <th>Block:</th>
+            <td>{{ currentDpm.block }}</td>
+          </tr>
+
+          <tr>
+            <th>Location:</th>
+            <td>{{ currentDpm.location.toUpperCase() }}</td>
+          </tr>
+
+          <tr>
+            <th>Date:</th>
+            <td>{{ format.dpmDate(currentDpm.date) }}</td>
+          </tr>
+
+          <tr>
+            <th>Time:</th>
+            <td>
+              {{ currentDpm.startTime }} -
+              {{ currentDpm.endTime }}
+            </td>
+          </tr>
+
+          <tr *ngIf="currentDpm.created">
+            <th>Created At:</th>
+            <td>{{ format.created(currentDpm.created) }}</td>
+          </tr>
+
+          <tr *ngIf="currentDpm.notes" class="break-words whitespace-normal">
+            <th>Notes:</th>
+            <td>{{ currentDpm.notes }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div *ngIf="!editOpen; else editInput" class="modal-action">
+        <label pRipple for="dpmModal" class="btn btn-success btn-outline"
+          >Approve</label
+        >
+        <label pRipple for="dpmModal" class="btn btn-error btn-outline"
+          >Deny</label
+        >
+        <label
+          pRipple
+          for="dpmModal"
+          class="btn btn-info btn-outline"
+          (click)="showEdit($event)"
+          >Edit</label
+        >
+      </div>
+
+      <ng-template #editInput>
+        <div class="modal-action">
+          <input
+            class="input input-bordered input-info"
+            type="number"
+            placeholder="Points"
+            [(ngModel)]="currentPoints"
+            (focusout)="hideEdit()"
+          />
+        </div>
+      </ng-template>
+    </div>
+  </label>
+</label>

@@ -1,0 +1,89 @@
+<input
+  type="checkbox"
+  id="dpmModal"
+  class="modal-toggle"
+  [(ngModel)]="modalOpen"
+/>
+<label for="dpmModal" class="modal cursor-pointer">
+  <label class="modal-box relative">
+    <div *ngIf="currentDpm">
+      <h3 class="text-xl font-bold mx-4">{{ currentDpm.type }}</h3>
+      <table
+        class="my-4 border-separate border-spacing-x-4 border-spacing-y-1.5"
+      >
+        <tbody class="text-left align-text-top">
+          <tr>
+            <th>Points:</th>
+            <td>{{ format.points(currentDpm.points) }}</td>
+          </tr>
+          <tr>
+            <th>Block:</th>
+            <td>{{ currentDpm.block }}</td>
+          </tr>
+          <tr>
+            <th>Location:</th>
+            <td>{{ currentDpm.location.toUpperCase() }}</td>
+          </tr>
+          <tr>
+            <th>Date:</th>
+            <td>{{ format.dpmDate(currentDpm.date) }}</td>
+          </tr>
+          <tr>
+            <th>Time:</th>
+            <td>
+              {{ currentDpm.startTime }} -
+              {{ currentDpm.endTime }}
+            </td>
+          </tr>
+          <tr *ngIf="currentDpm.notes" class="break-words whitespace-normal">
+            <th>Notes:</th>
+            <td>{{ currentDpm.notes }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="modal-action">
+        <label for="dpmModal" class="btn btn-secondary">Close</label>
+      </div>
+    </div>
+  </label>
+</label>
+
+<p class="text-4xl text-center mt-10" *ngIf="dpms.length === 0; else dpmTable">
+  You currently don't have any DPMs to view
+</p>
+
+<ng-template #dpmTable>
+  <h2 class="text-3xl mb-5 font-bold">Current DPMs</h2>
+  <div class="lg:overflow-x-auto">
+    <div class="grid place-items-center">
+      <table class="table table-fixed lg:table-auto w-full text-center">
+        <thead>
+          <tr>
+            <th class="lg:text-base break-words">Type</th>
+            <th class="lg:text-base break-words">Points</th>
+            <th class="lg:text-base break-words whitespace-normal">
+              Date Received
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            class="hover hover:cursor-pointer"
+            *ngFor="let dpm of dpms"
+            (click)="clickRow(dpm)"
+          >
+            <td class="lg:text-base break-words whitespace-normal">
+              {{ dpm.type }}
+            </td>
+            <td class="lg:text-base break-words whitespace-normal">
+              {{ format.points(dpm.points) }}
+            </td>
+            <td class="lg:text-base break-words whitespace-normal">
+              {{ format.dpmDate(dpm.date) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</ng-template>

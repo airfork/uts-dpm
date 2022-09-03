@@ -1,13 +1,13 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./src/**/*.{html,ts}",
+    "./apps/uts-dpm-frontend/src/**/*.{html,ts}",
   ],
   theme: {
     extend: {},
   },
   plugins: [require("daisyui")],
   daisyui: {
-    themes: ["valentine", "cupcake", "dark", "cmyk"],
+    themes: ["bumblebee", "cupcake", "dark", "cmyk"],
   },
 }

@@ -1,0 +1,26 @@
+<div class="lg:overflow-x-auto">
+  <div class="grid place-items-center">
+    <table class="table table-fixed lg:table-auto w-full text-center">
+      <thead>
+        <tr>
+          <th class="lg:text-base break-words">Name</th>
+          <th class="lg:text-base break-words">Block/Time</th>
+          <th class="lg:text-base break-words">Type</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let dpm of dpms"
+          (click)="dpmClick ? dpmClick(dpm) : null"
+          [ngClass]="{ 'hover:cursor-pointer hover': dpmClick }"
+        >
+          <td class="break-words whitespace-normal">{{ dpm.driver }}</td>
+          <td class="break-words whitespace-normal">
+            {{ dpm.block }} {{ dpm.startTime }}-{{ dpm.endTime }}
+          </td>
+          <td class="break-words whitespace-normal">{{ dpm.type }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

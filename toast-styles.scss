@@ -1,0 +1,41 @@
+@mixin statusStyles($backgroundColor, $textColor) {
+  background-color: $backgroundColor;
+  border: solid $textColor;
+  color: $textColor;
+  border-width: 0 0 0 6px;
+}
+
+.app-toast-top-center {
+  top: 20px;
+  left: 50%;
+  transform: translatex(-50%);
+}
+
+#toast-container {
+  opacity: .9;
+
+  .ngx-toastr {
+    box-shadow: 0 2px 12px 0 rgb(0 0 0 / 20%);
+    padding: 1rem;
+    background-size: 0;
+    text-align: center;
+    font-size: 1.2rem;
+    border-radius: 6px;
+  }
+
+  .toast-info {
+    @include statusStyles(hsl(var(--in)), hsl(var(--inc)));
+  }
+
+  .toast-success {
+    @include statusStyles(hsl(var(--su)), hsl(var(--suc)));
+  }
+
+  .toast-warning {
+    @include statusStyles(hsl(var(--wa)), hsl(var(--wac)));
+  }
+
+  .toast-error {
+    @include statusStyles(hsl(var(--er)), hsl(var(--erc)));
+  }
+}

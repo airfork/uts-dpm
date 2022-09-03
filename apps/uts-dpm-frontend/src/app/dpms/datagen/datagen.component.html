@@ -1,0 +1,98 @@
+<div>
+  <h3 class="text-2xl pb-4 font-bold">DPM Data</h3>
+  <form
+    class="grid grid-cols-6 mx-5 gap-x-6"
+    [formGroup]="dpmDataFormGroup"
+    (ngSubmit)="onFormSubmit()"
+  >
+    <div class="form-control col-span-6 md:col-span-3 lg:col-span-2">
+      <label class="label" for="startDate">
+        <span
+          class="label-text text-base"
+          [ngClass]="{ 'text-error': hasErrors(startDate) || dpmDataFormGroup.errors?.['mixedDate'] }"
+        >
+          Start Date
+        </span>
+      </label>
+      <p-calendar
+        id="startDate"
+        formControlName="startDate"
+        [placeholder]="format.dpmDate()"
+        inputStyleClass="input input-bordered w-full {{
+          errorsOrEmpty(startDate)
+        }}"
+        [required]="true"
+      ></p-calendar>
+      <label class="label" for="startDate">
+        <span class="label-text-alt text-error">{{
+          getStartTimeValidationMessages()
+        }}</span>
+      </label>
+    </div>
+
+    <div class="form-control col-span-6 md:col-span-3 lg:col-span-2">
+      <label class="label" for="endDate">
+        <span
+          class="label-text text-base"
+          [ngClass]="{ 'text-error': hasErrors(endDate) || dpmDataFormGroup.errors?.['mixedDate'] }"
+        >
+          End Date
+        </span>
+      </label>
+      <p-calendar
+        id="endDate"
+        formControlName="endDate"
+        [placeholder]="format.dpmDate()"
+        inputStyleClass="input input-bordered w-full {{
+          errorsOrEmpty(endDate)
+        }}"
+        [required]="true"
+      ></p-calendar>
+      <label class="label" for="endDate">
+        <span class="label-text-alt text-error">{{
+          getEndTimeValidationMessages()
+        }}</span>
+      </label>
+    </div>
+
+    <div class="form-control col-span-6 lg:col-span-2 self-center">
+      <label
+        class="label cursor-pointer justify-center lg:justify-start items-center lg:mt-5"
+      >
+        <span class="text-base mr-6">Get All</span>
+        <input
+          type="checkbox"
+          class="checkbox checkbox-lg"
+          formControlName="getAll"
+        />
+      </label>
+    </div>
+
+    <div class="grid place-items-center col-span-6 mt-4">
+      <button
+        pRipple
+        type="submit"
+        class="btn btn-secondary m-auto w-full md:btn-wide"
+        [disabled]="!dpmDataFormGroup.valid"
+      >
+        Generate
+      </button>
+    </div>
+  </form>
+
+  <div class="divider mt-10 mb-7"></div>
+
+  <div>
+    <h3 class="text-2xl pb-4 font-bold">User Data</h3>
+    <div class="grid place-items-center mt-2 mx-5">
+      <button
+        pRipple
+        type="button"
+        class="btn btn-secondary m-auto w-full md:btn-wide"
+        (click)="onUserSubmit()"
+      >
+        Generate
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,213 @@
+<h2 class="text-3xl mb-5 font-bold">New DPM</h2>
+<form
+  class="grid grid-cols-3 gap-x-6 gap-y-2 rounded"
+  [formGroup]="homeFormGroup"
+  (ngSubmit)="onSubmit()"
+>
+  <div class="form-control col-span-3 md:col-span-1">
+    <label class="label" for="dpmNameInput">
+      <span
+        class="label-text text-base"
+        [ngClass]="{ 'text-error': hasErrors(name) }"
+        >Driver Name</span
+      >
+    </label>
+    <p-autoComplete
+      id="dpmNameInput"
+      placeholder="Jane Doe"
+      formControlName="name"
+      inputStyleClass="input input-bordered w-full {{ errorsOrEmpty(name) }}"
+      panelStyleClass="menu bg-base-100"
+      [required]="true"
+      [suggestions]="autocompleteResults"
+      (completeMethod)="search($event)"
+      [showEmptyMessage]="true"
+      [forceSelection]="true"
+    ></p-autoComplete>
+    <label class="label" for="dpmNameInput">
+      <span class="label-text-alt text-error">{{
+        getNameValidationMessages()
+      }}</span>
+    </label>
+  </div>
+
+  <div class="form-control col-span-3 md:col-span-1">
+    <label class="label" for="dpmBlockInput">
+      <span
+        class="label-text text-base"
+        [ngClass]="{ 'text-error': hasErrors(block) }"
+        >Block Name</span
+      >
+    </label>
+    <input
+      id="dpmBlockInput"
+      type="text"
+      placeholder="11"
+      class="input input-bordered w-full"
+      maxlength="5"
+      formControlName="block"
+      autocomplete="off"
+      [ngClass]="{ 'input-error': hasErrors(block) }"
+      required
+    />
+    <label class="label" for="dpmBlockInput">
+      <span class="label-text-alt text-error">{{
+        getBlockValidationMessages()
+      }}</span>
+    </label>
+  </div>
+
+  <div class="form-control col-span-3 md:col-span-1">
+    <label class="label" for="dpmLocationInput">
+      <span
+        class="label-text text-base"
+        [ngClass]="{ 'text-error': hasErrors(location) }"
+        >Location</span
+      >
+    </label>
+    <input
+      id="dpmLocationInput"
+      type="text"
+      placeholder="OFF"
+      class="input input-bordered w-full uppercase"
+      maxlength="5"
+      formControlName="location"
+      autocomplete="off"
+      [ngClass]="{ 'input-error': hasErrors(location) }"
+      required
+    />
+    <label class="label" for="dpmLocationInput">
+      <span class="label-text-alt text-error">{{
+        getLocationValidationMessages()
+      }}</span>
+    </label>
+  </div>
+
+  <div class="form-control col-span-3 md:col-span-1">
+    <label class="label" for="dpmDateInput">
+      <span
+        class="label-text text-base"
+        [ngClass]="{ 'text-error': hasErrors(dpmDate) }"
+        >Date</span
+      >
+    </label>
+    <p-calendar
+      id="dpmDateInput"
+      formControlName="dpmDate"
+      [placeholder]="format.dpmDate()"
+      inputStyleClass="input input-bordered w-full {{ errorsOrEmpty(dpmDate) }}"
+      [required]="true"
+    ></p-calendar>
+    <label class="label" for="dpmDateInput">
+      <span class="label-text-alt text-error">{{
+        getDpmDateValidationMessages()
+      }}</span>
+    </label>
+  </div>
+
+  <div class="form-control col-span-3 md:col-span-1">
+    <label class="label" for="dpmStartTimeInput">
+      <span
+        class="label-text text-base"
+        [ngClass]="{
+          'text-error': hasErrors(startTime)
+        }"
+        >Start Time</span
+      >
+    </label>
+    <input
+      id="dpmStartTimeInput"
+      type="text"
+      placeholder="0600"
+      class="input input-bordered w-full"
+      maxlength="4"
+      autocomplete="off"
+      formControlName="startTime"
+      [ngClass]="{ 'input-error': hasErrors(startTime) }"
+      required
+    />
+    <label class="label" for="dpmStartTimeInput">
+      <span class="label-text-alt text-error">{{
+        getStartTimeValidationMessages()
+      }}</span>
+    </label>
+  </div>
+
+  <div class="form-control col-span-3 md:col-span-1">
+    <label class="label" for="dpmEndTimeInput">
+      <span
+        class="label-text text-base"
+        [ngClass]="{ 'text-error': hasErrors(endTime) }"
+        >End Time</span
+      >
+    </label>
+    <input
+      id="dpmEndTimeInput"
+      type="text"
+      placeholder="1000"
+      class="input input-bordered w-full"
+      maxlength="4"
+      autocomplete="off"
+      formControlName="endTime"
+      [ngClass]="{ 'input-error': hasErrors(endTime) }"
+      required
+    />
+    <label class="label" for="dpmEndTimeInput">
+      <span class="label-text-alt text-error">{{
+        getEndTimeValidationMessages()
+      }}</span>
+    </label>
+  </div>
+
+  <div class="grid grid-cols-2 col-span-3 gap-x-6 gap-y-2">
+    <div class="form-control col-span-2 md:col-span-1">
+      <label class="label" for="dpmTypeInput">
+        <span class="label-text text-base">DPM Type</span>
+      </label>
+      <select
+        id="dpmTypeInput"
+        class="select select-bordered w-full"
+        formControlName="type"
+      >
+        <optgroup *ngFor="let dpmType of dpmTypes" label="{{ dpmType.type }}">
+          <option *ngFor="let name of dpmType.names" [value]="name">
+            {{ name }}
+          </option>
+        </optgroup>
+      </select>
+      <label class="label" for="dpmTypeInput">
+        <span class="label-text-alt">
+          <!-- Spacing -->
+        </span>
+      </label>
+    </div>
+
+    <div class="form-control col-span-2 md:col-span-1">
+      <label class="label" for="dpmNotesInput">
+        <span class="label-text text-base">Additional Notes</span>
+      </label>
+      <input
+        id="dpmNotesInput"
+        type="text"
+        placeholder="Abducted by Aliens"
+        class="input input-bordered w-full"
+        autocomplete="off"
+      />
+    </div>
+    <label class="label" for="dpmNotesInput">
+      <span class="label-text-alt">
+        <!-- Spacing -->
+      </span>
+    </label>
+  </div>
+  <div class="grid place-items-center col-span-3 mt-2">
+    <button
+      pRipple
+      type="submit"
+      class="btn btn-secondary m-auto w-full md:btn-wide"
+      [disabled]="!homeFormGroup.valid"
+    >
+      Submit
+    </button>
+  </div>
+</form>
