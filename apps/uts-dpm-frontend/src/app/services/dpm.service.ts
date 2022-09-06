@@ -1,7 +1,12 @@
 import { Injectable } from '@angular/core';
 import DPM from '../models/dpm';
-import { Observable, of } from 'rxjs';
+import { catchError, Observable, of, retry, throwError } from 'rxjs';
 import DPMType from '../models/dpmType';
+import PostDpmDto from '../models/postDpmDto';
+import { HttpClient } from '@angular/common/http';
+import { NotificationService } from './notification.service';
+import { environment } from '../../environments/environment';
+import HomeDpmDto from '../models/homeDpmDto';
 
 interface user {
   id: number;
@@ -106,9 +111,13 @@ export const DPMTypes: DPMType[] = [
   providedIn: 'root',
 })
 export class DpmService {
+  private static BASE_URL = environment.baseUrl;
   private users: user[];
 
-  constructor() {
+  constructor(
+    private http: HttpClient,
+    private notificationService: NotificationService
+  ) {
     this.users = _users;
   }
 
@@ -121,8 +130,30 @@ export class DpmService {
     return of([]);
   }
 
-  save(dpm: DPM) {
+  getCurrentDpms(): Observable<HomeDpmDto[]> {
+    return this.http.get<HomeDpmDto[]>(`${DpmService.BASE_URL}/dpms`).pipe(
+      retry(2),
+      catchError((error) => {
+        this.notificationService.showError('Something went wrong', 'Error');
+        return throwError(
+          () =>
+            new Error(
+              "Something went wrong trying to get the user's current dpms"
+            )
+        );
+      })
+    );
+  }
+
+  create(dpm: PostDpmDto): Observable<any> {
     console.log(dpm);
-    this.users[0].dpms.push(dpm);
+    return this.http.post(`${DpmService.BASE_URL}/dpms`, dpm).pipe(
+      catchError((error) => {
+        this.notificationService.showError('Failed to create DPM', 'Error');
+        return throwError(
+          () => new Error('Something went wrong trying to create the DPM')
+        );
+      })
+    );
   }
 }

@@ -11,6 +11,7 @@ import { UserService } from '../../services/user.service';
 import DPM from '../../models/dpm';
 import { NotificationService } from '../../services/notification.service';
 import { FormatService } from '../../services/format.service';
+import PostDpmDto from '../../models/postDpmDto';
 
 type startEndTime = 'Start Time' | 'End Time';
 const regex24HourTime = /^(?:[01][0-9]|2[0-3])[0-5][0-9](?::[0-5][0-9])?$/;
@@ -53,7 +54,7 @@ export class NewDpmComponent implements OnInit {
     notes: new FormControl(''),
   });
 
-  driverNames: string[] = [];
+  private driverNames: string[] = [];
 
   autocompleteResults: string[] = [];
 
@@ -66,7 +67,7 @@ export class NewDpmComponent implements OnInit {
 
   ngOnInit() {
     this.userService
-      .getUsers()
+      .getUserNames()
       .subscribe((users) => (this.driverNames = users));
   }
 
@@ -76,22 +77,27 @@ export class NewDpmComponent implements OnInit {
     );
   }
 
-  errorsOrEmpty(control: AbstractControl | null): string {
-    return this.hasErrors(control) ? 'input-error' : '';
+  errorsOrSuccess(control: AbstractControl | null): string {
+    return this.hasErrors(control) ? 'input-error' : 'input-success';
+  }
+
+  setStatusClass(control: AbstractControl | null, isInput = true): string {
+    if (control == null) return '';
+    const prefix = isInput ? 'input-' : 'text-';
+
+    if (this.hasErrors(control)) return prefix + 'error';
+    if (control.dirty || control.touched) return prefix + 'success';
+    return '';
   }
 
   onSubmit() {
-    this.dpmService.save(this.homeFormGroup.value as DPM);
-    setTimeout(
-      () =>
-        this.homeFormGroup.reset({
-          dpmDate: new Date(),
-          type: this.defaultDpmType,
-        }),
-      1000
-    );
-
-    this.notificationService.showSuccess('DPM Created', '');
+    this.dpmService.create(this.formGroupToDto()).subscribe(() => {
+      this.notificationService.showSuccess('DPM Created', 'Success');
+      this.homeFormGroup.reset({
+        dpmDate: new Date(),
+        type: this.defaultDpmType,
+      });
+    });
   }
 
   getStartTimeValidationMessages(): string {
@@ -216,5 +222,24 @@ export class NewDpmComponent implements OnInit {
     }
 
     return 'Unknown validation error';
+  }
+
+  private formGroupToDto(): PostDpmDto {
+    const values = this.homeFormGroup.value;
+    const dto: PostDpmDto = {
+      driver: values.name!,
+      block: values.block!,
+      date: this.formatService.dpmDate(values.dpmDate!),
+      type: values.type!,
+      location: values.location!,
+      startTime: values.startTime!,
+      endTime: values.endTime!,
+    };
+
+    if (values.notes) {
+      dto.notes = values.notes;
+    }
+
+    return dto;
   }
 }

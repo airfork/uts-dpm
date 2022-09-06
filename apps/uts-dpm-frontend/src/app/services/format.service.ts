@@ -24,9 +24,9 @@ export class FormatService {
     return points.toString();
   }
 
-  created(date?: Date): string {
-    if (!date) return '';
-
-    return formatDate(date, 'MM/dd/yyyy HH:mm', this.locale);
+  block(block: string): string {
+    if (!block.startsWith('[')) block = '[' + block;
+    if (!block.endsWith(']')) block += ']';
+    return block;
   }
 }

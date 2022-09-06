@@ -1,6 +1,7 @@
 {
   "version": 2,
   "projects": {
-    "uts-dpm-frontend": "apps/uts-dpm-frontend"
+    "uts-dpm-frontend": "apps/uts-dpm-frontend",
+    "uts-dpm-backend": "apps/uts-dpm-backend"
   }
 }

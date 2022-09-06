@@ -1,6 +1,6 @@
-# ChatApp
+# UTS DPM V2
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.3.9.
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 14.6.4
 
 ## Development server
 

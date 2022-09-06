@@ -6,9 +6,7 @@
 >
   <div class="form-control col-span-3 md:col-span-1">
     <label class="label" for="dpmNameInput">
-      <span
-        class="label-text text-base"
-        [ngClass]="{ 'text-error': hasErrors(name) }"
+      <span class="label-text text-base {{ setStatusClass(name, false) }}"
         >Driver Name</span
       >
     </label>
@@ -16,7 +14,7 @@
       id="dpmNameInput"
       placeholder="Jane Doe"
       formControlName="name"
-      inputStyleClass="input input-bordered w-full {{ errorsOrEmpty(name) }}"
+      inputStyleClass="input input-bordered w-full {{ setStatusClass(name) }}"
       panelStyleClass="menu bg-base-100"
       [required]="true"
       [suggestions]="autocompleteResults"
@@ -33,9 +31,7 @@
 
   <div class="form-control col-span-3 md:col-span-1">
     <label class="label" for="dpmBlockInput">
-      <span
-        class="label-text text-base"
-        [ngClass]="{ 'text-error': hasErrors(block) }"
+      <span class="label-text text-base {{ setStatusClass(block, false) }}"
         >Block Name</span
       >
     </label>
@@ -43,11 +39,10 @@
       id="dpmBlockInput"
       type="text"
       placeholder="11"
-      class="input input-bordered w-full"
+      class="input input-bordered w-full {{ setStatusClass(block) }}"
       maxlength="5"
       formControlName="block"
       autocomplete="off"
-      [ngClass]="{ 'input-error': hasErrors(block) }"
       required
     />
     <label class="label" for="dpmBlockInput">
@@ -59,9 +54,7 @@
 
   <div class="form-control col-span-3 md:col-span-1">
     <label class="label" for="dpmLocationInput">
-      <span
-        class="label-text text-base"
-        [ngClass]="{ 'text-error': hasErrors(location) }"
+      <span class="label-text text-base {{ setStatusClass(location, false) }}"
         >Location</span
       >
     </label>
@@ -69,11 +62,12 @@
       id="dpmLocationInput"
       type="text"
       placeholder="OFF"
-      class="input input-bordered w-full uppercase"
+      class="input input-bordered w-full uppercase {{
+        setStatusClass(location)
+      }}"
       maxlength="5"
       formControlName="location"
       autocomplete="off"
-      [ngClass]="{ 'input-error': hasErrors(location) }"
       required
     />
     <label class="label" for="dpmLocationInput">
@@ -87,7 +81,10 @@
     <label class="label" for="dpmDateInput">
       <span
         class="label-text text-base"
-        [ngClass]="{ 'text-error': hasErrors(dpmDate) }"
+        [ngClass]="{
+          'text-error': hasErrors(dpmDate),
+          'text-success': !hasErrors(dpmDate)
+        }"
         >Date</span
       >
     </label>
@@ -95,7 +92,9 @@
       id="dpmDateInput"
       formControlName="dpmDate"
       [placeholder]="format.dpmDate()"
-      inputStyleClass="input input-bordered w-full {{ errorsOrEmpty(dpmDate) }}"
+      inputStyleClass="input input-bordered w-full {{
+        errorsOrSuccess(dpmDate)
+      }}"
       [required]="true"
     ></p-calendar>
     <label class="label" for="dpmDateInput">
@@ -107,11 +106,7 @@
 
   <div class="form-control col-span-3 md:col-span-1">
     <label class="label" for="dpmStartTimeInput">
-      <span
-        class="label-text text-base"
-        [ngClass]="{
-          'text-error': hasErrors(startTime)
-        }"
+      <span class="label-text text-base {{ setStatusClass(startTime, false) }}"
         >Start Time</span
       >
     </label>
@@ -119,11 +114,10 @@
       id="dpmStartTimeInput"
       type="text"
       placeholder="0600"
-      class="input input-bordered w-full"
+      class="input input-bordered w-full {{ setStatusClass(startTime) }}"
       maxlength="4"
       autocomplete="off"
       formControlName="startTime"
-      [ngClass]="{ 'input-error': hasErrors(startTime) }"
       required
     />
     <label class="label" for="dpmStartTimeInput">
@@ -135,9 +129,7 @@
 
   <div class="form-control col-span-3 md:col-span-1">
     <label class="label" for="dpmEndTimeInput">
-      <span
-        class="label-text text-base"
-        [ngClass]="{ 'text-error': hasErrors(endTime) }"
+      <span class="label-text text-base {{ setStatusClass(endTime, false) }}"
         >End Time</span
       >
     </label>
@@ -145,11 +137,10 @@
       id="dpmEndTimeInput"
       type="text"
       placeholder="1000"
-      class="input input-bordered w-full"
+      class="input input-bordered w-full {{ setStatusClass(endTime) }}"
       maxlength="4"
       autocomplete="off"
       formControlName="endTime"
-      [ngClass]="{ 'input-error': hasErrors(endTime) }"
       required
     />
     <label class="label" for="dpmEndTimeInput">

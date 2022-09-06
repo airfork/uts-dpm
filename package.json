@@ -1,5 +1,5 @@
 {
-  "name": "chat-app",
+  "name": "uts-dpm",
   "version": "0.0.0",
   "scripts": {
     "ng": "nx",
@@ -41,6 +41,7 @@
     "@nrwl/eslint-plugin-nx": "14.6.4",
     "@nrwl/linter": "14.6.4",
     "@nrwl/workspace": "14.6.4",
+    "@nxrocks/nx-spring-boot": "^5.0.2",
     "@types/jasmine": "~3.10.0",
     "@types/node": "^12.11.1",
     "@typescript-eslint/eslint-plugin": "^5.33.0",

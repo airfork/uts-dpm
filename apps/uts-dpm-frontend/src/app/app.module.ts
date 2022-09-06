@@ -10,6 +10,7 @@ import { UsersRoutingModule } from './users/users-routing.module';
 import { NotFoundComponent } from './not-found/not-found.component';
 import { DpmsRoutingModule } from './dpms/dpms-routing.module';
 import { UsersModule } from './users/users.module';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [AppComponent, NotFoundComponent],
@@ -21,8 +22,9 @@ import { UsersModule } from './users/users.module';
     DpmsModule,
     UsersModule,
     RippleModule,
+    HttpClientModule,
     ToastrModule.forRoot({
-      timeOut: 3000,
+      timeOut: 5000,
       positionClass: 'app-toast-top-center',
     }),
   ],

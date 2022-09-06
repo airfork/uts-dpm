@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import DPM from '../../models/dpm';
 import { DpmService } from '../../services/dpm.service';
 import { FormatService } from '../../services/format.service';
+import HomeDpmDto from '../../models/homeDpmDto';
 
 @Component({
   selector: 'app-home',
@@ -9,9 +9,9 @@ import { FormatService } from '../../services/format.service';
   styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent implements OnInit {
-  dpms: DPM[] = [];
+  dpms: HomeDpmDto[] = [];
   modalOpen = false;
-  currentDpm: DPM | null = null;
+  currentDpm?: HomeDpmDto;
 
   constructor(
     private apiService: DpmService,
@@ -22,7 +22,7 @@ export class HomeComponent implements OnInit {
     this.getDpms();
   }
 
-  clickRow(dpm: DPM): void {
+  clickRow(dpm: HomeDpmDto): void {
     this.modalOpen = true;
     this.currentDpm = dpm;
   }
@@ -31,7 +31,9 @@ export class HomeComponent implements OnInit {
     return this.formatService;
   }
 
-  private getDpms(): void {
-    this.apiService.findUserById(1).subscribe((values) => (this.dpms = values));
+  private getDpms() {
+    this.apiService
+      .getCurrentDpms()
+      .subscribe((values) => (this.dpms = values));
   }
 }

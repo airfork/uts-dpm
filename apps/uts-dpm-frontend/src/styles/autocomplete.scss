@@ -1,0 +1,29 @@
+.p-autocomplete-panel {
+  background: hsl(var(--b1));
+  color: hsl(var(--bc));
+  border: 0 none;
+  border-radius: 6px;
+  box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
+}
+
+.p-autocomplete-panel .p-autocomplete-items {
+  padding: 0.75rem 0;
+}
+
+.p-autocomplete-panel .p-autocomplete-items .p-autocomplete-item {
+  margin: 0;
+  border: 0 none;
+  background: transparent;
+  transition: box-shadow 0.2s;
+  border-radius: 0;
+}
+
+.p-autocomplete-item {
+  span {
+    border-radius: 0 !important;
+  }
+}
+
+.p-autocomplete-panel .p-autocomplete-items .p-autocomplete-empty-message {
+  padding: 0.75rem 1.25rem;
+}

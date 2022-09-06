@@ -5,6 +5,7 @@
 /tmp
 /out-tsc
 /bazel-out
+/apps/uts-dpm-backend/src/main/resources/public/
 
 # Node
 /node_modules

@@ -13,17 +13,29 @@
     "default": {
       "runner": "nx/tasks-runners/default",
       "options": {
-        "cacheableOperations": ["build", "lint", "test", "e2e"]
+        "cacheableOperations": [
+          "build",
+          "lint",
+          "test",
+          "e2e"
+        ]
       }
     }
   },
   "targetDefaults": {
     "build": {
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "^build"
+      ]
     }
   },
   "cli": {
     "analytics": "ff845bf5-fa3c-4355-87f2-1089ce33f2e3",
-    "schematicCollections": ["@angular-eslint/schematics"]
-  }
+    "schematicCollections": [
+      "@angular-eslint/schematics"
+    ]
+  },
+  "plugins": [
+    "@nxrocks/nx-spring-boot"
+  ]
 }

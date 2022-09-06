@@ -18,7 +18,7 @@
           </tr>
           <tr>
             <th>Block:</th>
-            <td>{{ currentDpm.block }}</td>
+            <td>{{ format.block(currentDpm.block) }}</td>
           </tr>
           <tr>
             <th>Location:</th>
@@ -26,13 +26,12 @@
           </tr>
           <tr>
             <th>Date:</th>
-            <td>{{ format.dpmDate(currentDpm.date) }}</td>
+            <td>{{ currentDpm.date }}</td>
           </tr>
           <tr>
             <th>Time:</th>
             <td>
-              {{ currentDpm.startTime }} -
-              {{ currentDpm.endTime }}
+              {{ currentDpm.time }}
             </td>
           </tr>
           <tr *ngIf="currentDpm.notes" class="break-words whitespace-normal">
@@ -79,7 +78,7 @@
               {{ format.points(dpm.points) }}
             </td>
             <td class="lg:text-base break-words whitespace-normal">
-              {{ format.dpmDate(dpm.date) }}
+              {{ dpm.date }}
             </td>
           </tr>
         </tbody>

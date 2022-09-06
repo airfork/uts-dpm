@@ -1,5 +1,30 @@
-<h2 class="text-3xl mb-5 font-bold">Approvals</h2>
-<app-dpm-list [dpms]="dpms" [dpmClick]="showApprovalModal"></app-dpm-list>
+<h2 class="text-3xl mb-5 font-bold">Unapproved DPMs</h2>
+<div class="lg:overflow-x-auto">
+  <div class="grid place-items-center">
+    <table class="table table-fixed lg:table-auto w-full text-center">
+      <thead>
+        <tr>
+          <th class="lg:text-base break-words">Name</th>
+          <th class="lg:text-base break-words">Block/Time</th>
+          <th class="lg:text-base break-words">Type</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let dpm of dpms"
+          (click)="showApprovalModal(dpm)"
+          class="hover:cursor-pointer hover"
+        >
+          <td class="break-words whitespace-normal">{{ dpm.driver }}</td>
+          <td class="break-words whitespace-normal">
+            {{ format.block(dpm.block) }} {{ dpm.time }}
+          </td>
+          <td class="break-words whitespace-normal">{{ dpm.type }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
 <input
   type="checkbox"
@@ -33,7 +58,7 @@
 
           <tr>
             <th>Block:</th>
-            <td>{{ currentDpm.block }}</td>
+            <td>{{ format.block(currentDpm.block) }}</td>
           </tr>
 
           <tr>
@@ -43,21 +68,18 @@
 
           <tr>
             <th>Date:</th>
-            <td>{{ format.dpmDate(currentDpm.date) }}</td>
+            <td>{{ currentDpm.date }}</td>
           </tr>
 
           <tr>
             <th>Time:</th>
             <td>
-              {{ currentDpm.startTime }} -
-              {{ currentDpm.endTime }}
+              {{ currentDpm.time }}
             </td>
           </tr>
 
-          <tr *ngIf="currentDpm.created">
-            <th>Created At:</th>
-            <td>{{ format.created(currentDpm.created) }}</td>
-          </tr>
+          <th>Created At:</th>
+          <td>{{ currentDpm.createdAt }}</td>
 
           <tr *ngIf="currentDpm.notes" class="break-words whitespace-normal">
             <th>Notes:</th>
@@ -67,10 +89,18 @@
       </table>
 
       <div *ngIf="!editOpen; else editInput" class="modal-action">
-        <label pRipple for="dpmModal" class="btn btn-success btn-outline"
+        <label
+          pRipple
+          for="dpmModal"
+          class="btn btn-success btn-outline"
+          (click)="approveDpm()"
           >Approve</label
         >
-        <label pRipple for="dpmModal" class="btn btn-error btn-outline"
+        <label
+          pRipple
+          for="dpmModal"
+          class="btn btn-error btn-outline"
+          (click)="denyDpm()"
           >Deny</label
         >
         <label
