@@ -29,4 +29,10 @@ export class FormatService {
     if (!block.endsWith(']')) block += ']';
     return block;
   }
+
+  datagenDate(date?: Date): string {
+    if (!date) return '';
+
+    return formatDate(date, 'MM-dd-yyyy', this.locale);
+  }
 }

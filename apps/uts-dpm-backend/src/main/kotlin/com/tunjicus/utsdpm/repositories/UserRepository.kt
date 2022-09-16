@@ -15,4 +15,7 @@ interface UserRepository : CrudRepository<User, Int> {
 
   @Query(value = "select * from users where concat(firstname, ' ', lastname) = :name LIMIT 1", nativeQuery = true)
   fun findByFullName(@Param("name") name: String): Optional<User>
+
+  @Query("from User order by lastname, firstname")
+  fun findAllSorted(): Collection<User>
 }

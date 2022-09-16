@@ -39,7 +39,7 @@ class Dpm {
   var created: LocalDateTime? = null
 
   @Column(name = "approved")
-  var approved: Boolean? = null
+  var approved: Boolean? = false
 
   @Column(name = "location")
   var location: String? = null
@@ -51,7 +51,7 @@ class Dpm {
   var endTime: LocalDateTime? = null
 
   @Column(name = "ignored")
-  var ignored: Boolean? = null
+  var ignored: Boolean? = false
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

@@ -1,9 +1,6 @@
 package com.tunjicus.utsdpm.advice
 
-import com.tunjicus.utsdpm.exceptions.DpmNotFoundException
-import com.tunjicus.utsdpm.exceptions.ExceptionResponse
-import com.tunjicus.utsdpm.exceptions.ExceptionResponses
-import com.tunjicus.utsdpm.exceptions.UserNameNotFoundException
+import com.tunjicus.utsdpm.exceptions.*
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -35,6 +32,12 @@ class GlobalAdviceHandler(private val request: HttpServletRequest) {
   fun handleDpmNotFoundException(ex: DpmNotFoundException): ResponseEntity<ExceptionResponse> {
     LOGGER.warn(ex.message)
     return createExceptionResponse(HttpStatus.NOT_FOUND, ex.localizedMessage)
+  }
+
+  @ExceptionHandler(InvalidDataGenDateException::class)
+  fun handleInvalidDataGenDateException(ex: InvalidDataGenDateException): ResponseEntity<ExceptionResponse> {
+    LOGGER.info(ex.message)
+    return createExceptionResponse(HttpStatus.BAD_REQUEST, ex.localizedMessage)
   }
 
   private fun createExceptionResponse(status: HttpStatus, messages: List<String>): ResponseEntity<ExceptionResponses> {

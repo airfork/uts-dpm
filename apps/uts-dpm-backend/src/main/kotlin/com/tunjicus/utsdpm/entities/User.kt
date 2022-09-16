@@ -5,52 +5,39 @@ import javax.persistence.*
 @Entity
 @Table(name = "users")
 class User {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "id")
-  var id: Int? = null
+  @Id @GeneratedValue(strategy = GenerationType.IDENTITY) @Column(name = "id") var id: Int? = null
 
-  @Column(name = "managerid")
-  var managerId: Int? = null
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "managerid")
+  var manager: User? = null
 
-  @Column(name = "username", nullable = false, length = 40)
-  var username: String? = null
+  @Column(name = "username", nullable = false, length = 40) var username: String? = null
 
   @Column(name = "password", nullable = false, length = 60, columnDefinition = "bpchar")
   var password: String? = null
 
-  @Column(name = "firstname", nullable = false, length = 60)
-  var firstname: String? = null
+  @Column(name = "firstname", nullable = false, length = 60) var firstname: String? = null
 
-  @Column(name = "lastname", nullable = false, length = 60)
-  var lastname: String? = null
+  @Column(name = "lastname", nullable = false, length = 60) var lastname: String? = null
 
-  @Column(name = "fulltime", nullable = false)
-  var fullTime: Boolean? = null
+  @Column(name = "fulltime", nullable = false) var fullTime: Boolean? = null
 
-  @Column(name = "changed")
-  var changed: Boolean? = null
+  @Column(name = "changed") var changed: Boolean? = null
 
-  @Column(name = "admin")
-  var admin: Boolean? = null
+  @Column(name = "admin") var admin: Boolean? = null
 
-  @Column(name = "sup")
-  var sup: Boolean? = null
+  @Column(name = "sup") var sup: Boolean? = null
 
-  @Column(name = "analyst")
-  var analyst: Boolean? = null
+  @Column(name = "analyst") var analyst: Boolean? = null
 
-  @Column(name = "points", columnDefinition = "int2")
-  var points: Int? = null
+  @Column(name = "points", columnDefinition = "int2") var points: Int? = null
 
-  @Column(name = "sessionkey", nullable = false, length = 60)
-  var sessionKey: String? = null
+  @Column(name = "sessionkey", nullable = false, length = 60) var sessionKey: String? = null
 
   @OneToMany(mappedBy = "createdUser", fetch = FetchType.LAZY)
   var createdDpms: MutableList<Dpm>? = null
 
-  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-  var dpms: MutableList<Dpm>? = null
+  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY) var dpms: MutableList<Dpm>? = null
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -59,7 +46,7 @@ class User {
     other as User
 
     if (id != other.id) return false
-    if (managerId != other.managerId) return false
+    if (manager != other.manager) return false
     if (username != other.username) return false
     if (password != other.password) return false
     if (firstname != other.firstname) return false
@@ -71,13 +58,15 @@ class User {
     if (analyst != other.analyst) return false
     if (points != other.points) return false
     if (sessionKey != other.sessionKey) return false
+    if (createdDpms != other.createdDpms) return false
+    if (dpms != other.dpms) return false
 
     return true
   }
 
   override fun hashCode(): Int {
     var result = id ?: 0
-    result = 31 * result + (managerId ?: 0)
+    result = 31 * result + (manager?.hashCode() ?: 0)
     result = 31 * result + (username?.hashCode() ?: 0)
     result = 31 * result + (password?.hashCode() ?: 0)
     result = 31 * result + (firstname?.hashCode() ?: 0)
@@ -89,13 +78,12 @@ class User {
     result = 31 * result + (analyst?.hashCode() ?: 0)
     result = 31 * result + (points ?: 0)
     result = 31 * result + (sessionKey?.hashCode() ?: 0)
+    result = 31 * result + (createdDpms?.hashCode() ?: 0)
+    result = 31 * result + (dpms?.hashCode() ?: 0)
     return result
   }
 
   override fun toString(): String {
-    return "User(id=$id, managerId=$managerId, username=$username, password=$password, firstname=$firstname, lastname=$lastname, fullTime=$fullTime, changed=$changed, admin=$admin, sup=$sup, analyst=$analyst, points=$points, sessionKey=$sessionKey)"
+    return "User(id=$id, manager=$manager, username=$username, password=$password, firstname=$firstname, lastname=$lastname, fullTime=$fullTime, changed=$changed, admin=$admin, sup=$sup, analyst=$analyst, points=$points, sessionKey=$sessionKey, createdDpms=$createdDpms, dpms=$dpms)"
   }
-
 }
-
-

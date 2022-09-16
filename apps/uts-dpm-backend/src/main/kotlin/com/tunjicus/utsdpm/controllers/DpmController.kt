@@ -88,7 +88,8 @@ class DpmController(private val dpmService: DpmService) {
       ),
       ApiResponse(
         responseCode = "404",
-        description = "Failed to find a dpm with the id in the path variable"
+        description = "Failed to find a dpm with the id in the path variable",
+        content = [Content(schema = Schema(implementation = ExceptionResponse::class))]
       )
     ]
   )

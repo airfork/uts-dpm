@@ -9,7 +9,7 @@
       <label class="label" for="startDate">
         <span
           class="label-text text-base"
-          [ngClass]="{ 'text-error': hasErrors(startDate) || dpmDataFormGroup.errors?.['mixedDate'] }"
+          [ngClass]="{ 'text-error': dpmDataFormGroup.errors?.['mixedDate'] && !getAll?.value }"
         >
           Start Date
         </span>
@@ -34,7 +34,7 @@
       <label class="label" for="endDate">
         <span
           class="label-text text-base"
-          [ngClass]="{ 'text-error': hasErrors(endDate) || dpmDataFormGroup.errors?.['mixedDate'] }"
+          [ngClass]="{ 'text-error': dpmDataFormGroup.errors?.['mixedDate'] && !getAll?.value }"
         >
           End Date
         </span>
@@ -69,14 +69,19 @@
     </div>
 
     <div class="grid place-items-center col-span-6 mt-4">
-      <button
+      <a
         pRipple
         type="submit"
         class="btn btn-secondary m-auto w-full md:btn-wide"
-        [disabled]="!dpmDataFormGroup.valid"
+        target="_self"
+        [ngClass]="{
+          'btn-disabled': !dpmDataFormGroup.valid && !getAll?.value
+        }"
+        [href]="generateDownloadLink()"
+        (click)="onFormSubmit()"
       >
         Generate
-      </button>
+      </a>
     </div>
   </form>
 
@@ -85,14 +90,13 @@
   <div>
     <h3 class="text-2xl pb-4 font-bold">User Data</h3>
     <div class="grid place-items-center mt-2 mx-5">
-      <button
+      <a
         pRipple
-        type="button"
         class="btn btn-secondary m-auto w-full md:btn-wide"
-        (click)="onUserSubmit()"
+        [href]="USERS_URL"
       >
         Generate
-      </button>
+      </a>
     </div>
   </div>
 </div>

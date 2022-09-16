@@ -1,7 +1,6 @@
 package com.tunjicus.utsdpm.repositories
 
 import com.tunjicus.utsdpm.entities.Dpm
-import com.tunjicus.utsdpm.entities.User
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.query.Param
@@ -28,4 +27,9 @@ interface DpmRepository : CrudRepository<Dpm, Int> {
     nativeQuery = true
   )
   fun getUnApprovedDpms(): Collection<Dpm>
+
+  fun findAllByCreatedAfterAndCreatedBeforeOrderByCreatedDesc(
+    after: LocalDateTime,
+    before: LocalDateTime
+  ): Collection<Dpm>
 }
