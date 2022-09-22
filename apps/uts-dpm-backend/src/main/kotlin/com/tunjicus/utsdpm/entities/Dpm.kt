@@ -96,6 +96,6 @@ class Dpm {
   }
 
   override fun toString(): String {
-    return "Dpm(id=$id, createdUser=$createdUser, user=$user, block=$block, date=$date, dpmType=$dpmType, points=$points, notes=$notes, created=$created, approved=$approved, location=$location, startTime=$startTime, endTime=$endTime, ignored=$ignored)"
+    return "Dpm(id=$id, createdUser=${createdUser?.firstname} ${createdUser?.lastname}, user=${user?.firstname} ${user?.lastname}, block=$block, date=$date, dpmType=$dpmType, points=$points, notes=$notes, created=$created, approved=$approved, location=$location, startTime=$startTime, endTime=$endTime, ignored=$ignored)"
   }
 }

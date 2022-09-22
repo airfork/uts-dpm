@@ -22,7 +22,10 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
-class DataGenService(private val dpmRepository: DpmRepository, private val userRepository: UserRepository) {
+class DataGenService(
+  private val dpmRepository: DpmRepository,
+  private val userRepository: UserRepository
+) {
   fun generateDpmSpreadSheet(startDate: String?, endDate: String?): String {
     LOGGER.info("Startdate: $startDate, EndDate: $endDate")
     val (start, end) = getStartAndEndDates(startDate, endDate)
@@ -133,7 +136,11 @@ class DataGenService(private val dpmRepository: DpmRepository, private val userR
     private val USER_HEADERS =
       listOf(LAST_NAME_HEADER, FIRST_NAME_HEADER, POINTS_HEADER, Pair("Manager", LARGE_WIDTH))
 
-    fun setColumnWidthsAndHeader(sheet: Sheet, headerStyle: CellStyle, headers: List<Pair<String, Int>>) {
+    fun setColumnWidthsAndHeader(
+      sheet: Sheet,
+      headerStyle: CellStyle,
+      headers: List<Pair<String, Int>>
+    ) {
       val header = sheet.createRow(0)
 
       for ((index, value) in headers.withIndex()) {
@@ -218,11 +225,10 @@ class DataGenService(private val dpmRepository: DpmRepository, private val userR
 
       if (startDate == null) {
         val end =
-          formatDateOrNull(endDate!!, DATE_FORMAT)
+          formatDateOrNull(endDate!!, DATE_FORMAT)?.plusDays(1)
             ?: throw InvalidDataGenDateException(
               "endDate query param is not in the correct format - MM-dd-yyyy"
             )
-        end.plusDays(1)
 
         LOGGER.info("Generating spreadsheet with no startDate and endDate of $end")
         return Pair(MIN_TIMESTAMP, end)
@@ -246,11 +252,10 @@ class DataGenService(private val dpmRepository: DpmRepository, private val userR
           )
 
       val end =
-        formatDateOrNull(endDate, DATE_FORMAT)
+        formatDateOrNull(endDate, DATE_FORMAT)?.plusDays(1)
           ?: throw InvalidDataGenDateException(
             "endDate query param is not in the correct format - MM-dd-yyyy"
           )
-      end.plusDays(1)
 
       LOGGER.info("Generating spreadsheet with startDate of $start and endDate of $end")
       return Pair(start, end)

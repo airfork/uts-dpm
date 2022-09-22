@@ -24,15 +24,19 @@ export class FormatService {
     return points.toString();
   }
 
-  block(block: string): string {
-    if (!block.startsWith('[')) block = '[' + block;
-    if (!block.endsWith(']')) block += ']';
-    return block;
-  }
-
   datagenDate(date?: Date): string {
     if (!date) return '';
 
     return formatDate(date, 'MM-dd-yyyy', this.locale);
+  }
+
+  firstname(name: string): string {
+    const index = name.indexOf(' ');
+    return index === -1 ? name : name.substring(0, index);
+  }
+
+  lastname(name: string): string {
+    const index = name.indexOf('');
+    return index === -1 ? '' : name.substring(index).trim();
   }
 }

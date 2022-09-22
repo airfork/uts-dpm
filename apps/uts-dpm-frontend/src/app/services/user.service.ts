@@ -1,31 +1,24 @@
 import { Injectable } from '@angular/core';
-import { catchError, Observable, of, retry, throwError } from 'rxjs';
+import { catchError, Observable, retry, throwError } from 'rxjs';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { NotificationService } from './notification.service';
+import UsernameDto from '../models/usernameDto';
 
-const driverNames = [
-  'John Doe',
-  'Jane Doe',
-  'May Payne',
-  'Tim Maxwell',
-  'Ruby Rose',
-];
+const BASE_URL = environment.baseUrl + '/users';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
-  private static BASE_URL = environment.baseUrl;
-
   constructor(
     private http: HttpClient,
     private notificationService: NotificationService
   ) {}
 
-  getUserNames(): Observable<string[]> {
+  getUserNames(): Observable<UsernameDto[]> {
     return this.http
-      .get<string[]>(`${UserService.BASE_URL}/users/names`)
+      .get<UsernameDto[]>(`${BASE_URL}/names`)
       .pipe(
         retry(2),
         catchError(

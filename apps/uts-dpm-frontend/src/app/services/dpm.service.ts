@@ -107,11 +107,12 @@ export const DPMTypes: DPMType[] = [
   },
 ];
 
+const BASE_URL = environment.baseUrl + '/dpms';
+
 @Injectable({
   providedIn: 'root',
 })
 export class DpmService {
-  private static BASE_URL = environment.baseUrl;
   private users: user[];
 
   constructor(
@@ -131,7 +132,7 @@ export class DpmService {
   }
 
   getCurrentDpms(): Observable<HomeDpmDto[]> {
-    return this.http.get<HomeDpmDto[]>(`${DpmService.BASE_URL}/dpms`).pipe(
+    return this.http.get<HomeDpmDto[]>(BASE_URL).pipe(
       retry(2),
       catchError((error) => {
         this.notificationService.showError('Something went wrong', 'Error');
@@ -147,7 +148,7 @@ export class DpmService {
 
   create(dpm: PostDpmDto): Observable<any> {
     console.log(dpm);
-    return this.http.post(`${DpmService.BASE_URL}/dpms`, dpm).pipe(
+    return this.http.post(BASE_URL, dpm).pipe(
       catchError((error) => {
         this.notificationService.showError('Failed to create DPM', 'Error');
         return throwError(

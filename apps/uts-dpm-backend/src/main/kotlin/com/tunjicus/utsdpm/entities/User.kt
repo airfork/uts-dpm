@@ -7,7 +7,7 @@ import javax.persistence.*
 class User {
   @Id @GeneratedValue(strategy = GenerationType.IDENTITY) @Column(name = "id") var id: Int? = null
 
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "managerid")
   var manager: User? = null
 
@@ -24,12 +24,6 @@ class User {
 
   @Column(name = "changed") var changed: Boolean? = null
 
-  @Column(name = "admin") var admin: Boolean? = null
-
-  @Column(name = "sup") var sup: Boolean? = null
-
-  @Column(name = "analyst") var analyst: Boolean? = null
-
   @Column(name = "points", columnDefinition = "int2") var points: Int? = null
 
   @Column(name = "sessionkey", nullable = false, length = 60) var sessionKey: String? = null
@@ -38,6 +32,18 @@ class User {
   var createdDpms: MutableList<Dpm>? = null
 
   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY) var dpms: MutableList<Dpm>? = null
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinTable(
+    name = "user_roles",
+    joinColumns = [JoinColumn(name = "user_id")],
+    inverseJoinColumns = [JoinColumn(name = "role_id")]
+  )
+  var role: Role? = null;
+
+  override fun toString(): String {
+    return "User(id=$id, manager={${manager?.firstname} ${manager?.lastname}}, username=$username, password=$password, firstname=$firstname, lastname=$lastname, fullTime=$fullTime, points=$points, roles=$role"
+  }
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -53,13 +59,11 @@ class User {
     if (lastname != other.lastname) return false
     if (fullTime != other.fullTime) return false
     if (changed != other.changed) return false
-    if (admin != other.admin) return false
-    if (sup != other.sup) return false
-    if (analyst != other.analyst) return false
     if (points != other.points) return false
     if (sessionKey != other.sessionKey) return false
     if (createdDpms != other.createdDpms) return false
     if (dpms != other.dpms) return false
+    if (role != other.role) return false
 
     return true
   }
@@ -73,17 +77,11 @@ class User {
     result = 31 * result + (lastname?.hashCode() ?: 0)
     result = 31 * result + (fullTime?.hashCode() ?: 0)
     result = 31 * result + (changed?.hashCode() ?: 0)
-    result = 31 * result + (admin?.hashCode() ?: 0)
-    result = 31 * result + (sup?.hashCode() ?: 0)
-    result = 31 * result + (analyst?.hashCode() ?: 0)
     result = 31 * result + (points ?: 0)
     result = 31 * result + (sessionKey?.hashCode() ?: 0)
     result = 31 * result + (createdDpms?.hashCode() ?: 0)
     result = 31 * result + (dpms?.hashCode() ?: 0)
+    result = 31 * result + (role?.hashCode() ?: 0)
     return result
-  }
-
-  override fun toString(): String {
-    return "User(id=$id, manager=$manager, username=$username, password=$password, firstname=$firstname, lastname=$lastname, fullTime=$fullTime, changed=$changed, admin=$admin, sup=$sup, analyst=$analyst, points=$points, sessionKey=$sessionKey, createdDpms=$createdDpms, dpms=$dpms)"
   }
 }

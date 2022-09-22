@@ -1,0 +1,226 @@
+<ng-template #loading>
+  <app-loading></app-loading>
+</ng-template>
+
+<div *ngIf="user; else loading">
+  <h2 class="text-3xl mb-5 font-bold">
+    {{ user.firstname }} {{ user.lastname }}
+  </h2>
+
+  <div class="tabs mb-5 grid justify-items-center lg:justify-items-start">
+    <div>
+      <a
+        class="tab tab-lg tab-bordered"
+        [ngClass]="{ 'tab-active': activeTab.info }"
+        (click)="activateTab('info')"
+        >Info</a
+      >
+      <a
+        class="tab tab-lg tab-bordered"
+        [ngClass]="{ 'tab-active': activeTab.dpms }"
+        (click)="activateTab('dpms')"
+        >DPMs</a
+      >
+      <a
+        class="tab tab-lg tab-bordered"
+        [ngClass]="{ 'tab-active': activeTab.actions }"
+        (click)="activateTab('actions')"
+        >Actions</a
+      >
+    </div>
+  </div>
+
+  <div *ngIf="activeTab.info">
+    <form
+      class="grid grid-cols-3 gap-x-6 gap-y-2 rounded"
+      [formGroup]="userFormGroup"
+      (ngSubmit)="onSubmit()"
+    >
+      <div class="form-control col-span-3 md:col-span-1">
+        <label class="label" for="userEmail">
+          <span
+            class="label-text"
+            [ngClass]="{ 'text-error': hasErrors(email) }"
+            >Email
+          </span>
+        </label>
+
+        <input
+          id="userEmail"
+          type="text"
+          placeholder="dpm@utsdpm.com"
+          class="input input-bordered"
+          formControlName="email"
+          autocomplete="off"
+          required
+          [ngClass]="{ 'input-error': hasErrors(email) }"
+        />
+
+        <label class="label" for="userEmail">
+          <span class="label-text-alt text-error">
+            {{ getEmailValidationMessages() }}
+          </span>
+        </label>
+      </div>
+
+      <div class="form-control col-span-3 md:col-span-1">
+        <label class="label" for="firstname">
+          <span
+            class="label-text"
+            [ngClass]="{ 'text-error': hasErrors(firstname) }"
+            >First Name
+          </span>
+        </label>
+
+        <input
+          id="firstname"
+          type="text"
+          placeholder="Jane"
+          class="input input-bordered"
+          formControlName="firstname"
+          autocomplete="off"
+          required
+          [ngClass]="{ 'input-error': hasErrors(firstname) }"
+        />
+
+        <label class="label" for="firstname">
+          <span class="label-text-alt text-error">
+            {{ getFirstnameValidationMessages() }}
+          </span>
+        </label>
+      </div>
+
+      <div class="form-control col-span-3 md:col-span-1">
+        <label class="label" for="lastname">
+          <span
+            class="label-text"
+            [ngClass]="{ 'text-error': hasErrors(lastname) }"
+            >Last Name
+          </span>
+        </label>
+
+        <input
+          id="lastname"
+          type="text"
+          placeholder="Doe"
+          class="input input-bordered"
+          formControlName="lastname"
+          autocomplete="off"
+          [ngClass]="{ 'input-error': hasErrors(lastname) }"
+          required
+        />
+
+        <label class="label" for="lastname">
+          <span class="label-text-alt text-error">
+            {{ getLastnameValidationMessages() }}
+          </span>
+        </label>
+      </div>
+
+      <div class="form-control col-span-3 md:col-span-1">
+        <label class="label" for="points">
+          <span
+            class="label-text"
+            [ngClass]="{ 'text-error': hasErrors(points) }"
+            >Points</span
+          >
+        </label>
+
+        <input
+          id="points"
+          type="text"
+          placeholder="0"
+          class="input input-bordered"
+          formControlName="points"
+          autocomplete="off"
+          required
+          [ngClass]="{ 'input-error': hasErrors(points) }"
+        />
+
+        <label class="label" for="points">
+          <span class="label-text-alt text-error">
+            {{ getPointsValidationMessages() }}
+          </span>
+        </label>
+      </div>
+
+      <div class="form-control col-span-3 md:col-span-1">
+        <label class="label" for="role-select">
+          <span class="label-text">Manager</span>
+        </label>
+
+        <select
+          id="manager-select"
+          class="select select-bordered w-full"
+          formControlName="manager"
+        >
+          <option *ngFor="let manager of managers" [value]="manager">
+            {{ manager }}
+          </option>
+        </select>
+
+        <label class="label" for="manager-select">
+          <span class="label-text-alt">
+            <!-- Spacing -->
+          </span>
+        </label>
+      </div>
+
+      <div class="form-control col-span-3 md:col-span-1">
+        <label class="label" for="role-select">
+          <span class="label-text">Role</span>
+        </label>
+
+        <select
+          id="role-select"
+          class="select select-bordered w-full"
+          formControlName="role"
+        >
+          <option *ngFor="let role of roles" [value]="role">
+            {{ role }}
+          </option>
+        </select>
+
+        <label class="label" for="role-select">
+          <span class="label-text-alt">
+            <!-- Spacing -->
+          </span>
+        </label>
+      </div>
+
+      <div class="grid col-span-3 justify-items-center items-start">
+        <div class="form-control align-top">
+          <label
+            class="label cursor-pointer justify-center lg:justify-start items-center"
+          >
+            <span class="text-base mr-6">Full Time</span>
+            <input
+              type="checkbox"
+              class="checkbox checkbox-lg"
+              formControlName="fullTime"
+            />
+          </label>
+        </div>
+      </div>
+
+      <div class="grid place-items-center col-span-3 mt-2">
+        <button
+          pRipple
+          type="submit"
+          class="btn btn-secondary m-auto w-full md:btn-wide"
+          [disabled]="!userFormGroup.valid || userFormGroup.pristine"
+        >
+          Update
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div *ngIf="activeTab.dpms">
+    <p>DPMs tab</p>
+  </div>
+
+  <div *ngIf="activeTab.actions">
+    <p>Actions tab</p>
+  </div>
+</div>

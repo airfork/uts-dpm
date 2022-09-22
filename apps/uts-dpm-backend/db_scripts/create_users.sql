@@ -1,6 +1,6 @@
-create table users
+create table if not exists users
 (
-  id         serial                  not null
+  id         serial
     constraint users_pk
       primary key,
   managerid  integer   default 10,
@@ -10,9 +10,6 @@ create table users
   lastname   varchar(60)             not null,
   fulltime   boolean   default false not null,
   changed    boolean   default false,
-  admin      boolean   default false,
-  sup        boolean   default false,
-  analyst    boolean   default false,
   points     smallint  default 0,
   sessionkey varchar(60)             not null,
   added      timestamp default now()

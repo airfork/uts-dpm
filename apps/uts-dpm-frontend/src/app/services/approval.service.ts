@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { DpmService } from './dpm.service';
 import { catchError, Observable, retry, throwError } from 'rxjs';
-import DPM from '../models/dpm';
 import ApprovalDpmDto from '../models/approvalDpmDto';
 import { HttpClient } from '@angular/common/http';
 import { NotificationService } from './notification.service';

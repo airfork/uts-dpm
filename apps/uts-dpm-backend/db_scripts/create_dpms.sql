@@ -1,4 +1,4 @@
-create table dpms
+create table if not exists dpms
 (
   id        serial
     constraint dpms_pk

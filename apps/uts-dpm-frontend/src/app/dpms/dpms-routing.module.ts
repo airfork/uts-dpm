@@ -2,12 +2,12 @@ import { RouterModule, Routes } from '@angular/router';
 import { NgModule } from '@angular/core';
 import { DpmsComponent } from './dpms/dpms.component';
 import { MessageBubbleComponent } from '../ui/message-bubble/message-bubble.component';
-import { GenerateTitle, TitlePrefix } from '../shared/titleHelper';
 import { HomeComponent } from './home/home.component';
 import { NewDpmComponent } from './new-dpm/new-dpm.component';
 import { AutogenComponent } from './autogen/autogen.component';
 import { DatagenComponent } from './datagen/datagen.component';
 import { ApprovalsComponent } from './approvals/approvals.component';
+import { GenerateTitle, TitlePrefix } from '../shared/titleHelper';
 
 const routes: Routes = [
   {

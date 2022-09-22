@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import {
   AbstractControl,
   FormControl,
@@ -8,10 +8,11 @@ import {
 } from '@angular/forms';
 import { DpmService, DPMTypes } from '../../services/dpm.service';
 import { UserService } from '../../services/user.service';
-import DPM from '../../models/dpm';
 import { NotificationService } from '../../services/notification.service';
 import { FormatService } from '../../services/format.service';
 import PostDpmDto from '../../models/postDpmDto';
+import UsernameDto from '../../models/usernameDto';
+import { first } from 'rxjs';
 
 type startEndTime = 'Start Time' | 'End Time';
 const regex24HourTime = /^(?:[01][0-9]|2[0-3])[0-5][0-9](?::[0-5][0-9])?$/;
@@ -25,6 +26,7 @@ interface queryResult {
   selector: 'app-new-dpm',
   templateUrl: './new-dpm.component.html',
   styleUrls: ['./new-dpm.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NewDpmComponent implements OnInit {
   dpmTypes = DPMTypes;
@@ -54,7 +56,7 @@ export class NewDpmComponent implements OnInit {
     notes: new FormControl(''),
   });
 
-  private driverNames: string[] = [];
+  private driverNames: UsernameDto[] = [];
 
   autocompleteResults: string[] = [];
 
@@ -68,13 +70,16 @@ export class NewDpmComponent implements OnInit {
   ngOnInit() {
     this.userService
       .getUserNames()
+      .pipe(first())
       .subscribe((users) => (this.driverNames = users));
   }
 
   search(event: queryResult) {
-    this.autocompleteResults = this.driverNames.filter((value) =>
-      value.toLowerCase().includes(event.query.toLowerCase())
-    );
+    this.autocompleteResults = this.driverNames
+      .filter((user) =>
+        user.name.toLowerCase().includes(event.query.toLowerCase())
+      )
+      .map((user) => user.name);
   }
 
   errorsOrSuccess(control: AbstractControl | null): string {
@@ -91,13 +96,16 @@ export class NewDpmComponent implements OnInit {
   }
 
   onSubmit() {
-    this.dpmService.create(this.formGroupToDto()).subscribe(() => {
-      this.notificationService.showSuccess('DPM Created', 'Success');
-      this.homeFormGroup.reset({
-        dpmDate: new Date(),
-        type: this.defaultDpmType,
+    this.dpmService
+      .create(this.formGroupToDto())
+      .pipe(first())
+      .subscribe(() => {
+        this.notificationService.showSuccess('DPM Created', 'Success');
+        this.homeFormGroup.reset({
+          dpmDate: new Date(),
+          type: this.defaultDpmType,
+        });
       });
-    });
   }
 
   getStartTimeValidationMessages(): string {
@@ -168,7 +176,7 @@ export class NewDpmComponent implements OnInit {
     return '';
   }
 
-  hasErrors(control: AbstractControl<any> | null): boolean {
+  hasErrors(control: AbstractControl | null): boolean {
     if (!control) return false;
     return control.invalid && (control.dirty || control.touched);
   }

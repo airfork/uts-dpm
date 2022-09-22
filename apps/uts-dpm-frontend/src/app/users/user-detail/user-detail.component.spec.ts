@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DpmsComponent } from './dpms.component';
+import { UserDetailComponent } from './user-detail.component';
 
-describe('DpmsComponent', () => {
-  let component: DpmsComponent;
-  let fixture: ComponentFixture<DpmsComponent>;
+describe('UserDetailComponent', () => {
+  let component: UserDetailComponent;
+  let fixture: ComponentFixture<UserDetailComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [DpmsComponent],
+      declarations: [UserDetailComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(DpmsComponent);
+    fixture = TestBed.createComponent(UserDetailComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

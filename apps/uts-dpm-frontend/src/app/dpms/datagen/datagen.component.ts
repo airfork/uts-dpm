@@ -1,17 +1,18 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup } from '@angular/forms';
-import { MixedDateValidator } from '../../directives/mixed-date.directive';
 import { FormatService } from '../../services/format.service';
 import { environment } from '../../../environments/environment';
+import { MixedDateValidator } from '../../directives/mixed-date.directive';
 
 @Component({
   selector: 'app-datagen',
   templateUrl: './datagen.component.html',
   styleUrls: ['./datagen.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DatagenComponent {
   private BASE_URL = environment.baseUrl + '/datagen';
-  USERS_URL = environment.baseUrl + '/datagen/users';
+  USERS_URL = this.BASE_URL + '/users';
 
   dpmDataFormGroup = new FormGroup(
     {
@@ -55,11 +56,7 @@ export class DatagenComponent {
   onFormSubmit() {
     // need to wait a bit so that generateDownloadLink function
     // generates a proper link instead of '#'
-    setTimeout(() => this.dpmDataFormGroup.reset(), 500);
-  }
-
-  onUserSubmit() {
-    console.log('Generating user data');
+    setTimeout(() => this.dpmDataFormGroup.reset({ endDate: new Date() }), 500);
   }
 
   generateDownloadLink(): string {

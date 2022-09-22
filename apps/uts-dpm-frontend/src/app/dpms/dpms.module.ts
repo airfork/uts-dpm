@@ -16,6 +16,7 @@ import { UiModule } from '../ui/ui.module';
 import { ApprovalsComponent } from './approvals/approvals.component';
 import { DpmsRoutingModule } from './dpms-routing.module';
 import { DpmsComponent } from './dpms/dpms.component';
+import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -39,6 +40,7 @@ import { DpmsComponent } from './dpms/dpms.component';
     ToastModule,
     UiModule,
     DpmsRoutingModule,
+    SharedModule,
   ],
 })
 export class DpmsModule {}

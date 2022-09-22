@@ -18,7 +18,7 @@
           </tr>
           <tr>
             <th>Block:</th>
-            <td>{{ format.block(currentDpm.block) }}</td>
+            <td>{{ currentDpm.block | block }}</td>
           </tr>
           <tr>
             <th>Location:</th>
@@ -47,11 +47,11 @@
   </label>
 </label>
 
-<p class="text-4xl text-center mt-10" *ngIf="dpms.length === 0; else dpmTable">
-  You currently don't have any DPMs to view
-</p>
+<ng-template #loading>
+  <app-loading></app-loading>
+</ng-template>
 
-<ng-template #dpmTable>
+<div *ngIf="currentDpms$ | async as dpms; else loading">
   <h2 class="text-3xl mb-5 font-bold">Current DPMs</h2>
   <div class="lg:overflow-x-auto">
     <div class="grid place-items-center">
@@ -85,4 +85,4 @@
       </table>
     </div>
   </div>
-</ng-template>
+</div>

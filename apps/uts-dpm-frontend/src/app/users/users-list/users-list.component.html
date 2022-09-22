@@ -1,1 +1,72 @@
-<p>users-list works!</p>
+<ng-template #loading>
+  <app-loading></app-loading>
+</ng-template>
+
+<div *ngIf="users; else loading">
+  <h2 class="text-3xl mb-5 font-bold">Users</h2>
+
+  <div class="tabs mb-5 grid justify-items-center lg:justify-items-start">
+    <div>
+      <a
+        class="tab tab-lg tab-bordered"
+        [ngClass]="{ 'tab-active': searchVisible }"
+        (click)="searchVisible = true"
+        >Search</a
+      >
+      <a
+        class="tab tab-lg tab-bordered"
+        [ngClass]="{ 'tab-active': !searchVisible }"
+        (click)="searchVisible = false"
+        >Actions</a
+      >
+    </div>
+  </div>
+
+  <div *ngIf="searchVisible; else actionView">
+    <input
+      id="userSearch"
+      type="text"
+      placeholder="Search"
+      class="input input-bordered w-full mb-2"
+      (input)="filterUsers($event)"
+    />
+
+    <div class="lg:overflow-x-auto">
+      <div class="grid place-items-center">
+        <table class="table table-fixed lg:table-auto w-full text-center">
+          <thead>
+            <tr>
+              <th class="lg:text-base break-words">Last Name</th>
+              <th class="lg:text-base break-words">First Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let user of filteredUsers; trackBy: userTracking"
+              (click)="handlerUserClick(user.id)"
+              class="hover:cursor-pointer hover"
+            >
+              <td class="break-words whitespace-normal">
+                {{ user.name | name: "last" }}
+              </td>
+              <td class="break-words whitespace-normal">
+                {{ user.name | name: "first" }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #actionView>
+    <div class="grid grid-cols-2 place-items-center">
+      <div class="col-span-2 md:col-span-1 md:justify-self-end md:mr-5">
+        <a class="link link-hover text-lg">Send Points Email</a>
+      </div>
+      <div class="col-span-2 md:col-span-1 md:justify-self-start md:ml-5">
+        <a class="link link-hover text-lg">Reset Points Balance</a>
+      </div>
+    </div>
+  </ng-template>
+</div>

@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import DPM from '../../models/dpm';
 import { ApprovalService } from '../../services/approval.service';
 import { FormatService } from '../../services/format.service';
-import { Observable } from 'rxjs';
+import { first } from 'rxjs';
 import ApprovalDpmDto from '../../models/approvalDpmDto';
 import { NotificationService } from '../../services/notification.service';
 
@@ -12,7 +11,7 @@ import { NotificationService } from '../../services/notification.service';
   styleUrls: ['./approvals.component.scss'],
 })
 export class ApprovalsComponent implements OnInit {
-  dpms: ApprovalDpmDto[] = [];
+  dpms?: ApprovalDpmDto[];
   modalOpen = false;
   currentDpm?: ApprovalDpmDto;
   editOpen = false;
@@ -27,6 +26,7 @@ export class ApprovalsComponent implements OnInit {
   ngOnInit() {
     this.approvalsService
       .getApprovalDpms()
+      .pipe(first())
       .subscribe((value) => (this.dpms = value));
   }
 
@@ -41,6 +41,7 @@ export class ApprovalsComponent implements OnInit {
       this.currentDpm!.points = this.currentPoints;
       this.approvalsService
         .updatePoints(this.currentDpm!.id, this.currentPoints)
+        .pipe(first())
         .subscribe();
     }
   }
@@ -53,18 +54,27 @@ export class ApprovalsComponent implements OnInit {
 
   approveDpm() {
     if (!this.currentDpm) return;
-    this.dpms = this.dpms.filter((dto) => dto.id != this.currentDpm?.id);
-    this.approvalsService.approveDpm(this.currentDpm?.id).subscribe(() => {
-      this.notificationService.showSuccess('DPM has been approved', 'Success');
-    });
+    this.dpms = this.dpms?.filter((dto) => dto.id != this.currentDpm?.id);
+    this.approvalsService
+      .approveDpm(this.currentDpm?.id)
+      .pipe(first())
+      .subscribe(() => {
+        this.notificationService.showSuccess(
+          'DPM has been approved',
+          'Success'
+        );
+      });
   }
 
   denyDpm() {
     if (!this.currentDpm) return;
-    this.dpms = this.dpms.filter((dto) => dto.id != this.currentDpm?.id);
-    this.approvalsService.denyDpm(this.currentDpm?.id).subscribe(() => {
-      this.notificationService.showSuccess('DPM has been denied', 'Success');
-    });
+    this.dpms = this.dpms?.filter((dto) => dto.id != this.currentDpm?.id);
+    this.approvalsService
+      .denyDpm(this.currentDpm?.id)
+      .pipe(first())
+      .subscribe(() => {
+        this.notificationService.showSuccess('DPM has been denied', 'Success');
+      });
   }
 
   get format() {
