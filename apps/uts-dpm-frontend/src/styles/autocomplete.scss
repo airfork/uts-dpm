@@ -1,9 +1,11 @@
+@import "variables";
+
 .p-autocomplete-panel {
-  background: hsl(var(--b1));
-  color: hsl(var(--bc));
+  background: $base1;
+  color: $baseContent;
   border: 0 none;
   border-radius: 6px;
-  box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
+  box-shadow: 0 2px 12px 0 rgb(0 0 0 / 20%);
 }
 
 .p-autocomplete-panel .p-autocomplete-items {
@@ -27,3 +29,4 @@
 .p-autocomplete-panel .p-autocomplete-items .p-autocomplete-empty-message {
   padding: 0.75rem 1.25rem;
 }
+

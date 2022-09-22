@@ -1,12 +1,16 @@
 package com.tunjicus.utsdpm.repositories
 
 import com.tunjicus.utsdpm.entities.Dpm
+import com.tunjicus.utsdpm.entities.User
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
+import org.springframework.data.repository.PagingAndSortingRepository
 import org.springframework.data.repository.query.Param
 import java.time.LocalDateTime
 
-interface DpmRepository : CrudRepository<Dpm, Int> {
+interface DpmRepository : PagingAndSortingRepository<Dpm, Int> {
   @Query(
     value = "select * from dpms " +
       "where userid = :id and created >= :created " +
@@ -32,4 +36,6 @@ interface DpmRepository : CrudRepository<Dpm, Int> {
     after: LocalDateTime,
     before: LocalDateTime
   ): Collection<Dpm>
+
+  fun findAllByUserOrderByCreatedDesc(user: User, pageable: Pageable): Page<Dpm>
 }

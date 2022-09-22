@@ -1,15 +1,15 @@
 package com.tunjicus.utsdpm.services
 
-import com.tunjicus.utsdpm.dtos.ApprovalDpmDto
-import com.tunjicus.utsdpm.dtos.HomeDpmDto
-import com.tunjicus.utsdpm.dtos.PatchDpmDto
-import com.tunjicus.utsdpm.dtos.PostDpmDto
+import com.tunjicus.utsdpm.dtos.*
 import com.tunjicus.utsdpm.exceptions.DpmNotFoundException
 import com.tunjicus.utsdpm.exceptions.UserNameNotFoundException
+import com.tunjicus.utsdpm.exceptions.UserNotFoundException
 import com.tunjicus.utsdpm.repositories.DpmRepository
 import com.tunjicus.utsdpm.repositories.UserRepository
 import java.time.LocalDateTime
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 
 @Service
@@ -105,5 +105,14 @@ class DpmService(
     if (dto.points != null) dpm.points = dto.points
 
     dpmRepository.save(dpm)
+  }
+
+  fun getAll(id: Int, page: Int, size: Int): Page<DpmDetailDto> {
+    val user = userRepository.findById(id).orElseThrow { UserNotFoundException(id) }
+    val pageNumber = maxOf(page, 0)
+
+    return dpmRepository
+      .findAllByUserOrderByCreatedDesc(user, PageRequest.of(pageNumber, size))
+      .map { DpmDetailDto.from(it) }
   }
 }

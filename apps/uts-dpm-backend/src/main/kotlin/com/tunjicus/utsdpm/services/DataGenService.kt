@@ -3,10 +3,7 @@ package com.tunjicus.utsdpm.services
 import com.tunjicus.utsdpm.entities.Dpm
 import com.tunjicus.utsdpm.entities.User
 import com.tunjicus.utsdpm.exceptions.InvalidDataGenDateException
-import com.tunjicus.utsdpm.helpers.formatCreatedAtExcel
-import com.tunjicus.utsdpm.helpers.formatDateOrNull
-import com.tunjicus.utsdpm.helpers.formatOutboundDpmDate
-import com.tunjicus.utsdpm.helpers.formatOutboundDpmTime
+import com.tunjicus.utsdpm.helpers.*
 import com.tunjicus.utsdpm.repositories.DpmRepository
 import com.tunjicus.utsdpm.repositories.UserRepository
 import java.io.File
@@ -205,7 +202,7 @@ class DataGenService(
       cell.setCellValue(dpm.notes)
 
       cell = row.createCell(cellIndex++)
-      cell.setCellValue(generateStatusMessage(dpm.approved!!, dpm.ignored!!))
+      cell.setCellValue(generateDpmStatusMessage(dpm.approved!!, dpm.ignored!!))
 
       cell = row.createCell(cellIndex++)
       cell.setCellValue(formatCreatedAtExcel(dpm.created!!.atZone(ZoneId.of("America/New_York"))))
@@ -259,13 +256,6 @@ class DataGenService(
 
       LOGGER.info("Generating spreadsheet with startDate of $start and endDate of $end")
       return Pair(start, end)
-    }
-
-    private fun generateStatusMessage(approved: Boolean, ignored: Boolean): String {
-      if (approved && !ignored) return "Approved"
-      if (approved) return "Approved but invisible to driver"
-      if (!ignored) return "Not looked at"
-      return "Denied"
     }
   }
 }

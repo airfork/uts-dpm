@@ -1,3 +1,5 @@
+@import "variables";
+
 @mixin statusStyles($backgroundColor, $textColor) {
   background-color: $backgroundColor;
   border: solid $textColor;
@@ -24,18 +26,18 @@
   }
 
   .toast-info {
-    @include statusStyles(hsl(var(--in)), hsl(var(--inc)));
+    @include statusStyles($info, $infoContent);
   }
 
   .toast-success {
-    @include statusStyles(hsl(var(--su)), hsl(var(--suc)));
+    @include statusStyles($success, $successContent);
   }
 
   .toast-warning {
-    @include statusStyles(hsl(var(--wa)), hsl(var(--wac)));
+    @include statusStyles($warning, $warningContent);
   }
 
   .toast-error {
-    @include statusStyles(hsl(var(--er)), hsl(var(--erc)));
+    @include statusStyles($error, $errorContent);
   }
 }

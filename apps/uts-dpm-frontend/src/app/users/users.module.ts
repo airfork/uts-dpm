@@ -9,6 +9,8 @@ import { SharedModule } from '../shared/shared.module';
 import { UserDetailComponent } from './user-detail/user-detail.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RippleModule } from 'primeng/ripple';
+import { TableModule } from 'primeng/table';
+import { InputTextModule } from 'primeng/inputtext';
 
 @NgModule({
   declarations: [UsersListComponent, UsersComponent, UserDetailComponent],
@@ -19,6 +21,8 @@ import { RippleModule } from 'primeng/ripple';
     SharedModule,
     ReactiveFormsModule,
     RippleModule,
+    TableModule,
+    InputTextModule,
   ],
 })
 export class UsersModule {}

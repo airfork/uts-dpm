@@ -3,10 +3,11 @@ import DPM from '../models/dpm';
 import { catchError, Observable, of, retry, throwError } from 'rxjs';
 import DPMType from '../models/dpmType';
 import PostDpmDto from '../models/postDpmDto';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { NotificationService } from './notification.service';
 import { environment } from '../../environments/environment';
 import HomeDpmDto from '../models/homeDpmDto';
+import DpmDetailPage from '../models/DpmDetailPage';
 
 interface user {
   id: number;
@@ -132,9 +133,9 @@ export class DpmService {
   }
 
   getCurrentDpms(): Observable<HomeDpmDto[]> {
-    return this.http.get<HomeDpmDto[]>(BASE_URL).pipe(
+    return this.http.get<HomeDpmDto[]>(BASE_URL + '/current').pipe(
       retry(2),
-      catchError((error) => {
+      catchError((error: HttpErrorResponse) => {
         this.notificationService.showError('Something went wrong', 'Error');
         return throwError(
           () =>
@@ -156,5 +157,19 @@ export class DpmService {
         );
       })
     );
+  }
+
+  getAll(id: string, page: number, size: number): Observable<DpmDetailPage> {
+    return this.http
+      .get<DpmDetailPage>(`${BASE_URL}/user/${id}?page=${page}&size=${size}`)
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          this.notificationService.showError('Something went wrong', 'Error');
+          return throwError(
+            () =>
+              new Error("Something went wrong trying to get the user's dpms")
+          );
+        })
+      );
   }
 }

@@ -4,6 +4,7 @@
 @import "styles/calendar";
 @import "styles/toast";
 @import "styles/autocomplete";
+@import "styles/paginator";
 @import "fonts";
 
 html,
@@ -16,6 +17,7 @@ body {
   position: relative !important;
 }
 
-.p-autocomplete-panel {
-  box-shadow: 0 2px 12px 0 rgb(0 0 0 / 20%);
+/* Track */
+::-webkit-scrollbar-track {
+  background: $base2 !important;
 }

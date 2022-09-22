@@ -12,6 +12,10 @@ import {
 } from '@angular/forms';
 import UserDetailDto from '../../models/userDetailDto';
 import { NotificationService } from '../../services/notification.service';
+import ApprovalDpmDto from '../../models/approvalDpmDto';
+import DpmDetailDto from '../../models/dpmDetailDto';
+import { LazyLoadEvent } from 'primeng/api';
+import { DpmService } from '../../services/dpm.service';
 
 @Component({
   selector: 'app-user-detail',
@@ -20,6 +24,9 @@ import { NotificationService } from '../../services/notification.service';
 })
 export class UserDetailComponent implements OnInit {
   private userId = '';
+
+  loadingDpms = true;
+  totalRecords = 0;
   activeTab = { info: true, dpms: false, actions: false };
   user?: GetUserDetailDto;
   roles: string[] = [];
@@ -38,11 +45,15 @@ export class UserDetailComponent implements OnInit {
     fullTime: new FormControl(false),
   });
 
+  dpms: DpmDetailDto[] = [];
+  count = 20;
+
   constructor(
     private route: ActivatedRoute,
     private userDetailService: UserDetailService,
     private titleService: Title,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private dpmService: DpmService
   ) {}
 
   ngOnInit() {
@@ -148,6 +159,27 @@ export class UserDetailComponent implements OnInit {
     }
 
     return '';
+  }
+
+  lazyLoadEvent(event: LazyLoadEvent) {
+    this.loadingDpms = true;
+    let size = 10;
+    if (event.rows) size = event.rows;
+
+    let page = 0;
+    if (event.first) {
+      page = event.first / size;
+    }
+
+    console.log('Lazy load event');
+    this.dpmService
+      .getAll(this.userId, page, size)
+      .pipe(first())
+      .subscribe((page) => {
+        this.dpms = page.content;
+        this.totalRecords = page.totalElements;
+        this.loadingDpms = false;
+      });
   }
 
   get email() {
