@@ -17,6 +17,7 @@ import { ApprovalsComponent } from './approvals/approvals.component';
 import { DpmsRoutingModule } from './dpms-routing.module';
 import { DpmsComponent } from './dpms/dpms.component';
 import { SharedModule } from '../shared/shared.module';
+import { TableModule } from 'primeng/table';
 
 @NgModule({
   declarations: [
@@ -41,6 +42,7 @@ import { SharedModule } from '../shared/shared.module';
     UiModule,
     DpmsRoutingModule,
     SharedModule,
+    TableModule,
   ],
 })
 export class DpmsModule {}

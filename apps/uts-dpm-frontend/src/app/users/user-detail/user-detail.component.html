@@ -243,13 +243,13 @@
       </ng-template>
       <ng-template pTemplate="body" let-dpm>
         <tr class="hover hover:cursor-pointer" (click)="clickRow(dpm)">
-          <td class="lg:text-base break-words whitespace-normal">
+          <td class="break-words whitespace-normal">
             {{ dpm.type }}
           </td>
-          <td class="lg:text-base break-words whitespace-normal">
+          <td class="break-words whitespace-normal">
             {{ dpm.date }}
           </td>
-          <td class="lg:text-base break-words whitespace-normal">
+          <td class="break-words whitespace-normal">
             {{ dpm.status }}
           </td>
         </tr>
@@ -263,7 +263,14 @@
   </div>
 
   <div *ngIf="activeTab.actions">
-    <p>Actions tab</p>
+    <div class="grid grid-cols-2 place-items-center">
+      <div class="col-span-2 md:col-span-1 md:justify-self-end md:mr-5">
+        <a class="link link-hover text-lg">Send Points Email</a>
+      </div>
+      <div class="col-span-2 md:col-span-1 md:justify-self-start md:ml-5">
+        <a class="link link-hover text-lg text-error">Delete User</a>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -276,6 +283,8 @@
 <label for="dpmModal" class="modal cursor-pointer">
   <label class="modal-box relative">
     <div *ngIf="currentDpm">
+      <h3 class="text-xl font-bold mx-4">{{ currentDpm.type }}</h3>
+
       <table
         class="my-2 md:my-4 border-separate border-spacing-x-2 md:border-spacing-x-4 border-spacing-y-1.5 table-auto"
       >
@@ -283,11 +292,6 @@
           <tr *ngIf="currentDpm.createdBy" class="whitespace-nowrap">
             <th>Created By:</th>
             <td>{{ currentDpm.createdBy }}</td>
-          </tr>
-
-          <tr>
-            <th>Type:</th>
-            <td>{{ currentDpm.type }}</td>
           </tr>
 
           <tr>
@@ -338,12 +342,12 @@
         <label
           pRipple
           for="dpmModal"
-          class="btn btn-error btn-outline"
-          [ngClass]="{
-            'btn-disabled': currentDpm.ignored,
-            'btn-error': !currentDpm.ignored
-          }"
+          class="btn btn-outline"
           (click)="denyDpm()"
+          [ngClass]="{
+            'btn-error': !currentDpm.ignored,
+            'btn-disabled': currentDpm.ignored
+          }"
           >Deny</label
         >
       </div>

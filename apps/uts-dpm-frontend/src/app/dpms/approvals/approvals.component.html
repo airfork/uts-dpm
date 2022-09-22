@@ -4,32 +4,43 @@
 
 <div *ngIf="dpms; else loading">
   <h2 class="text-3xl mb-5 font-bold">Unapproved DPMs</h2>
-  <div class="lg:overflow-x-auto">
-    <div class="grid place-items-center">
-      <table class="table table-fixed lg:table-auto w-full text-center">
-        <thead>
-          <tr>
-            <th class="lg:text-base break-words">Name</th>
-            <th class="lg:text-base break-words">Block/Time</th>
-            <th class="lg:text-base break-words">Type</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            *ngFor="let dpm of dpms"
-            (click)="showApprovalModal(dpm)"
-            class="hover:cursor-pointer hover"
-          >
-            <td class="break-words whitespace-normal">{{ dpm.driver }}</td>
-            <td class="break-words whitespace-normal">
-              {{ dpm.block | block }} {{ dpm.time }}
-            </td>
-            <td class="break-words whitespace-normal">{{ dpm.type }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+
+  <p-table
+    #dt
+    [value]="dpms"
+    dataKey="id"
+    styleClass="table table-fixed lg:table-auto w-full"
+    [rowHover]="true"
+    [rows]="10"
+    [showCurrentPageReport]="true"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [loading]="false"
+    responsiveLayout="scroll"
+    [paginator]="true"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+  >
+    <ng-template pTemplate="header" class="table">
+      <tr>
+        <th class="lg:text-base break-words">Name</th>
+        <th class="lg:text-base break-words">Block/Time</th>
+        <th class="lg:text-base break-words">Type</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-dpm>
+      <tr class="hover hover:cursor-pointer" (click)="showApprovalModal(dpm)">
+        <td class="break-words whitespace-normal">{{ dpm.driver }}</td>
+        <td class="break-words whitespace-normal">
+          {{ dpm.block | block }} {{ dpm.time }}
+        </td>
+        <td class="break-words whitespace-normal">{{ dpm.type }}</td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="8">No dpms found.</td>
+      </tr>
+    </ng-template>
+  </p-table>
 
   <input
     type="checkbox"

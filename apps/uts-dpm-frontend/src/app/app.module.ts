@@ -24,7 +24,7 @@ import { HttpClientModule } from '@angular/common/http';
     RippleModule,
     HttpClientModule,
     ToastrModule.forRoot({
-      timeOut: 5000,
+      timeOut: 3500,
       positionClass: 'app-toast-top-center',
     }),
   ],
