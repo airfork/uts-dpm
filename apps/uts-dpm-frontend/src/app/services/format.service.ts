@@ -15,28 +15,9 @@ export class FormatService {
     return formatDate(date, 'MM/dd/yyyy', this.locale);
   }
 
-  points(points?: number): string {
-    if (!points) return '';
-
-    if (points > 0) {
-      return `+${points}`;
-    }
-    return points.toString();
-  }
-
   datagenDate(date?: Date): string {
     if (!date) return '';
 
     return formatDate(date, 'MM-dd-yyyy', this.locale);
-  }
-
-  firstname(name: string): string {
-    const index = name.indexOf(' ');
-    return index === -1 ? name : name.substring(0, index);
-  }
-
-  lastname(name: string): string {
-    const index = name.indexOf('');
-    return index === -1 ? '' : name.substring(index).trim();
   }
 }

@@ -20,6 +20,7 @@ class DpmDetailDto(
   val createdAt: String,
   val notes: String?,
   val status: String,
+  val ignored: Boolean,
 ) {
 
   companion object {
@@ -36,7 +37,8 @@ class DpmDetailDto(
         time = formatOutboundDpmTime(dpm.startTime, dpm.endTime),
         createdAt = formatCreatedAt(dpm.created!!.atZone(ZoneId.of("America/New_York"))),
         notes = dpm.notes,
-        status = generateDpmStatusMessage(dpm.approved!!, dpm.ignored!!)
+        status = generateDpmStatusMessage(dpm.approved!!, dpm.ignored!!),
+        ignored = dpm.ignored!!
       )
     }
   }

@@ -9,7 +9,7 @@ import { environment } from '../../environments/environment';
 @Injectable({
   providedIn: 'root',
 })
-export class ApprovalService {
+export class ApprovalsService {
   private static BASE_URL = environment.baseUrl;
 
   constructor(
@@ -20,7 +20,7 @@ export class ApprovalService {
 
   getApprovalDpms(): Observable<ApprovalDpmDto[]> {
     return this.http
-      .get<ApprovalDpmDto[]>(`${ApprovalService.BASE_URL}/dpms/approvals`)
+      .get<ApprovalDpmDto[]>(`${ApprovalsService.BASE_URL}/dpms/approvals`)
       .pipe(
         retry(2),
         catchError((error) => {
@@ -37,7 +37,7 @@ export class ApprovalService {
 
   updatePoints(id: number, points: number): Observable<any> {
     return this.http
-      .patch<any>(`${ApprovalService.BASE_URL}/dpms/${id}`, { points: points })
+      .patch<any>(`${ApprovalsService.BASE_URL}/dpms/${id}`, { points: points })
       .pipe(
         retry(2),
         catchError((error) => {
@@ -51,7 +51,7 @@ export class ApprovalService {
 
   approveDpm(id: number): Observable<any> {
     return this.http
-      .patch<any>(`${ApprovalService.BASE_URL}/dpms/${id}`, { approved: true })
+      .patch<any>(`${ApprovalsService.BASE_URL}/dpms/${id}`, { approved: true })
       .pipe(
         retry(2),
         catchError((error) => {
@@ -65,7 +65,7 @@ export class ApprovalService {
 
   denyDpm(id: number): Observable<any> {
     return this.http
-      .patch<any>(`${ApprovalService.BASE_URL}/dpms/${id}`, { ignored: true })
+      .patch<any>(`${ApprovalsService.BASE_URL}/dpms/${id}`, { ignored: true })
       .pipe(
         retry(2),
         catchError((error) => {

@@ -242,7 +242,7 @@
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-dpm>
-        <tr class="hover hover:cursor-pointer">
+        <tr class="hover hover:cursor-pointer" (click)="clickRow(dpm)">
           <td class="lg:text-base break-words whitespace-normal">
             {{ dpm.type }}
           </td>
@@ -266,3 +266,87 @@
     <p>Actions tab</p>
   </div>
 </div>
+
+<input
+  type="checkbox"
+  id="dpmModal"
+  class="modal-toggle"
+  [(ngModel)]="modalOpen"
+/>
+<label for="dpmModal" class="modal cursor-pointer">
+  <label class="modal-box relative">
+    <div *ngIf="currentDpm">
+      <table
+        class="my-2 md:my-4 border-separate border-spacing-x-2 md:border-spacing-x-4 border-spacing-y-1.5 table-auto"
+      >
+        <tbody class="text-left align-text-top">
+          <tr *ngIf="currentDpm.createdBy" class="whitespace-nowrap">
+            <th>Created By:</th>
+            <td>{{ currentDpm.createdBy }}</td>
+          </tr>
+
+          <tr>
+            <th>Type:</th>
+            <td>{{ currentDpm.type }}</td>
+          </tr>
+
+          <tr>
+            <th>Points:</th>
+            <td>{{ currentDpm.points | points }}</td>
+          </tr>
+
+          <tr>
+            <th>Block:</th>
+            <td>{{ currentDpm.block | block }}</td>
+          </tr>
+
+          <tr>
+            <th>Location:</th>
+            <td>{{ currentDpm.location | uppercase }}</td>
+          </tr>
+
+          <tr>
+            <th>Date:</th>
+            <td>{{ currentDpm.date }}</td>
+          </tr>
+
+          <tr>
+            <th>Time:</th>
+            <td>
+              {{ currentDpm.time }}
+            </td>
+          </tr>
+
+          <tr>
+            <th>Created At:</th>
+            <td>{{ currentDpm.createdAt }}</td>
+          </tr>
+
+          <tr *ngIf="currentDpm.notes" class="break-words whitespace-normal">
+            <th>Notes:</th>
+            <td>{{ currentDpm.notes }}</td>
+          </tr>
+
+          <tr>
+            <th>Status:</th>
+            <td>{{ currentDpm.status }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="modal-action">
+        <label
+          pRipple
+          for="dpmModal"
+          class="btn btn-error btn-outline"
+          [ngClass]="{
+            'btn-disabled': currentDpm.ignored,
+            'btn-error': !currentDpm.ignored
+          }"
+          (click)="denyDpm()"
+          >Deny</label
+        >
+      </div>
+    </div>
+  </label>
+</label>

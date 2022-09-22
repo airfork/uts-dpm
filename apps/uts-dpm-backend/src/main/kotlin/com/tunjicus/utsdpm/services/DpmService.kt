@@ -94,15 +94,40 @@ class DpmService(
 
   fun updateDpm(id: Int, dto: PatchDpmDto) {
     val dpm = dpmRepository.findById(id).orElseThrow { DpmNotFoundException(id) }
-    if (dto.ignored != null && dpm.ignored != dto.ignored) {
-      dpm.ignored = dto.ignored
-    }
 
-    if (dto.approved != null && dpm.approved != dto.approved) {
-      dpm.approved = dto.approved
-    }
-
+    // always just update points
     if (dto.points != null) dpm.points = dto.points
+
+    if (dto.approved != null) {
+      // DPM approved, update points for user
+      // don't allow approved = true and ignored = true to happen at the same time
+      if (dto.approved && dpm.approved != true && dpm.ignored != true) {
+        dpm.user?.points = dpm.user?.points?.plus(dpm.points ?: 0)
+        dpm.approved = true
+      }
+
+      // Just change the value
+      else if (!dto.approved) {
+        dpm.approved = false
+      }
+    }
+
+    if (dto.ignored != null) {
+      // DPM ignored, but previously approved
+      // Adjust user's points
+      if (dto.ignored && dpm.ignored != true && dpm.approved == true) {
+        dpm.approved = false
+        dpm.ignored = true
+
+        val adjustedPoints = (dpm.points ?: 0) * -1
+        dpm.user?.points = dpm.user?.points?.plus(adjustedPoints)
+      }
+
+      // else, just change the value
+      else {
+        dpm.ignored = dto.ignored
+      }
+    }
 
     dpmRepository.save(dpm)
   }

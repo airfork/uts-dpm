@@ -58,7 +58,7 @@
 
             <tr>
               <th>Points:</th>
-              <td>{{ format.points(currentDpm.points) }}</td>
+              <td>{{ currentDpm.points | points }}</td>
             </tr>
 
             <tr>
@@ -68,7 +68,7 @@
 
             <tr>
               <th>Location:</th>
-              <td>{{ currentDpm.location.toUpperCase() }}</td>
+              <td>{{ currentDpm.location | uppercase }}</td>
             </tr>
 
             <tr>

@@ -7,7 +7,7 @@ import { UsersComponent } from './users/users.component';
 import { UiModule } from '../ui/ui.module';
 import { SharedModule } from '../shared/shared.module';
 import { UserDetailComponent } from './user-detail/user-detail.component';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RippleModule } from 'primeng/ripple';
 import { TableModule } from 'primeng/table';
 import { InputTextModule } from 'primeng/inputtext';
@@ -23,6 +23,7 @@ import { InputTextModule } from 'primeng/inputtext';
     RippleModule,
     TableModule,
     InputTextModule,
+    FormsModule,
   ],
 })
 export class UsersModule {}

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import GetUserDetailDto from '../../models/getUserDetailDto';
 import { UserDetailService } from '../../services/user-detail.service';
 import { first } from 'rxjs';
@@ -12,10 +12,12 @@ import {
 } from '@angular/forms';
 import UserDetailDto from '../../models/userDetailDto';
 import { NotificationService } from '../../services/notification.service';
-import ApprovalDpmDto from '../../models/approvalDpmDto';
 import DpmDetailDto from '../../models/dpmDetailDto';
 import { LazyLoadEvent } from 'primeng/api';
 import { DpmService } from '../../services/dpm.service';
+import { ApprovalsService } from '../../services/approvals.service';
+
+type tab = 'actions' | 'dpms' | 'info';
 
 @Component({
   selector: 'app-user-detail',
@@ -24,6 +26,7 @@ import { DpmService } from '../../services/dpm.service';
 })
 export class UserDetailComponent implements OnInit {
   private userId = '';
+  private lastLazyLoadEvent?: LazyLoadEvent;
 
   loadingDpms = true;
   totalRecords = 0;
@@ -31,6 +34,9 @@ export class UserDetailComponent implements OnInit {
   user?: GetUserDetailDto;
   roles: string[] = [];
   managers: string[] = [];
+  currentDpm?: DpmDetailDto;
+  modalOpen = false;
+  dpms: DpmDetailDto[] = [];
 
   userFormGroup = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
@@ -45,15 +51,14 @@ export class UserDetailComponent implements OnInit {
     fullTime: new FormControl(false),
   });
 
-  dpms: DpmDetailDto[] = [];
-  count = 20;
-
   constructor(
+    private router: Router,
     private route: ActivatedRoute,
     private userDetailService: UserDetailService,
     private titleService: Title,
     private notificationService: NotificationService,
-    private dpmService: DpmService
+    private dpmService: DpmService,
+    private approvalsService: ApprovalsService
   ) {}
 
   ngOnInit() {
@@ -64,12 +69,7 @@ export class UserDetailComponent implements OnInit {
         .pipe(first())
         .subscribe((user) => {
           this.user = user;
-          this.titleService.setTitle(
-            `${this.titleService.getTitle()} (${user.firstname} ${
-              this.user.lastname
-            })`
-          );
-
+          this.setTitle();
           this.userId = id;
           this.roles = this.userDetailService.orderRoles(user.role);
           this.managers = this.userDetailService.orderManagers(
@@ -79,17 +79,42 @@ export class UserDetailComponent implements OnInit {
           this.setFormData();
         });
     });
+
+    // jump to tab based on query param
+    this.route.queryParamMap.pipe(first()).subscribe((value) => {
+      const tab = value.get('tab') as tab;
+      if (tab) this.activateTab(tab);
+    });
   }
 
-  activateTab(tab: 'actions' | 'dpms' | 'info') {
+  clickRow(dpm: DpmDetailDto) {
+    this.currentDpm = dpm;
+    this.modalOpen = true;
+  }
+
+  denyDpm() {
+    if (!this.currentDpm) return;
+    this.approvalsService
+      .denyDpm(this.currentDpm.id)
+      .pipe(first())
+      .subscribe(() => {
+        this.notificationService.showSuccess('DPM has been denied', 'Success');
+        this.lazyLoadEvent(this.lastLazyLoadEvent!);
+      });
+  }
+
+  activateTab(tab: tab) {
     switch (tab) {
       case 'actions':
+        this.saveTabInUrl(tab);
         this.activeTab = { info: false, dpms: false, actions: true };
         break;
       case 'dpms':
+        this.saveTabInUrl(tab);
         this.activeTab = { info: false, dpms: true, actions: false };
         break;
       case 'info':
+        this.saveTabInUrl(tab);
         this.activeTab = { info: true, dpms: false, actions: false };
         break;
       default:
@@ -111,6 +136,27 @@ export class UserDetailComponent implements OnInit {
   hasErrors(control: AbstractControl | null): boolean {
     if (!control) return false;
     return control.invalid && (control.dirty || control.touched);
+  }
+
+  lazyLoadEvent(event: LazyLoadEvent) {
+    this.lastLazyLoadEvent = event;
+    this.loadingDpms = true;
+    let size = 10;
+    if (event.rows) size = event.rows;
+
+    let page = 0;
+    if (event.first) {
+      page = event.first / size;
+    }
+
+    this.dpmService
+      .getAll(this.userId, page, size)
+      .pipe(first())
+      .subscribe((page) => {
+        this.dpms = page.content;
+        this.totalRecords = page.totalElements;
+        this.loadingDpms = false;
+      });
   }
 
   getEmailValidationMessages(): string {
@@ -161,27 +207,6 @@ export class UserDetailComponent implements OnInit {
     return '';
   }
 
-  lazyLoadEvent(event: LazyLoadEvent) {
-    this.loadingDpms = true;
-    let size = 10;
-    if (event.rows) size = event.rows;
-
-    let page = 0;
-    if (event.first) {
-      page = event.first / size;
-    }
-
-    console.log('Lazy load event');
-    this.dpmService
-      .getAll(this.userId, page, size)
-      .pipe(first())
-      .subscribe((page) => {
-        this.dpms = page.content;
-        this.totalRecords = page.totalElements;
-        this.loadingDpms = false;
-      });
-  }
-
   get email() {
     return this.userFormGroup.get('email');
   }
@@ -223,5 +248,27 @@ export class UserDetailComponent implements OnInit {
       role: values.role!,
       fullTime: values.fullTime!,
     };
+  }
+
+  private setTitle() {
+    if (this.user) {
+      this.titleService.setTitle(
+        `${this.titleService.getTitle()} (${this.user.firstname} ${
+          this.user.lastname
+        })`
+      );
+    }
+  }
+
+  private saveTabInUrl(tab: tab) {
+    // update query param to save tab state
+    // need to set title in callback as it gets reset
+    this.router
+      .navigate(['.'], {
+        relativeTo: this.route,
+        queryParams: { tab },
+        replaceUrl: true,
+      })
+      .then(() => this.setTitle());
   }
 }

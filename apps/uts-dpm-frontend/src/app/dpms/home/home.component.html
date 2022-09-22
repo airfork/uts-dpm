@@ -14,7 +14,7 @@
         <tbody class="text-left align-text-top">
           <tr>
             <th>Points:</th>
-            <td>{{ format.points(currentDpm.points) }}</td>
+            <td>{{ currentDpm.points | points }}</td>
           </tr>
           <tr>
             <th>Block:</th>
@@ -22,7 +22,7 @@
           </tr>
           <tr>
             <th>Location:</th>
-            <td>{{ currentDpm.location.toUpperCase() }}</td>
+            <td>{{ currentDpm.location | uppercase }}</td>
           </tr>
           <tr>
             <th>Date:</th>
@@ -55,7 +55,7 @@
   <h2 class="text-3xl mb-5 font-bold">Current DPMs</h2>
   <div class="lg:overflow-x-auto">
     <div class="grid place-items-center">
-      <table class="table table-fixed lg:table-auto w-full text-center">
+      <table class="table table-fixed lg:table-auto w-full">
         <thead>
           <tr>
             <th class="lg:text-base break-words">Type</th>
@@ -75,7 +75,7 @@
               {{ dpm.type }}
             </td>
             <td class="lg:text-base break-words whitespace-normal">
-              {{ format.points(dpm.points) }}
+              {{ dpm.points | points }}
             </td>
             <td class="lg:text-base break-words whitespace-normal">
               {{ dpm.date }}

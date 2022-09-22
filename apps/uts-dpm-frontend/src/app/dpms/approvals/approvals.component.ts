@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ApprovalService } from '../../services/approval.service';
+import { ApprovalsService } from '../../services/approvals.service';
 import { FormatService } from '../../services/format.service';
 import { first } from 'rxjs';
 import ApprovalDpmDto from '../../models/approvalDpmDto';
@@ -18,7 +18,7 @@ export class ApprovalsComponent implements OnInit {
   currentPoints? = 0;
 
   constructor(
-    private approvalsService: ApprovalService,
+    private approvalsService: ApprovalsService,
     private formatService: FormatService,
     private notificationService: NotificationService
   ) {}
@@ -70,7 +70,7 @@ export class ApprovalsComponent implements OnInit {
     if (!this.currentDpm) return;
     this.dpms = this.dpms?.filter((dto) => dto.id != this.currentDpm?.id);
     this.approvalsService
-      .denyDpm(this.currentDpm?.id)
+      .denyDpm(this.currentDpm.id)
       .pipe(first())
       .subscribe(() => {
         this.notificationService.showSuccess('DPM has been denied', 'Success');
