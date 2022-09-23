@@ -31,32 +31,45 @@
       (input)="filterUsers($event)"
     />
 
-    <div class="lg:overflow-x-auto">
-      <div class="grid place-items-center">
-        <table class="table table-fixed lg:table-auto w-full text-center">
-          <thead>
-            <tr>
-              <th class="lg:text-base break-words">Last Name</th>
-              <th class="lg:text-base break-words">First Name</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              *ngFor="let user of filteredUsers; trackBy: userTracking"
-              (click)="handlerUserClick(user.id)"
-              class="hover:cursor-pointer hover"
-            >
-              <td class="break-words whitespace-normal">
-                {{ user.name | name: "last" }}
-              </td>
-              <td class="break-words whitespace-normal">
-                {{ user.name | name: "first" }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <p-table
+      #dt
+      [value]="filteredUsers"
+      dataKey="id"
+      styleClass="table table-fixed lg:table-auto w-full"
+      [rowHover]="true"
+      [rows]="10"
+      [showCurrentPageReport]="true"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [loading]="false"
+      responsiveLayout="scroll"
+      [paginator]="true"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    >
+      <ng-template pTemplate="header" class="table">
+        <tr>
+          <th class="lg:text-base break-words">Last Name</th>
+          <th class="lg:text-base break-words">First Name</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-user>
+        <tr
+          class="hover hover:cursor-pointer"
+          (click)="handlerUserClick(user.id)"
+        >
+          <td class="break-words whitespace-normal">
+            {{ user.name | name: "last" }}
+          </td>
+          <td class="break-words whitespace-normal">
+            {{ user.name | name: "first" }}
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="8">No dpms found.</td>
+        </tr>
+      </ng-template>
+    </p-table>
   </div>
 
   <ng-template #actionView>
