@@ -86,11 +86,11 @@ class DpmService(
     val currentUser = userRepository.findById(2).orElseThrow()
     val sixMonthsAgo = LocalDateTime.now().minusMonths(6)
 
-    return dpmRepository.getCurrentDpms(currentUser.id!!, sixMonthsAgo).map { HomeDpmDto.from(it) }
+    return dpmRepository.getCurrentDpms(currentUser.id!!, sixMonthsAgo).map(HomeDpmDto::from)
   }
 
   fun getUnapprovedDpms(): Collection<ApprovalDpmDto> =
-    dpmRepository.getUnApprovedDpms().map { ApprovalDpmDto.from(it) }
+    dpmRepository.getUnApprovedDpms().map(ApprovalDpmDto::from)
 
   fun updateDpm(id: Int, dto: PatchDpmDto) {
     val dpm = dpmRepository.findById(id).orElseThrow { DpmNotFoundException(id) }
@@ -138,6 +138,6 @@ class DpmService(
 
     return dpmRepository
       .findAllByUserOrderByCreatedDesc(user, PageRequest.of(pageNumber, size))
-      .map { DpmDetailDto.from(it) }
+      .map(DpmDetailDto::from)
   }
 }

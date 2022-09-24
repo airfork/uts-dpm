@@ -6,13 +6,14 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { DpmService, DPMTypes } from '../../services/dpm.service';
+import { DpmService } from '../../services/dpm.service';
 import { UserService } from '../../services/user.service';
 import { NotificationService } from '../../services/notification.service';
 import { FormatService } from '../../services/format.service';
 import PostDpmDto from '../../models/postDpmDto';
 import UsernameDto from '../../models/usernameDto';
 import { first } from 'rxjs';
+import { DPMTypes } from '../../models/dpmType';
 
 type startEndTime = 'Start Time' | 'End Time';
 const regex24HourTime = /^(?:[01][0-9]|2[0-3])[0-5][0-9](?::[0-5][0-9])?$/;

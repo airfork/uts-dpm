@@ -24,9 +24,6 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping(value = ["/api/dpms"], produces = [MediaType.APPLICATION_JSON_VALUE])
 @Tag(name = "DPMs", description = "Endpoints for managing DPM data")
 class DpmController(private val dpmService: DpmService) {
-  companion object {
-    private val LOGGER = LoggerFactory.getLogger(DpmController::class.java)
-  }
 
   @Operation(
     summary = "Create a dpm for a user",

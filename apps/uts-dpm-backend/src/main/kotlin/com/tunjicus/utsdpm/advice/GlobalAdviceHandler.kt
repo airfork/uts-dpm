@@ -50,6 +50,12 @@ class GlobalAdviceHandler(private val request: HttpServletRequest) {
     return createExceptionResponse(HttpStatus.BAD_REQUEST, ex.localizedMessage)
   }
 
+  @ExceptionHandler(AutogenException::class)
+  fun handleAutogenException(ex: AutogenException): ResponseEntity<ExceptionResponse> {
+    LOGGER.warn(ex.message)
+    return createExceptionResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.localizedMessage)
+  }
+
   private fun createExceptionResponse(
     status: HttpStatus,
     messages: List<String>

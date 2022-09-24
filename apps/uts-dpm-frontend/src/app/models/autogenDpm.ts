@@ -1,5 +1,5 @@
 export default interface AutogenDpm {
-  driver: string;
+  name: string;
   block: string;
   startTime: string;
   endTime: string;
