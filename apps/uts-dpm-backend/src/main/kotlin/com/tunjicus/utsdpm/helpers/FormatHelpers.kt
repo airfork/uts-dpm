@@ -11,6 +11,7 @@ private val OUTBOUND_TIME_FORMAT = DateTimeFormatter.ofPattern("HHmm")
 private val DATE_FORMAT = DateTimeFormatter.ofPattern("MM/dd/yyyy")
 private val CREATED_AT_FORMAT = DateTimeFormatter.ofPattern("MM/dd/yyyy '@' HHmm")
 private val CREATED_EXCEL_FORMAT = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm")
+private val SUBMITTED_AT_FORMAT = DateTimeFormatter.ofPattern("HHmm")
 
 fun formatOutboundDpmDate(date: LocalDate?): String = DATE_FORMAT.format(date)
 
@@ -19,6 +20,7 @@ fun formatOutboundDpmTime(start: LocalDateTime?, end: LocalDateTime? = null): St
 
   return "${OUTBOUND_TIME_FORMAT.format(start)} - ${OUTBOUND_TIME_FORMAT.format(end)}"
 }
+
 fun formatInboundDpmDate(date: String?): LocalDate = LocalDate.parse(date, DATE_FORMAT)
 
 fun formatInboundDpmTime(time: String?): LocalDateTime {
@@ -37,3 +39,5 @@ fun formatDateOrNull(date: String, formatter: DateTimeFormatter): LocalDateTime?
     null
   }
 }
+
+fun formatSubmittedAt(timestamp: LocalDateTime): String = SUBMITTED_AT_FORMAT.format(timestamp)

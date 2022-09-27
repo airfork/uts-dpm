@@ -2,10 +2,14 @@ package com.tunjicus.utsdpm.services
 
 import com.tunjicus.utsdpm.dtos.AutogenDpm
 import com.tunjicus.utsdpm.dtos.AutogenDpmDto
+import com.tunjicus.utsdpm.dtos.AutogenWrapperDto
+import com.tunjicus.utsdpm.entities.AutoSubmission
+import com.tunjicus.utsdpm.exceptions.AutoSubmitAlreadyCalledException
 import com.tunjicus.utsdpm.exceptions.AutogenException
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
+import com.tunjicus.utsdpm.exceptions.UserNameNotFoundException
+import com.tunjicus.utsdpm.helpers.formatSubmittedAt
+import com.tunjicus.utsdpm.repositories.AutoSubmissionRepository
+import java.util.concurrent.CopyOnWriteArrayList
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -15,12 +19,14 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 
 @Service
-class AutogenService {
+class AutogenService(
+  private val autoSubmissionRepository: AutoSubmissionRepository,
+  private val dpmService: DpmService
+) {
   companion object {
     private val LOGGER = LoggerFactory.getLogger(AutogenService::class.java)
     private val CLIENT = OkHttpClient()
     private const val LOGIN_URL = "https://whentowork.com/cgi-bin/w2w.dll/login"
-    private val DAY_OF_WEEK = DateTimeFormatter.ofPattern("u")
 
     private const val DAY_VIEW_LINK =
       "https://www7.whentowork.com/%s/mgrschedule?%s&lmi=1&view=Pos&Day=%s"
@@ -32,12 +38,46 @@ class AutogenService {
     private val BLOCK_LINE_REGEX = """sh\(\d+,"[\[\w+\]a-zA-Z ()]+","\d+""".toRegex()
     private val BLOCK_REGEX = """\[\w+]""".toRegex()
     private val BLOCK_COUNT_REGEX = """"\d+""".toRegex()
+    private val autogenDpms = CopyOnWriteArrayList<AutogenDpmDto>()
   }
 
   @Value("\${app.w2wUser}") private lateinit var w2wUser: String
   @Value("\${app.w2wPass}") private lateinit var w2wPass: String
 
-  fun autogenDtos() = autogen().map(AutogenDpmDto::from)
+  fun autogenDtos(): AutogenWrapperDto {
+    val today = TimeService.getTodayDate()
+    val lastSubmission = autoSubmissionRepository.findMostRecent() ?: AutoSubmission.min()
+
+    if (!today.isEqual(lastSubmission.submitted?.toLocalDate())) {
+      return AutogenWrapperDto(dpms = autogen().map(AutogenDpmDto::from))
+    }
+
+    // should not happen
+    if (autogenDpms.isEmpty()) autogenDpms.addAll(autogen().map(AutogenDpmDto::from))
+    return AutogenWrapperDto(formatSubmittedAt(lastSubmission.submitted!!), autogenDpms)
+  }
+
+  fun autoSubmit() {
+    val lastSubmission = autoSubmissionRepository.findMostRecent() ?: AutoSubmission.min()
+    val today = TimeService.getTodayDate()
+
+    if (today.isEqual(lastSubmission.submitted?.toLocalDate())) {
+      throw AutoSubmitAlreadyCalledException()
+    }
+
+    val dpms = autogen()
+    for (dpm in dpms) {
+      try {
+        dpmService.newDpm(dpm)
+      } catch (ex: UserNameNotFoundException) {
+        LOGGER.warn(ex.localizedMessage)
+      }
+    }
+
+    autogenDpms.clear()
+    autogenDpms.addAll(dpms.map(AutogenDpmDto::from))
+    autoSubmissionRepository.save(AutoSubmission())
+  }
 
   private fun autogen(): List<AutogenDpm> {
     val loginBody = loginRequest()
@@ -63,7 +103,7 @@ class AutogenService {
   }
 
   private fun schedulePageRequest(sid: String, dllPath: String): String {
-    val dayOfWeek = ZonedDateTime.now(ZoneId.of("America/New_York")).dayOfWeek.value - 1
+    val dayOfWeek = TimeService.getTodayZonedDateTime().dayOfWeek.value - 1
     val request =
       Request.Builder().url(String.format(DAY_VIEW_LINK, dllPath, sid, dayOfWeek)).build()
     CLIENT.newCall(request).execute().use {

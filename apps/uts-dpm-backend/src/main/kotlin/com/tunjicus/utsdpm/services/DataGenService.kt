@@ -9,7 +9,6 @@ import com.tunjicus.utsdpm.repositories.UserRepository
 import java.io.File
 import java.io.FileOutputStream
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.Sheet
@@ -205,7 +204,7 @@ class DataGenService(
       cell.setCellValue(generateDpmStatusMessage(dpm.approved!!, dpm.ignored!!))
 
       cell = row.createCell(cellIndex++)
-      cell.setCellValue(formatCreatedAtExcel(dpm.created!!.atZone(ZoneId.of("America/New_York"))))
+      cell.setCellValue(formatCreatedAtExcel(dpm.created!!.atZone(TimeService.ZONE_ID)))
 
       cell = row.createCell(cellIndex)
       cell.setCellValue("${dpm.createdUser?.firstname} ${dpm.createdUser?.lastname}".trim())

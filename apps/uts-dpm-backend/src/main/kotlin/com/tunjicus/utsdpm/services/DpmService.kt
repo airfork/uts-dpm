@@ -81,6 +81,21 @@ class DpmService(
     dpmRepository.save(dpm)
   }
 
+  fun newDpm(autogenDpm: AutogenDpm) {
+    // TODO: Fix when auth is implemented
+    val createdBy = userRepository.findById(1).orElseThrow()
+    val driver =
+      userRepository.findByFullName(autogenDpm.name)
+        ?: throw UserNameNotFoundException(autogenDpm.name)
+    val dpm = autogenDpm.toDpm()
+
+    dpm.user = driver
+    dpm.createdUser = createdBy
+    LOGGER.info("Creating autogen dpm: $dpm")
+
+    dpmRepository.save(dpm)
+  }
+
   fun getCurrentDpms(): Collection<HomeDpmDto> {
     // TODO: Fix when auth is implemented
     val currentUser = userRepository.findById(2).orElseThrow()

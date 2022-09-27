@@ -21,7 +21,7 @@ class GlobalAdviceHandler(private val request: HttpServletRequest) {
   ): ResponseEntity<ExceptionResponses> {
     LOGGER.info("Method argument not valid exception")
     val messages = ex.allErrors.filter { it.defaultMessage != null }.map { it.defaultMessage!! }
-    return createExceptionResponse(HttpStatus.BAD_REQUEST, messages)
+    return createExceptionResponse(messages)
   }
 
   @ExceptionHandler(UserNameNotFoundException::class)
@@ -43,9 +43,7 @@ class GlobalAdviceHandler(private val request: HttpServletRequest) {
     UserRoleNotFoundException::class,
     ManagerNotFoundException::class
   )
-  fun handleBadRequestExceptions(
-    ex: RuntimeException
-  ): ResponseEntity<ExceptionResponse> {
+  fun handleBadRequestExceptions(ex: RuntimeException): ResponseEntity<ExceptionResponse> {
     LOGGER.warn(ex.message)
     return createExceptionResponse(HttpStatus.BAD_REQUEST, ex.localizedMessage)
   }
@@ -56,10 +54,16 @@ class GlobalAdviceHandler(private val request: HttpServletRequest) {
     return createExceptionResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.localizedMessage)
   }
 
-  private fun createExceptionResponse(
-    status: HttpStatus,
-    messages: List<String>
-  ): ResponseEntity<ExceptionResponses> {
+  @ExceptionHandler(AutoSubmitAlreadyCalledException::class)
+  fun handleAutoSubmitAlreadyCalledException(
+    ex: AutoSubmitAlreadyCalledException
+  ): ResponseEntity<ExceptionResponse> {
+    LOGGER.warn(ex.message)
+    return createExceptionResponse(HttpStatus.CONFLICT, ex.localizedMessage)
+  }
+
+  private fun createExceptionResponse(messages: List<String>): ResponseEntity<ExceptionResponses> {
+    val status = HttpStatus.BAD_REQUEST
     return ResponseEntity.status(status)
       .body(
         ExceptionResponses(
