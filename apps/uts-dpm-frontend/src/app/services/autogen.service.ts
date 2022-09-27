@@ -1,11 +1,9 @@
 import { Injectable } from '@angular/core';
-import { DpmService } from './dpm.service';
-import DPM from '../models/dpm';
 import { catchError, Observable, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
-import AutogenDpm from '../models/autogenDpm';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { NotificationService } from './notification.service';
+import AutogenWrapper from '../models/autogenWrapper';
 
 const BASE_URL = environment.baseUrl + '/autogen';
 
@@ -18,12 +16,23 @@ export class AutogenService {
     private notificationService: NotificationService
   ) {}
 
-  getAutogenDpms(): Observable<AutogenDpm[]> {
-    return this.http.get<AutogenDpm[]>(BASE_URL).pipe(
+  getAutogenDpms(): Observable<AutogenWrapper> {
+    return this.http.get<AutogenWrapper>(BASE_URL).pipe(
       catchError((error: HttpErrorResponse) => {
         this.notificationService.showError('Something went wrong', 'Error');
         return throwError(
           () => new Error('Something went wrong trying to autogen DPMs')
+        );
+      })
+    );
+  }
+
+  submit(): Observable<any> {
+    return this.http.post(BASE_URL + '/submit', null).pipe(
+      catchError((error: HttpErrorResponse) => {
+        this.notificationService.showError('Something went wrong', 'Error');
+        return throwError(
+          () => new Error('Something went wrong trying to submit autogen DPMs')
         );
       })
     );

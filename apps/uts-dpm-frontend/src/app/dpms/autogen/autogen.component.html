@@ -9,7 +9,7 @@
   </span>
 </div>
 
-<div *ngIf="autogenDpms$ | async as dpms; else loading">
+<div *ngIf="autogenDpms; else loading">
   <div class="lg:overflow-x-auto">
     <div class="grid place-items-center">
       <table class="table table-fixed lg:table-auto w-full">
@@ -21,7 +21,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let dpm of dpms">
+          <tr *ngFor="let dpm of autogenDpms">
             <td class="break-words whitespace-normal">{{ dpm.name }}</td>
             <td class="break-words whitespace-normal">
               {{ dpm.block }} {{ dpm.startTime }}-{{ dpm.endTime }}
@@ -33,14 +33,30 @@
     </div>
   </div>
   <div class="grid place-items-center">
-    <button
-      pRipple
-      type="button"
-      class="btn btn-secondary w-full sm:btn-wide mt-5"
-      (click)="onSubmit()"
-      [disabled]="submittedTime"
+    <ng-template #submitButton>
+      <button
+        pRipple
+        type="button"
+        class="btn btn-secondary w-full sm:btn-wide mt-5"
+        (click)="onSubmit()"
+      >
+        Submit
+      </button>
+    </ng-template>
+
+    <div
+      *ngIf="submittedTime; else submitButton"
+      class="tooltip"
+      data-tip="Autogen has already been called today"
     >
-      Submit
-    </button>
+      <button
+        pRipple
+        type="button"
+        class="btn btn-secondary w-full sm:btn-wide mt-5"
+        disabled
+      >
+        Submit
+      </button>
+    </div>
   </div>
 </div>
