@@ -1,8 +1,13 @@
 import { Component } from '@angular/core';
+import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
+import { NotificationService } from '../../services/notification.service';
+import { Roles } from '../../auth/roles.types';
 
 interface navbarLinks {
-  path: string;
+  path?: string;
   name: string;
+  allowedRoles: Roles[];
 }
 
 @Component({
@@ -12,19 +17,50 @@ interface navbarLinks {
 })
 export class NavbarComponent {
   links: navbarLinks[] = [
-    { path: '/dpm', name: 'DPM' },
-    { path: '/autogen', name: 'Autogen' },
-    { path: '/datagen', name: 'Datagen' },
-    { path: '/approvals', name: 'Approvals' },
-    { path: '/users', name: 'Users' },
-    { path: '/message', name: 'Logout' },
+    {
+      path: '/dpm',
+      name: 'DPM',
+      allowedRoles: ['ADMIN', 'ANALYST', 'MANAGER', 'SUPERVISOR'],
+    },
+    {
+      path: '/autogen',
+      name: 'Autogen',
+      allowedRoles: ['ADMIN', 'ANALYST', 'MANAGER', 'SUPERVISOR'],
+    },
+    {
+      path: '/datagen',
+      name: 'Datagen',
+      allowedRoles: ['ADMIN', 'ANALYST', 'MANAGER'],
+    },
+    {
+      path: '/approvals',
+      name: 'Approvals',
+      allowedRoles: ['ADMIN', 'MANAGER'],
+    },
+    { path: '/users', name: 'Users', allowedRoles: ['ADMIN'] },
+    {
+      name: 'Logout',
+      allowedRoles: ['ADMIN', 'ANALYST', 'DRIVER', 'MANAGER', 'SUPERVISOR'],
+    },
   ];
 
-  constructor() {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private notificationService: NotificationService
+  ) {}
 
-  menuItemClick(): void {
+  menuItemClick() {
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
+  }
+
+  logoutClick() {
+    this.menuItemClick();
+    this.authService.logout();
+    this.router
+      .navigate(['/login'])
+      .then(() => this.notificationService.showInfo('Logged out', ''));
   }
 }

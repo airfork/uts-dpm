@@ -1,6 +1,6 @@
 package com.tunjicus.utsdpm.controllers
 
-import com.tunjicus.utsdpm.dtos.JwtTokenDto
+import com.tunjicus.utsdpm.dtos.LoginResponseDto
 import com.tunjicus.utsdpm.dtos.LoginDto
 import com.tunjicus.utsdpm.services.AuthService
 import io.swagger.v3.oas.annotations.Operation
@@ -29,7 +29,7 @@ class AuthController(private val authService: AuthService) {
         responseCode = "200",
         description = "Successful login",
         content =
-        [Content(schema = Schema(implementation = JwtTokenDto::class))]
+        [Content(schema = Schema(implementation = LoginResponseDto::class))]
       ),
       ApiResponse(
         responseCode = "401",

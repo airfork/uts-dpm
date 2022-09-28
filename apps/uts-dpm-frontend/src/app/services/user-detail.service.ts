@@ -24,7 +24,7 @@ export class UserDetailService {
     return this.http.get<GetUserDetailDto>(`${BASE_URL}/${id}`).pipe(
       catchError((error: HttpErrorResponse) => {
         if (error.status === 404) {
-          this.router.navigate(['/error/404']);
+          this.router.navigate(['/errors/404']);
         } else {
           this.notificationService.showError('Something went wrong', 'Error');
         }

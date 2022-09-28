@@ -5,6 +5,7 @@ import javax.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -60,6 +61,12 @@ class GlobalAdviceHandler(private val request: HttpServletRequest) {
   ): ResponseEntity<ExceptionResponse> {
     LOGGER.warn(ex.message)
     return createExceptionResponse(HttpStatus.CONFLICT, ex.localizedMessage)
+  }
+
+  @ExceptionHandler(AuthenticationException::class)
+  fun handleAuthenticationException(ex: AuthenticationException): ResponseEntity<ExceptionResponse> {
+    LOGGER.warn(ex.message)
+    return createExceptionResponse(HttpStatus.UNAUTHORIZED, ex.localizedMessage)
   }
 
   private fun createExceptionResponse(messages: List<String>): ResponseEntity<ExceptionResponses> {

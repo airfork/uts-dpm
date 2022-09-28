@@ -26,8 +26,6 @@ class User {
 
   @Column(name = "points", columnDefinition = "int2") var points: Int? = null
 
-  @Column(name = "sessionkey", nullable = false, length = 60) var sessionKey: String? = null
-
   @OneToMany(mappedBy = "createdUser", fetch = FetchType.LAZY)
   var createdDpms: MutableList<Dpm>? = null
 
@@ -60,7 +58,6 @@ class User {
     if (fullTime != other.fullTime) return false
     if (changed != other.changed) return false
     if (points != other.points) return false
-    if (sessionKey != other.sessionKey) return false
     if (createdDpms != other.createdDpms) return false
     if (dpms != other.dpms) return false
     if (role != other.role) return false
@@ -78,7 +75,6 @@ class User {
     result = 31 * result + (fullTime?.hashCode() ?: 0)
     result = 31 * result + (changed?.hashCode() ?: 0)
     result = 31 * result + (points ?: 0)
-    result = 31 * result + (sessionKey?.hashCode() ?: 0)
     result = 31 * result + (createdDpms?.hashCode() ?: 0)
     result = 31 * result + (dpms?.hashCode() ?: 0)
     result = 31 * result + (role?.hashCode() ?: 0)

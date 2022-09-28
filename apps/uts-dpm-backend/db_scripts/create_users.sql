@@ -11,7 +11,6 @@ create table if not exists users
   fulltime   boolean   default false not null,
   changed    boolean   default false,
   points     smallint  default 0,
-  sessionkey varchar(60)             not null,
   added      timestamp default now()
 );
 

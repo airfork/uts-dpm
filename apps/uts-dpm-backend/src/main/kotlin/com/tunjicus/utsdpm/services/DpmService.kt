@@ -1,6 +1,7 @@
 package com.tunjicus.utsdpm.services
 
 import com.tunjicus.utsdpm.dtos.*
+import com.tunjicus.utsdpm.entities.User
 import com.tunjicus.utsdpm.exceptions.DpmNotFoundException
 import com.tunjicus.utsdpm.exceptions.NameNotFoundException
 import com.tunjicus.utsdpm.exceptions.UserNotFoundException
@@ -15,7 +16,8 @@ import org.springframework.stereotype.Service
 @Service
 class DpmService(
   private val userRepository: UserRepository,
-  private val dpmRepository: DpmRepository
+  private val dpmRepository: DpmRepository,
+  private val authService: AuthService
 ) {
   companion object {
     private val LOGGER = LoggerFactory.getLogger(DpmService::class.java)
@@ -67,8 +69,7 @@ class DpmService(
   }
 
   fun newDpm(dpmDto: PostDpmDto) {
-    // TODO: Fix when auth is implemented
-    val createdBy = userRepository.findById(1).orElseThrow()
+    val createdBy = authService.getCurrentUser();
     val driver =
       userRepository.findByFullName(dpmDto.driver!!)
         ?: throw NameNotFoundException(dpmDto.driver)
@@ -81,9 +82,7 @@ class DpmService(
     dpmRepository.save(dpm)
   }
 
-  fun newDpm(autogenDpm: AutogenDpm) {
-    // TODO: Fix when auth is implemented
-    val createdBy = userRepository.findById(1).orElseThrow()
+  fun newDpm(autogenDpm: AutogenDpm, createdBy: User) {
     val driver =
       userRepository.findByFullName(autogenDpm.name)
         ?: throw NameNotFoundException(autogenDpm.name)
@@ -97,8 +96,7 @@ class DpmService(
   }
 
   fun getCurrentDpms(): Collection<HomeDpmDto> {
-    // TODO: Fix when auth is implemented
-    val currentUser = userRepository.findById(2).orElseThrow()
+    val currentUser = authService.getCurrentUser()
     val sixMonthsAgo = LocalDateTime.now().minusMonths(6)
 
     return dpmRepository.getCurrentDpms(currentUser.id!!, sixMonthsAgo).map(HomeDpmDto::from)

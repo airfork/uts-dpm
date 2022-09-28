@@ -1,5 +1,7 @@
 package com.tunjicus.utsdpm.security
 
+import com.tunjicus.utsdpm.services.AuthService
+import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import java.util.*
@@ -25,6 +27,7 @@ class JwtProvider(private val jwtProperties: JwtProperties) {
       .setIssuedAt(now)
       .setExpiration(expiryDate)
       .signWith(Keys.hmacShaKeyFor(encodedSecret))
+      .addClaims(mapOf(Pair("role", AuthService.getRole(authentication.authorities))))
       .compact()
   }
 
@@ -38,8 +41,10 @@ class JwtProvider(private val jwtProperties: JwtProperties) {
     return try {
       Jwts.parserBuilder().setSigningKey(encodedSecret).build().parseClaimsJws(token)
       true
+    } catch (_: ExpiredJwtException) {
+      false
     } catch (ex: Exception) {
-      LOGGER.error("Exception while validating jwt token", ex)
+      LOGGER.error("Unhandled while validating jwt token", ex)
       false
     }
   }

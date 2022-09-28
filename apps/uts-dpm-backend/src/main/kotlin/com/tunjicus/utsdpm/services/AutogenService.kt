@@ -21,7 +21,8 @@ import org.springframework.stereotype.Service
 @Service
 class AutogenService(
   private val autoSubmissionRepository: AutoSubmissionRepository,
-  private val dpmService: DpmService
+  private val dpmService: DpmService,
+  private val authService: AuthService
 ) {
   companion object {
     private val LOGGER = LoggerFactory.getLogger(AutogenService::class.java)
@@ -66,9 +67,10 @@ class AutogenService(
     }
 
     val dpms = autogen()
+    val currentUser = authService.getCurrentUser()
     for (dpm in dpms) {
       try {
-        dpmService.newDpm(dpm)
+        dpmService.newDpm(dpm, currentUser)
       } catch (ex: NameNotFoundException) {
         LOGGER.warn(ex.localizedMessage)
       }

@@ -16,6 +16,7 @@ import DpmDetailDto from '../../models/dpmDetailDto';
 import { LazyLoadEvent } from 'primeng/api';
 import { DpmService } from '../../services/dpm.service';
 import { ApprovalsService } from '../../services/approvals.service';
+import { AuthService } from '../../services/auth.service';
 
 type tab = 'actions' | 'dpms' | 'info';
 
@@ -58,7 +59,8 @@ export class UserDetailComponent implements OnInit {
     private titleService: Title,
     private notificationService: NotificationService,
     private dpmService: DpmService,
-    private approvalsService: ApprovalsService
+    private approvalsService: ApprovalsService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -77,6 +79,13 @@ export class UserDetailComponent implements OnInit {
             user.managers
           );
           this.setFormData();
+
+          if (
+            this.authService.userData.username.toLowerCase() ===
+            user.email.toLowerCase()
+          ) {
+            this.userFormGroup.get('role')!.disable();
+          }
         });
     });
 

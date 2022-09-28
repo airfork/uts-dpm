@@ -3,6 +3,7 @@ package com.tunjicus.utsdpm.security
 import javax.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
@@ -44,6 +45,8 @@ class SecurityAdapter(private val userDetailsService: UserDetailsService) {
       .disable()
       .authorizeRequests()
       .antMatchers(*NO_AUTH_LIST)
+      .permitAll()
+      .antMatchers(HttpMethod.OPTIONS,"/**")
       .permitAll()
       .antMatchers("/api/**")
       .authenticated()
