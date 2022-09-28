@@ -6,7 +6,7 @@ import com.tunjicus.utsdpm.dtos.AutogenWrapperDto
 import com.tunjicus.utsdpm.entities.AutoSubmission
 import com.tunjicus.utsdpm.exceptions.AutoSubmitAlreadyCalledException
 import com.tunjicus.utsdpm.exceptions.AutogenException
-import com.tunjicus.utsdpm.exceptions.UserNameNotFoundException
+import com.tunjicus.utsdpm.exceptions.NameNotFoundException
 import com.tunjicus.utsdpm.helpers.formatSubmittedAt
 import com.tunjicus.utsdpm.repositories.AutoSubmissionRepository
 import java.util.concurrent.CopyOnWriteArrayList
@@ -69,7 +69,7 @@ class AutogenService(
     for (dpm in dpms) {
       try {
         dpmService.newDpm(dpm)
-      } catch (ex: UserNameNotFoundException) {
+      } catch (ex: NameNotFoundException) {
         LOGGER.warn(ex.localizedMessage)
       }
     }

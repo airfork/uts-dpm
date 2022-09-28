@@ -14,7 +14,8 @@ import org.springframework.stereotype.Service
 @Service
 class UserService(
   private val userRepository: UserRepository,
-  private val roleRepository: RoleRepository
+  private val roleRepository: RoleRepository,
+  private val authService: AuthService
 ) {
   companion object {
     private val LOGGER = LoggerFactory.getLogger(UserService::class.java)
@@ -25,6 +26,8 @@ class UserService(
       fun(first: String?, last: String?): String {
         return ((first ?: "") + " " + (last ?: "")).trim()
       }
+
+    LOGGER.info("Current user: ${authService.getCurrentUser()}")
     return userRepository.findAllSorted().map {
       UsernameDto(it.id ?: -1, generateName(it.firstname, it.lastname))
     }

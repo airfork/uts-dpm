@@ -39,10 +39,10 @@ class User {
     joinColumns = [JoinColumn(name = "user_id")],
     inverseJoinColumns = [JoinColumn(name = "role_id")]
   )
-  var role: Role? = null;
+  var role: Role? = null
 
   override fun toString(): String {
-    return "User(id=$id, manager={${manager?.firstname} ${manager?.lastname}}, username=$username, password=$password, firstname=$firstname, lastname=$lastname, fullTime=$fullTime, points=$points, roles=$role"
+    return "User(id=$id, manager='${manager?.firstname} ${manager?.lastname}', username=$username, firstname=$firstname, lastname=$lastname, fullTime=$fullTime, points=$points, role=$role)"
   }
 
   override fun equals(other: Any?): Boolean {

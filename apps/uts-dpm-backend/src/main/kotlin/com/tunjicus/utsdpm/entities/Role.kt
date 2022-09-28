@@ -14,4 +14,7 @@ class Role {
   @Enumerated(EnumType.STRING)
   @Column(name = "name")
   var roleName: RoleName? = null
+  override fun toString(): String {
+    return "Role($roleName)"
+  }
 }

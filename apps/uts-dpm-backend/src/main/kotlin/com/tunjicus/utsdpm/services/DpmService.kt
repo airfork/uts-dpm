@@ -2,7 +2,7 @@ package com.tunjicus.utsdpm.services
 
 import com.tunjicus.utsdpm.dtos.*
 import com.tunjicus.utsdpm.exceptions.DpmNotFoundException
-import com.tunjicus.utsdpm.exceptions.UserNameNotFoundException
+import com.tunjicus.utsdpm.exceptions.NameNotFoundException
 import com.tunjicus.utsdpm.exceptions.UserNotFoundException
 import com.tunjicus.utsdpm.repositories.DpmRepository
 import com.tunjicus.utsdpm.repositories.UserRepository
@@ -71,7 +71,7 @@ class DpmService(
     val createdBy = userRepository.findById(1).orElseThrow()
     val driver =
       userRepository.findByFullName(dpmDto.driver!!)
-        ?: throw UserNameNotFoundException(dpmDto.driver)
+        ?: throw NameNotFoundException(dpmDto.driver)
     val dpm = dpmDto.toDpm()
 
     dpm.user = driver
@@ -86,7 +86,7 @@ class DpmService(
     val createdBy = userRepository.findById(1).orElseThrow()
     val driver =
       userRepository.findByFullName(autogenDpm.name)
-        ?: throw UserNameNotFoundException(autogenDpm.name)
+        ?: throw NameNotFoundException(autogenDpm.name)
     val dpm = autogenDpm.toDpm()
 
     dpm.user = driver

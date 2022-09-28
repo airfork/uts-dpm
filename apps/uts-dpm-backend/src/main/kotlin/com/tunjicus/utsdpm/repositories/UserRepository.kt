@@ -1,7 +1,6 @@
 package com.tunjicus.utsdpm.repositories
 
 import com.tunjicus.utsdpm.entities.User
-import java.util.Optional
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.query.Param
@@ -24,4 +23,6 @@ interface UserRepository : CrudRepository<User, Int> {
     nativeQuery = true
   )
   fun findAllManagers(): Collection<String>
+
+  fun findByUsername(username: String): User?
 }
