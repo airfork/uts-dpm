@@ -2,6 +2,7 @@ package com.tunjicus.utsdpm.controllers
 
 import com.tunjicus.utsdpm.dtos.AutogenWrapperDto
 import com.tunjicus.utsdpm.exceptions.ExceptionResponse
+import com.tunjicus.utsdpm.exceptions.SecurityExceptionResponse
 import com.tunjicus.utsdpm.services.AutogenService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -9,12 +10,14 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.MediaType
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
+@PreAuthorize("hasAnyRole('ADMIN', 'ANALYST', 'MANAGER', 'SUPERVISOR')")
 @RequestMapping(value = ["/api/autogen"], produces = [MediaType.APPLICATION_JSON_VALUE])
 @Tag(
   name = "Autogen",
@@ -32,6 +35,16 @@ class AutogenController(private val autogenService: AutogenService) {
           content = [Content(schema = Schema(implementation = AutogenWrapperDto::class))]
         ),
         ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized, need to login",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+        ApiResponse(
+          responseCode = "403",
+          description = "User does not have the correct permissions to perform this action",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+        ApiResponse(
           responseCode = "500",
           description = "Something went wrong trying to generate the DPMs",
           content = [Content(schema = Schema(implementation = ExceptionResponse::class))]
@@ -45,6 +58,16 @@ class AutogenController(private val autogenService: AutogenService) {
     responses =
       [
         ApiResponse(responseCode = "200", description = "The DPMs were submitted"),
+        ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized, need to login",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+        ApiResponse(
+          responseCode = "403",
+          description = "User does not have the correct permissions to perform this action",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
         ApiResponse(
           responseCode = "409",
           description = "AutoSubmit was already called for today",

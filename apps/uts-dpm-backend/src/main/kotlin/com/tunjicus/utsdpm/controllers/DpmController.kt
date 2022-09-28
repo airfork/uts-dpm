@@ -3,6 +3,7 @@ package com.tunjicus.utsdpm.controllers
 import com.tunjicus.utsdpm.dtos.*
 import com.tunjicus.utsdpm.exceptions.ExceptionResponse
 import com.tunjicus.utsdpm.exceptions.ExceptionResponses
+import com.tunjicus.utsdpm.exceptions.SecurityExceptionResponse
 import com.tunjicus.utsdpm.services.DpmService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -12,10 +13,10 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import javax.validation.Valid
-import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 
@@ -40,11 +41,22 @@ class DpmController(private val dpmService: DpmService) {
           content = [Content(schema = Schema(implementation = ExceptionResponses::class))]
         ),
         ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized, need to login",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+        ApiResponse(
+          responseCode = "403",
+          description = "User does not have the correct permissions to perform this action",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+        ApiResponse(
           responseCode = "422",
           description = "Unable to find user the DPM is meant for",
           content = [Content(schema = Schema(implementation = ExceptionResponse::class))]
         )]
   )
+  @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST', 'MANAGER', 'SUPERVISOR')")
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   fun new(@RequestBody @Valid dpmDto: PostDpmDto) = dpmService.newDpm(dpmDto)
@@ -58,6 +70,11 @@ class DpmController(private val dpmService: DpmService) {
           description = "Successful request",
           content =
             [Content(array = ArraySchema(schema = Schema(implementation = HomeDpmDto::class)))]
+        ),
+        ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized, need to login",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
         )]
   )
   @GetMapping("/current")
@@ -74,8 +91,20 @@ class DpmController(private val dpmService: DpmService) {
           description = "Successful request",
           content =
             [Content(array = ArraySchema(schema = Schema(implementation = ApprovalDpmDto::class)))]
-        )]
+        ),
+        ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized, need to login",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+        ApiResponse(
+          responseCode = "403",
+          description = "User does not have the correct permissions to perform this action",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+      ]
   )
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   @GetMapping("/approvals")
   fun getUnapprovedDpms(): Collection<ApprovalDpmDto> = dpmService.getUnapprovedDpms()
 
@@ -86,28 +115,50 @@ class DpmController(private val dpmService: DpmService) {
       [
         ApiResponse(responseCode = "200", description = "Updates were successful"),
         ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized, need to login",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+        ApiResponse(
+          responseCode = "403",
+          description = "User does not have the correct permissions to perform this action",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+        ApiResponse(
           responseCode = "404",
           description = "Failed to find a dpm with the id in the path variable",
           content = [Content(schema = Schema(implementation = ExceptionResponse::class))]
         )]
   )
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   @PatchMapping("/{id}")
   fun updateDpm(
     @Parameter(description = "The id of the DPM") @PathVariable id: Int,
     @RequestBody dto: PatchDpmDto
   ) = dpmService.updateDpm(id, dto)
 
-   @Operation(
+  @Operation(
     summary = "Get all the dpms for the user",
     responses =
       [
         ApiResponse(responseCode = "200", description = "Request completed successfully"),
+        ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized, need to login",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+        ApiResponse(
+          responseCode = "403",
+          description = "User does not have the correct permissions to perform this action",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
         ApiResponse(
           responseCode = "404",
           description = "Failed to find a user with the id in the path variable",
           content = [Content(schema = Schema(implementation = ExceptionResponse::class))]
         )]
   )
+  @PreAuthorize("hasRole('ADMIN')")
   @GetMapping("/user/{id}")
   fun getAll(
     @Parameter(description = "The page number for pagination")
