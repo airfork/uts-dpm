@@ -2,6 +2,7 @@ package com.tunjicus.utsdpm.services
 
 import com.tunjicus.utsdpm.entities.Dpm
 import com.tunjicus.utsdpm.entities.User
+import com.tunjicus.utsdpm.enums.RoleName
 import com.tunjicus.utsdpm.exceptions.InvalidDataGenDateException
 import com.tunjicus.utsdpm.helpers.*
 import com.tunjicus.utsdpm.repositories.DpmRepository
@@ -20,7 +21,8 @@ import org.springframework.stereotype.Service
 @Service
 class DataGenService(
   private val dpmRepository: DpmRepository,
-  private val userRepository: UserRepository
+  private val userRepository: UserRepository,
+  private val authService: AuthService
 ) {
   fun generateDpmSpreadSheet(startDate: String?, endDate: String?): String {
     LOGGER.info("Startdate: $startDate, EndDate: $endDate")
@@ -45,7 +47,12 @@ class DataGenService(
     cellFont.fontHeightInPoints = 12.toShort()
     style.setFont(headerFont)
 
-    val dpms = dpmRepository.findAllByCreatedAfterAndCreatedBeforeOrderByCreatedDesc(start, end)
+    val currentUser = authService.getCurrentUser()
+    var dpms = dpmRepository.findAllByCreatedAfterAndCreatedBeforeOrderByCreatedDesc(start, end)
+    if (currentUser.role?.roleName == RoleName.MANAGER) {
+      dpms = dpms.filter { it.user?.manager?.id == currentUser.id }
+    }
+
     for ((index, dpm) in dpms.withIndex()) {
       setDpmRows(sheet, dpm, index, style)
     }
@@ -81,7 +88,12 @@ class DataGenService(
     cellFont.fontHeightInPoints = 12.toShort()
     style.setFont(headerFont)
 
-    val users = userRepository.findAllSorted()
+    val currentUser = authService.getCurrentUser()
+    var users = userRepository.findAllSorted()
+    if (currentUser.role?.roleName == RoleName.MANAGER) {
+      users = users.filter { it.manager?.id == currentUser.id }
+    }
+
     for ((index, user) in users.withIndex()) {
       setUserRows(sheet, user, index, style)
     }

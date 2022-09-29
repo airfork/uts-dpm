@@ -63,8 +63,18 @@ class GlobalAdviceHandler(private val request: HttpServletRequest) {
     return createExceptionResponse(HttpStatus.CONFLICT, ex.localizedMessage)
   }
 
+  @ExceptionHandler(UserNotAuthorizedException::class)
+  fun handleUserNotAuthorizedException(
+    ex: UserNotAuthorizedException
+  ): ResponseEntity<ExceptionResponse> {
+    LOGGER.warn(ex.message)
+    return createExceptionResponse(HttpStatus.FORBIDDEN, ex.localizedMessage)
+  }
+
   @ExceptionHandler(AuthenticationException::class)
-  fun handleAuthenticationException(ex: AuthenticationException): ResponseEntity<ExceptionResponse> {
+  fun handleAuthenticationException(
+    ex: AuthenticationException
+  ): ResponseEntity<ExceptionResponse> {
     LOGGER.warn(ex.message)
     return createExceptionResponse(HttpStatus.UNAUTHORIZED, ex.localizedMessage)
   }

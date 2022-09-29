@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.security.SecurityScheme
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 
 @OpenAPIDefinition(
@@ -30,6 +31,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
   type = SecuritySchemeType.APIKEY
 )
 @SpringBootApplication
+@EnableScheduling
 class UtsDpmBackendApplication {
   fun addResourceHandlers(registry: ResourceHandlerRegistry) =
     registry.addResourceHandler("/").addResourceLocations("/index.html")

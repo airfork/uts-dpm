@@ -83,7 +83,8 @@ class DpmController(private val dpmService: DpmService) {
   @Operation(
     summary = "Gets all the unapproved dpms",
     description =
-      "Unapproved dpms are ones that have approved set to null or false (legacy) and have ignored set to null or false",
+      "Unapproved dpms are ones that have approved set to null or false (legacy) and have ignored set to null or false." +
+        "Admins can view all unapproved dpms, but managers can only view dpms for people they manage",
     responses =
       [
         ApiResponse(

@@ -2,8 +2,10 @@ package com.tunjicus.utsdpm.services
 
 import com.tunjicus.utsdpm.dtos.*
 import com.tunjicus.utsdpm.entities.User
+import com.tunjicus.utsdpm.enums.RoleName
 import com.tunjicus.utsdpm.exceptions.DpmNotFoundException
 import com.tunjicus.utsdpm.exceptions.NameNotFoundException
+import com.tunjicus.utsdpm.exceptions.UserNotAuthorizedException
 import com.tunjicus.utsdpm.exceptions.UserNotFoundException
 import com.tunjicus.utsdpm.repositories.DpmRepository
 import com.tunjicus.utsdpm.repositories.UserRepository
@@ -69,10 +71,9 @@ class DpmService(
   }
 
   fun newDpm(dpmDto: PostDpmDto) {
-    val createdBy = authService.getCurrentUser();
+    val createdBy = authService.getCurrentUser()
     val driver =
-      userRepository.findByFullName(dpmDto.driver!!)
-        ?: throw NameNotFoundException(dpmDto.driver)
+      userRepository.findByFullName(dpmDto.driver!!) ?: throw NameNotFoundException(dpmDto.driver)
     val dpm = dpmDto.toDpm()
 
     dpm.user = driver
@@ -84,8 +85,7 @@ class DpmService(
 
   fun newDpm(autogenDpm: AutogenDpm, createdBy: User) {
     val driver =
-      userRepository.findByFullName(autogenDpm.name)
-        ?: throw NameNotFoundException(autogenDpm.name)
+      userRepository.findByFullName(autogenDpm.name) ?: throw NameNotFoundException(autogenDpm.name)
     val dpm = autogenDpm.toDpm()
 
     dpm.user = driver
@@ -102,11 +102,32 @@ class DpmService(
     return dpmRepository.getCurrentDpms(currentUser.id!!, sixMonthsAgo).map(HomeDpmDto::from)
   }
 
-  fun getUnapprovedDpms(): Collection<ApprovalDpmDto> =
-    dpmRepository.getUnApprovedDpms().map(ApprovalDpmDto::from)
+  // If manager, get unapproved dpms for managed users
+  // Get all if admin
+  fun getUnapprovedDpms(): Collection<ApprovalDpmDto> {
+    val currentUser = authService.getCurrentUser()
+    val unapprovedDpms = dpmRepository.getUnapprovedDpms()
+
+    return when (currentUser.role?.roleName) {
+      RoleName.ADMIN -> unapprovedDpms.map(ApprovalDpmDto::from)
+      RoleName.MANAGER ->
+        unapprovedDpms.filter { it.user?.manager?.id == currentUser.id }.map(ApprovalDpmDto::from)
+      else -> throw UserNotAuthorizedException()
+    }
+  }
 
   fun updateDpm(id: Int, dto: PatchDpmDto) {
     val dpm = dpmRepository.findById(id).orElseThrow { DpmNotFoundException(id) }
+    val currentUser = authService.getCurrentUser()
+    val currentRole = currentUser.role?.roleName
+
+    if (currentRole != RoleName.ADMIN && currentRole != RoleName.MANAGER) {
+      throw UserNotAuthorizedException()
+    }
+
+    if (currentRole == RoleName.MANAGER && currentUser.id != dpm.user?.manager?.id) {
+      throw UserNotAuthorizedException()
+    }
 
     // always just update points
     if (dto.points != null) dpm.points = dto.points

@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @Tag(name = "DataGen", description = "Routes for generating excel data")
 @RequestMapping(value = ["/api/datagen"])
-@PreAuthorize("hasAnyRole('ADMIN, ANALYST, MANAGER')")
+@PreAuthorize("hasAnyRole('ADMIN', 'ANALYST', 'MANAGER')")
 class DataGenController(private val dataGenService: DataGenService) {
   @Operation(
     summary = "Generates a spreadsheet with DPM data",
@@ -60,7 +60,8 @@ class DataGenController(private val dataGenService: DataGenService) {
   ): ResponseEntity<ByteArrayResource> =
     returnExcelFile(File(dataGenService.generateDpmSpreadSheet(startDate, endDate)), "DPMs")
 
-  @Operation( summary = "Generates a spreadsheet with user data",
+  @Operation(
+    summary = "Generates a spreadsheet with user data",
     responses =
       [
         ApiResponse(

@@ -16,7 +16,10 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 
 @Service
 class AutogenService(
@@ -79,6 +82,18 @@ class AutogenService(
     autogenDpms.clear()
     autogenDpms.addAll(dpms.map(AutogenDpmDto::from))
     autoSubmissionRepository.save(AutoSubmission())
+  }
+
+  // Run daily
+  // Delay one hour so repeated starts don't trigger event
+  @Scheduled(fixedRate = 1000 * 60 * 60 * 24, initialDelay = 1000 * 60 * 60)
+  @Transactional
+  fun cleanupAutoSubmissionsTable() {
+    LOGGER.info("Running auto submissions cleanup job")
+    val monthAgo = LocalDateTime.now().minusMonths(1)
+    val rowsDeleted = autoSubmissionRepository.deleteBySubmittedBefore(monthAgo)
+
+    LOGGER.info("Cleanup job complete - $rowsDeleted entries removed")
   }
 
   private fun autogen(): List<AutogenDpm> {
@@ -173,6 +188,10 @@ class AutogenService(
         var location = locationAndNotes.split(" ")[0].uppercase().replace("\"", "").trim(')', ';')
         if (location.length > 9) {
           location = location.substring(0, 9)
+        }
+
+        if (locationAndNotes.contains("OTR", true)) {
+          location = "OTR"
         }
 
         // only looking for red, FF0000, and gold, ffcc00

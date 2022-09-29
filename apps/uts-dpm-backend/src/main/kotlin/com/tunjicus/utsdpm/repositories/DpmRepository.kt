@@ -5,7 +5,6 @@ import com.tunjicus.utsdpm.entities.User
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.PagingAndSortingRepository
 import org.springframework.data.repository.query.Param
 import java.time.LocalDateTime
@@ -30,7 +29,7 @@ interface DpmRepository : PagingAndSortingRepository<Dpm, Int> {
       "order by created desc",
     nativeQuery = true
   )
-  fun getUnApprovedDpms(): Collection<Dpm>
+  fun getUnapprovedDpms(): Collection<Dpm>
 
   fun findAllByCreatedAfterAndCreatedBeforeOrderByCreatedDesc(
     after: LocalDateTime,

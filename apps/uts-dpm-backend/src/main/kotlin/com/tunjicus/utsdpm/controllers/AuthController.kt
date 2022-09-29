@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController
 class AuthController(private val authService: AuthService) {
 
   @Operation(
-    summary = "Gets the names of all the users",
+    summary = "Logins in the user",
     responses =
       [
         ApiResponse(

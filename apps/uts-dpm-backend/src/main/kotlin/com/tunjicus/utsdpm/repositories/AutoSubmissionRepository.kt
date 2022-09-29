@@ -1,8 +1,10 @@
 package com.tunjicus.utsdpm.repositories
 
 import com.tunjicus.utsdpm.entities.AutoSubmission
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
+import java.time.LocalDateTime
 
 interface AutoSubmissionRepository : CrudRepository<AutoSubmission, Int> {
 
@@ -13,4 +15,7 @@ interface AutoSubmissionRepository : CrudRepository<AutoSubmission, Int> {
     nativeQuery = true
   )
   fun findMostRecent(): AutoSubmission?
+
+  @Modifying
+  fun deleteBySubmittedBefore(timestamp: LocalDateTime): Int
 }

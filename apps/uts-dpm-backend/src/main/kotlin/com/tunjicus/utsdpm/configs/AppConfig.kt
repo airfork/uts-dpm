@@ -15,5 +15,6 @@ class AppConfig(private val requestLoggingInterceptor: RequestLoggingInterceptor
   override fun addCorsMappings(registry: CorsRegistry) {
     registry.addMapping("/**").allowedOrigins("http://localhost:4200")
       .allowedMethods("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+      .exposedHeaders("Content-Disposition")
   }
 }
