@@ -3,7 +3,7 @@
   <form
     class="grid grid-cols-6 mx-5 gap-x-6"
     [formGroup]="dpmDataFormGroup"
-    (ngSubmit)="onFormSubmit()"
+    (ngSubmit)="getDpmData()"
   >
     <div class="form-control col-span-6 md:col-span-3 lg:col-span-2">
       <label class="label" for="startDate">
@@ -17,10 +17,8 @@
       <p-calendar
         id="startDate"
         formControlName="startDate"
-        [placeholder]="format.dpmDate()"
-        inputStyleClass="input input-bordered w-full {{
-          errorsOrEmpty(startDate)
-        }}"
+        [placeholder]="format.dpmDate(null, true)"
+        inputStyleClass="input input-bordered w-full {{ errorsOrEmpty() }}"
         [required]="true"
       ></p-calendar>
       <label class="label" for="startDate">
@@ -43,9 +41,7 @@
         id="endDate"
         formControlName="endDate"
         [placeholder]="format.dpmDate()"
-        inputStyleClass="input input-bordered w-full {{
-          errorsOrEmpty(endDate)
-        }}"
+        inputStyleClass="input input-bordered w-full {{ errorsOrEmpty() }}"
         [required]="true"
       ></p-calendar>
       <label class="label" for="endDate">
@@ -69,19 +65,15 @@
     </div>
 
     <div class="grid place-items-center col-span-6 mt-4">
-      <a
+      <button
         pRipple
         type="submit"
         class="btn btn-secondary m-auto w-full md:btn-wide"
-        target="_self"
-        [ngClass]="{
-          'btn-disabled': !dpmDataFormGroup.valid && !getAll?.value
-        }"
-        [href]="generateDownloadLink()"
-        (click)="onFormSubmit()"
+        [disabled]="!dpmDataFormGroup.valid && !getAll?.value"
+        (click)="getDpmData()"
       >
         Generate
-      </a>
+      </button>
     </div>
   </form>
 
@@ -90,13 +82,13 @@
   <div>
     <h3 class="text-2xl pb-4 font-bold">User Data</h3>
     <div class="grid place-items-center mt-2 mx-5">
-      <a
+      <button
         pRipple
         class="btn btn-secondary m-auto w-full md:btn-wide"
-        [href]="USERS_URL"
+        (click)="getUserData()"
       >
         Generate
-      </a>
+      </button>
     </div>
   </div>
 </div>

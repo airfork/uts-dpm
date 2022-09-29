@@ -5,11 +5,11 @@ import { AuthRoutingModule } from './auth-routing.module';
 import { AuthComponent } from './auth/auth.component';
 import { RippleModule } from 'primeng/ripple';
 import { ReactiveFormsModule } from '@angular/forms';
-import HideIfUnauthorizedDirective from './hide-if-unauthorized.directive';
+import { RemoveIfUnauthorizedDirective } from './remove-if-unauthorized.directive';
 
 @NgModule({
-  declarations: [LoginComponent, AuthComponent, HideIfUnauthorizedDirective],
+  declarations: [LoginComponent, AuthComponent, RemoveIfUnauthorizedDirective],
   imports: [CommonModule, AuthRoutingModule, RippleModule, ReactiveFormsModule],
-  exports: [HideIfUnauthorizedDirective],
+  exports: [RemoveIfUnauthorizedDirective],
 })
 export class AuthModule {}

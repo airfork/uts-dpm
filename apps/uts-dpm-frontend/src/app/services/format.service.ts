@@ -7,9 +7,13 @@ import { formatDate } from '@angular/common';
 export class FormatService {
   constructor(@Inject(LOCALE_ID) private locale: string) {}
 
-  dpmDate(date?: Date): string {
+  dpmDate(date?: Date | null, subtractMonth: boolean = false): string {
     if (!date) {
       date = new Date();
+    }
+
+    if (subtractMonth) {
+      date.setMonth(date.getMonth() - 1);
     }
 
     return formatDate(date, 'MM/dd/yyyy', this.locale);

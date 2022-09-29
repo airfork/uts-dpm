@@ -3,10 +3,10 @@ import { Roles } from './roles.types';
 import { AuthService } from '../services/auth.service';
 
 @Directive({
-  selector: '[appHideIfUnauthorized]',
+  selector: '[appRemoveIfUnauthorized]',
 })
-export default class HideIfUnauthorizedDirective implements OnInit {
-  @Input('appHideIfUnauthorized') roles: Roles[] = [];
+export class RemoveIfUnauthorizedDirective implements OnInit {
+  @Input('appRemoveIfUnauthorized') roles: Roles[] = [];
 
   constructor(private authService: AuthService, private el: ElementRef) {}
 

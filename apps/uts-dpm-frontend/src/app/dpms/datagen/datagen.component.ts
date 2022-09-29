@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { FormatService } from '../../services/format.service';
 import { environment } from '../../../environments/environment';
 import { MixedDateValidator } from '../../directives/mixed-date.directive';
+import { DatagenService } from '../../services/datagen.service';
 
 @Component({
   selector: 'app-datagen',
@@ -12,7 +13,6 @@ import { MixedDateValidator } from '../../directives/mixed-date.directive';
 })
 export class DatagenComponent {
   private BASE_URL = environment.baseUrl + '/datagen';
-  USERS_URL = this.BASE_URL + '/users';
 
   dpmDataFormGroup = new FormGroup(
     {
@@ -23,9 +23,22 @@ export class DatagenComponent {
     { validators: MixedDateValidator }
   );
 
-  constructor(private formatService: FormatService) {}
+  constructor(
+    private formatService: FormatService,
+    private datagenService: DatagenService
+  ) {}
 
-  errorsOrEmpty(control: AbstractControl | null): string {
+  getUserData() {
+    this.datagenService.downloadUserData();
+  }
+
+  getDpmData() {
+    this.datagenService.downloadDpmData(this.generateDownloadUrl(), () =>
+      this.dpmDataFormGroup.reset({ endDate: new Date() })
+    );
+  }
+
+  errorsOrEmpty(): string {
     if (this.dpmDataFormGroup.errors?.['mixedDate'] && !this.getAll?.value) {
       return 'input-error';
     }
@@ -53,13 +66,7 @@ export class DatagenComponent {
     return '';
   }
 
-  onFormSubmit() {
-    // need to wait a bit so that generateDownloadLink function
-    // generates a proper link instead of '#'
-    setTimeout(() => this.dpmDataFormGroup.reset({ endDate: new Date() }), 500);
-  }
-
-  generateDownloadLink(): string {
+  generateDownloadUrl(): string {
     if (this.dpmDataFormGroup.invalid && !this.dpmDataFormGroup.value.getAll)
       return '#';
 
