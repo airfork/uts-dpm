@@ -1,6 +1,6 @@
 import { Directive, ElementRef, Input, OnInit } from '@angular/core';
-import { Roles } from './roles.types';
-import { AuthService } from '../services/auth.service';
+import { Roles } from '../roles.types';
+import { AuthService } from '../../services/auth.service';
 
 @Directive({
   selector: '[appRemoveIfUnauthorized]',

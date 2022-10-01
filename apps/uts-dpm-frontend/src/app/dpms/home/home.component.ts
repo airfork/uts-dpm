@@ -1,13 +1,12 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { DpmService } from '../../services/dpm.service';
 import { FormatService } from '../../services/format.service';
-import HomeDpmDto from '../../models/homeDpmDto';
+import HomeDpmDto from '../../models/home-dpm-dto';
 import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeComponent {

@@ -13,7 +13,6 @@ interface navbarLinks {
 @Component({
   selector: 'app-navbar',
   templateUrl: './navbar.component.html',
-  styleUrls: ['./navbar.component.scss'],
 })
 export class NavbarComponent {
   links: navbarLinks[] = [

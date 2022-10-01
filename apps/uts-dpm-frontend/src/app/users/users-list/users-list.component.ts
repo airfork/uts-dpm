@@ -5,7 +5,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { UserService } from '../../services/user.service';
-import UsernameDto from '../../models/usernameDto';
+import UsernameDto from '../../models/username-dto';
 import { FormatService } from '../../services/format.service';
 import { first } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -15,7 +15,6 @@ type tab = 'actions' | 'create' | 'search';
 @Component({
   selector: 'app-users-list',
   templateUrl: './users-list.component.html',
-  styleUrls: ['./users-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UsersListComponent implements OnInit {

@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import GetUserDetailDto from '../../models/getUserDetailDto';
+import GetUserDetailDto from '../../models/get-user-detail-dto';
 import { first } from 'rxjs';
 import { Title } from '@angular/platform-browser';
 import { NotificationService } from '../../services/notification.service';
-import DpmDetailDto from '../../models/dpmDetailDto';
+import DpmDetailDto from '../../models/dpm-detail-dto';
 import { LazyLoadEvent } from 'primeng/api';
 import { DpmService } from '../../services/dpm.service';
 import { ApprovalsService } from '../../services/approvals.service';
@@ -16,7 +16,6 @@ type tab = 'detail-actions' | 'dpms' | 'info';
 @Component({
   selector: 'app-user-detail',
   templateUrl: './user-detail.component.html',
-  styleUrls: ['./user-detail.component.scss'],
 })
 export class UserDetailComponent implements OnInit {
   private lastLazyLoadEvent?: LazyLoadEvent;

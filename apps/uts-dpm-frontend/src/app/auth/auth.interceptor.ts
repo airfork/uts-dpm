@@ -31,9 +31,18 @@ export class AuthInterceptor implements HttpInterceptor {
         next: () => {},
         error: (error) => {
           if (error instanceof HttpErrorResponse) {
-            if (error.status === 401 && !req.url.includes('/api/auth/login')) {
+            if (
+              error.status === 401 &&
+              !(
+                req.url.includes('/api/auth/login') ||
+                req.url.includes('/api/auth/changePassword')
+              )
+            ) {
               console.log('Not authorized, redirecting to login page');
               this.router.navigate(['/login']);
+            } else if (error.status === 303) {
+              console.info('Password needs to be changed, redirecting');
+              this.router.navigate(['/passwordChange']);
             }
           }
         },

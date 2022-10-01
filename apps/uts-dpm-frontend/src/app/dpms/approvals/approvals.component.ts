@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ApprovalsService } from '../../services/approvals.service';
 import { FormatService } from '../../services/format.service';
 import { first } from 'rxjs';
-import ApprovalDpmDto from '../../models/approvalDpmDto';
+import ApprovalDpmDto from '../../models/approval-dpm-dto';
 import { NotificationService } from '../../services/notification.service';
 
 @Component({

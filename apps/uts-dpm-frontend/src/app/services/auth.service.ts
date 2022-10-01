@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
 import jwtDecode from 'jwt-decode';
-import TokenPayload from '../models/TokenPayload';
-import { Observable } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import TokenPayload from '../models/token-payload';
+import { catchError, map, Observable, throwError } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import UserData from '../models/userData';
+import UserData from '../models/user-data';
+import { NotificationService } from './notification.service';
+import ChangePasswordDto from '../models/change-password-dto';
 
 const BASE_URL = environment.baseUrl + '/auth';
 
@@ -14,7 +16,10 @@ const BASE_URL = environment.baseUrl + '/auth';
 export class AuthService {
   userData: UserData;
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private notificationService: NotificationService
+  ) {
     this.userData = new UserData();
     this.setUserData();
   }
@@ -46,6 +51,29 @@ export class AuthService {
   isAuthenticated(): boolean {
     const now = Math.floor(new Date().getTime() / 1000);
     return now < this.userData.exp && this.userData.token != '';
+  }
+
+  changePasswordRequired(): Observable<boolean> {
+    return this.http.get<{ required: boolean }>(BASE_URL + '/changeCheck').pipe(
+      catchError((error: HttpErrorResponse) => {
+        this.notificationService.showError(
+          'Something went wrong, please try again.',
+          'Error'
+        );
+        console.error(error);
+        return throwError(
+          () =>
+            new Error(
+              'Something went wrong trying to check the change password status'
+            )
+        );
+      }),
+      map(({ required }) => required)
+    );
+  }
+
+  changePassword(dto: ChangePasswordDto): Observable<any> {
+    return this.http.patch(BASE_URL + '/changePassword', dto);
   }
 
   private setUserData() {

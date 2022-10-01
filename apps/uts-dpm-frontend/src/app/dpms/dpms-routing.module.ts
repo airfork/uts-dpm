@@ -6,7 +6,7 @@ import { NewDpmComponent } from './new-dpm/new-dpm.component';
 import { AutogenComponent } from './autogen/autogen.component';
 import { DatagenComponent } from './datagen/datagen.component';
 import { ApprovalsComponent } from './approvals/approvals.component';
-import { GenerateTitle, TitlePrefix } from '../shared/titleHelper';
+import { GenerateTitle, TitlePrefix } from '../shared/title-helper';
 import { AuthGuard } from '../auth/auth.guard';
 
 const routes: Routes = [

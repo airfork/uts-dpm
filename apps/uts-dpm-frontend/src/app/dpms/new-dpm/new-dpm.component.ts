@@ -10,10 +10,10 @@ import { DpmService } from '../../services/dpm.service';
 import { UserService } from '../../services/user.service';
 import { NotificationService } from '../../services/notification.service';
 import { FormatService } from '../../services/format.service';
-import PostDpmDto from '../../models/postDpmDto';
-import UsernameDto from '../../models/usernameDto';
+import PostDpmDto from '../../models/post-dpm-dto';
+import UsernameDto from '../../models/username-dto';
 import { first } from 'rxjs';
-import { DPMTypes } from '../../models/dpmType';
+import { DPMTypes } from '../../models/dpm-type';
 
 type startEndTime = 'Start Time' | 'End Time';
 const regex24HourTime = /^(?:[01][0-9]|2[0-3])[0-5][0-9](?::[0-5][0-9])?$/;
@@ -26,7 +26,6 @@ interface queryResult {
 @Component({
   selector: 'app-new-dpm',
   templateUrl: './new-dpm.component.html',
-  styleUrls: ['./new-dpm.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NewDpmComponent implements OnInit {

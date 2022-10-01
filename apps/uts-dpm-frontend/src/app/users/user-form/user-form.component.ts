@@ -13,14 +13,14 @@ import {
   FormGroup,
   Validators,
 } from '@angular/forms';
-import GetUserDetailDto from '../../models/getUserDetailDto';
-import UserDetailDto from '../../models/userDetailDto';
+import GetUserDetailDto from '../../models/get-user-detail-dto';
+import UserDetailDto from '../../models/user-detail-dto';
 import { UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
-import Required from '../../shared/RequiredDecorator';
+import Required from '../../shared/required-decorator';
 import { first } from 'rxjs';
 import { NotificationService } from '../../services/notification.service';
-import CreateUserDto from '../../models/createUserDto';
+import CreateUserDto from '../../models/create-user-dto';
 import { HttpErrorResponse } from '@angular/common/http';
 
 const POINTS_VALIDATORS = [Validators.required, Validators.pattern(/-?\d+/)];
@@ -28,7 +28,6 @@ const POINTS_VALIDATORS = [Validators.required, Validators.pattern(/-?\d+/)];
 @Component({
   selector: 'app-user-form',
   templateUrl: './user-form.component.html',
-  styleUrls: ['./user-form.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserFormComponent implements OnInit, OnChanges {

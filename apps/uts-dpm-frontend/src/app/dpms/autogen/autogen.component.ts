@@ -2,13 +2,12 @@ import { Component, Inject, LOCALE_ID, OnInit } from '@angular/core';
 import { AutogenService } from '../../services/autogen.service';
 import { formatDate } from '@angular/common';
 import { NotificationService } from '../../services/notification.service';
-import { first, Observable } from 'rxjs';
-import AutogenDpm from '../../models/autogenDpm';
+import { first } from 'rxjs';
+import AutogenDpm from '../../models/autogen-dpm';
 
 @Component({
   selector: 'app-autogen',
   templateUrl: './autogen.component.html',
-  styleUrls: ['./autogen.component.scss'],
 })
 export class AutogenComponent implements OnInit {
   autogenDpms?: AutogenDpm[];

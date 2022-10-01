@@ -2,13 +2,12 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { FormatService } from '../../services/format.service';
 import { environment } from '../../../environments/environment';
-import { MixedDateValidator } from '../../directives/mixed-date.directive';
+import { MixedDateValidator } from '../mixed-date.directive';
 import { DatagenService } from '../../services/datagen.service';
 
 @Component({
   selector: 'app-datagen',
   templateUrl: './datagen.component.html',
-  styleUrls: ['./datagen.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DatagenComponent {

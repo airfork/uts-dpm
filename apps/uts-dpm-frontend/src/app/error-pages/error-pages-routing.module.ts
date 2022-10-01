@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { ErrorPagesComponent } from './error-pages/error-pages.component';
 import { NotFoundComponent } from './not-found/not-found.component';
-import { GenerateTitle } from '../shared/titleHelper';
+import { GenerateTitle } from '../shared/title-helper';
 import { ForbiddenComponent } from './forbidden/forbidden.component';
 
 const routes: Routes = [

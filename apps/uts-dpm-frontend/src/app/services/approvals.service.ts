@@ -1,49 +1,42 @@
 import { Injectable } from '@angular/core';
 import { DpmService } from './dpm.service';
-import { catchError, Observable, retry, throwError } from 'rxjs';
-import ApprovalDpmDto from '../models/approvalDpmDto';
-import { HttpClient } from '@angular/common/http';
-import { NotificationService } from './notification.service';
+import { catchError, Observable, retry } from 'rxjs';
+import ApprovalDpmDto from '../models/approval-dpm-dto';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { ErrorService } from './error.service';
+
+const BASE_URL = environment.baseUrl + '/dpms';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApprovalsService {
-  private static BASE_URL = environment.baseUrl;
-
   constructor(
     private dpmService: DpmService,
     private http: HttpClient,
-    private notificationService: NotificationService
+    private errorService: ErrorService
   ) {}
 
   getApprovalDpms(): Observable<ApprovalDpmDto[]> {
-    return this.http
-      .get<ApprovalDpmDto[]>(`${ApprovalsService.BASE_URL}/dpms/approvals`)
-      .pipe(
-        retry(2),
-        catchError((error) => {
-          this.notificationService.showError('Something went wrong', 'Error');
-          return throwError(
-            () =>
-              new Error(
-                'Something went wrong when trying to get the unapproved dpm list'
-              )
-          );
-        })
-      );
+    return this.http.get<ApprovalDpmDto[]>(BASE_URL + '/approvals').pipe(
+      catchError((error: HttpErrorResponse) => {
+        return this.errorService.errorResponse(
+          error,
+          'Something went wrong when trying to get the unapproved dpm list'
+        );
+      })
+    );
   }
 
   updatePoints(id: number, points: number): Observable<any> {
     return this.http
-      .patch<any>(`${ApprovalsService.BASE_URL}/dpms/${id}`, { points: points })
+      .patch<any>(`${BASE_URL}/dpms/${id}`, { points: points })
       .pipe(
-        retry(2),
         catchError((error) => {
-          this.notificationService.showError('Something went wrong', 'Error');
-          return throwError(
-            () => new Error('Something went wrong trying to update the points')
+          return this.errorService.errorResponse(
+            error,
+            "Something went wrong when trying to update the user's points"
           );
         })
       );
@@ -51,13 +44,13 @@ export class ApprovalsService {
 
   approveDpm(id: number): Observable<any> {
     return this.http
-      .patch<any>(`${ApprovalsService.BASE_URL}/dpms/${id}`, { approved: true })
+      .patch<any>(`${BASE_URL}/dpms/${id}`, { approved: true })
       .pipe(
         retry(2),
         catchError((error) => {
-          this.notificationService.showError('Something went wrong', 'Error');
-          return throwError(
-            () => new Error('Something went wrong trying to approve the dpm')
+          return this.errorService.errorResponse(
+            error,
+            'Something went wrong trying to approve the dpm'
           );
         })
       );
@@ -65,13 +58,12 @@ export class ApprovalsService {
 
   denyDpm(id: number): Observable<any> {
     return this.http
-      .patch<any>(`${ApprovalsService.BASE_URL}/dpms/${id}`, { ignored: true })
+      .patch<any>(`${BASE_URL}/dpms/${id}`, { ignored: true })
       .pipe(
-        retry(2),
         catchError((error) => {
-          this.notificationService.showError('Something went wrong', 'Error');
-          return throwError(
-            () => new Error('Something went wrong trying to deny the dpm')
+          return this.errorService.errorResponse(
+            error,
+            'Something went wrong trying to deny the dpm'
           );
         })
       );

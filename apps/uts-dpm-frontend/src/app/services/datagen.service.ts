@@ -33,6 +33,14 @@ export class DatagenService {
           );
         },
         error: (error: HttpErrorResponse) => {
+          if (error.status === 303) {
+            this.notificationService.showWarning(
+              'Password change required',
+              ''
+            );
+            return;
+          }
+
           console.error(error);
           this.notificationService.showError(
             'Something went wrong, please try again.',
@@ -57,6 +65,14 @@ export class DatagenService {
           callback();
         },
         error: (error: HttpErrorResponse) => {
+          if (error.status === 303) {
+            this.notificationService.showWarning(
+              'Password change required',
+              ''
+            );
+            return;
+          }
+
           console.error(error);
           this.notificationService.showError(
             'Something went wrong, please try again.',
