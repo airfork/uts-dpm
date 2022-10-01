@@ -1,5 +1,6 @@
 package com.tunjicus.utsdpm.security
 
+import com.tunjicus.utsdpm.repositories.UserRepository
 import javax.servlet.FilterChain
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -15,6 +16,7 @@ class JwtAuthenticationFilter : OncePerRequestFilter() {
 
   @Autowired private lateinit var jwtProvider: JwtProvider
   @Autowired private lateinit var userDetailsService: UserDetailsService
+  @Autowired private lateinit var userRepository: UserRepository
 
   companion object {
     private val LOGGER = LoggerFactory.getLogger(JwtAuthenticationFilter::class.java)
@@ -35,6 +37,18 @@ class JwtAuthenticationFilter : OncePerRequestFilter() {
           UsernamePasswordAuthenticationToken(userDetails, null, userDetails.authorities)
         authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
         SecurityContextHolder.getContext().authentication = authentication
+
+        // send 'error' response if user needs to change password
+        val user = userRepository.findByUsername(username)
+        if (user != null && !user.changed!!) {
+          if (
+            !request.requestURL.contains("/changePassword", true) &&
+              !request.requestURL.contains("/changeCheck", true)
+          ) {
+            response.sendError(HttpServletResponse.SC_SEE_OTHER)
+            return
+          }
+        }
       }
     } catch (ex: Exception) {
       LOGGER.error("Could not set user authentication in security context", ex)
@@ -45,6 +59,7 @@ class JwtAuthenticationFilter : OncePerRequestFilter() {
 
   private fun getJwtFromRequest(request: HttpServletRequest): String? {
     val bearerToken: String? = request.getHeader("Authorization")
-    return if (bearerToken != null && bearerToken.startsWith("Bearer ")) bearerToken.substring(7) else null
+    return if (bearerToken != null && bearerToken.startsWith("Bearer ")) bearerToken.substring(7)
+    else null
   }
 }

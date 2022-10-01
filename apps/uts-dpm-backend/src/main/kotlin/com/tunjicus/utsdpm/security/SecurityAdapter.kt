@@ -24,7 +24,7 @@ class SecurityAdapter(private val userDetailsService: UserDetailsService) {
   companion object {
     private val NO_AUTH_LIST =
       arrayOf(
-        "/api/auth/**",
+        "/api/auth/login**",
         "/v3/api-docs/**",
         "/swagger-ui/**",
       )
@@ -46,7 +46,7 @@ class SecurityAdapter(private val userDetailsService: UserDetailsService) {
       .authorizeRequests()
       .antMatchers(*NO_AUTH_LIST)
       .permitAll()
-      .antMatchers(HttpMethod.OPTIONS,"/**")
+      .antMatchers(HttpMethod.OPTIONS, "/**")
       .permitAll()
       .antMatchers("/api/**")
       .authenticated()

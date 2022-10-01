@@ -20,12 +20,16 @@ class GlobalAdviceHandler(private val request: HttpServletRequest) {
   fun handleMethodArgumentNotValidException(
     ex: MethodArgumentNotValidException
   ): ResponseEntity<ExceptionResponses> {
-    LOGGER.info("Method argument not valid exception")
     val messages = ex.allErrors.filter { it.defaultMessage != null }.map { it.defaultMessage!! }
+    LOGGER.warn(messages.toString())
     return createExceptionResponse(messages)
   }
 
-  @ExceptionHandler(NameNotFoundException::class, UserAlreadyExistsException::class)
+  @ExceptionHandler(
+    NameNotFoundException::class,
+    UserAlreadyExistsException::class,
+    PasswordChangeException::class
+  )
   fun handleUnprocessableExceptions(ex: RuntimeException): ResponseEntity<ExceptionResponse> {
     LOGGER.warn(ex.message)
     return createExceptionResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.localizedMessage)

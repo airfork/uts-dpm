@@ -7,9 +7,7 @@ import javax.persistence.*
 class User {
   @Id @GeneratedValue(strategy = GenerationType.IDENTITY) @Column(name = "id") var id: Int? = null
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "managerid")
-  var manager: User? = null
+  @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "managerid") var manager: User? = null
 
   @Column(name = "username", nullable = false, length = 40) var username: String? = null
 
@@ -22,7 +20,7 @@ class User {
 
   @Column(name = "fulltime", nullable = false) var fullTime: Boolean? = null
 
-  @Column(name = "changed") var changed: Boolean? = null
+  @Column(name = "changed") var changed: Boolean? = false
 
   @Column(name = "points", columnDefinition = "int2") var points: Int? = null
 
