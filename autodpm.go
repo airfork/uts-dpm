@@ -364,8 +364,11 @@ func checkLastSubmission(db *sqlx.DB) error {
 }
 
 func updateSubmitTime(db *sqlx.DB) error {
+	location, _ := time.LoadLocation("America/New_York")
+	now := time.Now().In(location).Format("2006-01-02")
+
 	// language=sql
-	_, err := db.Exec(`UPDATE auto_submissions SET date_submitted=NOW()`)
+	_, err := db.Exec(`UPDATE auto_submissions SET date_submitted=$1;`, now)
 	if err != nil {
 		return errors.New("failed to update submission time, DPMs still submitted")
 	}
