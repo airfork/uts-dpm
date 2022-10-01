@@ -25,10 +25,8 @@ class GlobalAdviceHandler(private val request: HttpServletRequest) {
     return createExceptionResponse(messages)
   }
 
-  @ExceptionHandler(NameNotFoundException::class)
-  fun handleUserNameNotFoundException(
-    ex: NameNotFoundException
-  ): ResponseEntity<ExceptionResponse> {
+  @ExceptionHandler(NameNotFoundException::class, UserAlreadyExistsException::class)
+  fun handleUnprocessableExceptions(ex: RuntimeException): ResponseEntity<ExceptionResponse> {
     LOGGER.warn(ex.message)
     return createExceptionResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.localizedMessage)
   }

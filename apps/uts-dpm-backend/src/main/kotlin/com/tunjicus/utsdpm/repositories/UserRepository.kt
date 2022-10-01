@@ -25,4 +25,6 @@ interface UserRepository : CrudRepository<User, Int> {
   fun findAllManagers(): Collection<String>
 
   fun findByUsername(username: String): User?
+
+  fun existsByUsername(username: String): Boolean
 }

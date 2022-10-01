@@ -1,9 +1,11 @@
 package com.tunjicus.utsdpm.controllers
 
+import com.tunjicus.utsdpm.dtos.CreateUserDto
 import com.tunjicus.utsdpm.dtos.GetUserDetailDto
 import com.tunjicus.utsdpm.dtos.UserDetailDto
 import com.tunjicus.utsdpm.dtos.UsernameDto
 import com.tunjicus.utsdpm.exceptions.ExceptionResponse
+import com.tunjicus.utsdpm.exceptions.ExceptionResponses
 import com.tunjicus.utsdpm.exceptions.SecurityExceptionResponse
 import com.tunjicus.utsdpm.services.UserService
 import io.swagger.v3.oas.annotations.Operation
@@ -12,15 +14,21 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import javax.validation.Valid
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
+@Validated
 @RestController
 @Tag(name = "Users", description = "Routes for managing user data")
 @RequestMapping(value = ["/api/users"], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -107,4 +115,67 @@ class UserController(private val userService: UserService) {
   @PreAuthorize("hasRole('ADMIN')")
   fun updateUser(@PathVariable id: Int, @RequestBody dto: UserDetailDto) =
     userService.updateUser(dto, id)
+
+  @Operation(
+    summary = "Gets the names of all of the managers",
+    responses =
+      [
+        ApiResponse(
+          responseCode = "200",
+          description = "Managers retrieved successfully",
+          content = [Content(array = ArraySchema(schema = Schema(implementation = String::class)))]
+        ),
+        ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized, need to login",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+        ApiResponse(
+          responseCode = "403",
+          description = "User does not have the correct permissions to perform this action",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+      ]
+  )
+  @PreAuthorize("hasRole('ADMIN')")
+  @GetMapping("/managers")
+  fun getManagers() = userService.getManagers()
+
+  @Operation(
+    summary = "Creates a user",
+    responses =
+      [
+        ApiResponse(
+          responseCode = "201",
+          description = "User was successfully created",
+          content = [Content(array = ArraySchema(schema = Schema(implementation = String::class)))]
+        ),
+        ApiResponse(
+          responseCode = "400",
+          description = "Failed to validate input object",
+          content = [Content(schema = Schema(implementation = ExceptionResponses::class))]
+        ),
+        ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized, need to login",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+        ApiResponse(
+          responseCode = "403",
+          description = "User does not have the correct permissions to perform this action",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+        ApiResponse(
+          responseCode = "422",
+          description =
+            "Something went wrong with the data in the input object. Likely the manager doesn't exist " +
+              "or a user with that username already exists",
+          content = [Content(schema = Schema(implementation = ExceptionResponses::class))]
+        ),
+      ]
+  )
+  @PreAuthorize("hasRole('ADMIN')")
+  @ResponseStatus(HttpStatus.CREATED)
+  @PostMapping
+  fun createUser(@Valid @RequestBody dto: CreateUserDto) = userService.createUser(dto)
 }

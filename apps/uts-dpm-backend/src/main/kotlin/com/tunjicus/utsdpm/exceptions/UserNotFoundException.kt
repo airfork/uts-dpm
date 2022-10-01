@@ -1,3 +1,6 @@
 package com.tunjicus.utsdpm.exceptions
 
-class UserNotFoundException(id: Int) : RuntimeException("Failed to find user with id: $id")
+class UserNotFoundException : RuntimeException {
+  constructor(name: String) : super("Failed to find user with the name $name")
+  constructor(id: Int) : super ("Failed to find user with the id: $id")
+}

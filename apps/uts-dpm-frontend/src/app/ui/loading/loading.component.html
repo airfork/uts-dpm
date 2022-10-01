@@ -1,3 +1,6 @@
-<div class="grid place-items-center h-[80vh] w-full">
+<div
+  class="grid place-items-center h-[80vh] w-full"
+  [ngClass]="{ 'h-[80vh]': !halfScreen, 'h-[40vh]': halfScreen }"
+>
   <p-progressSpinner></p-progressSpinner>
 </div>

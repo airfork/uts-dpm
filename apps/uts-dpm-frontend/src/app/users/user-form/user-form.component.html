@@ -1,0 +1,187 @@
+<div>
+  <form
+    class="grid grid-cols-3 gap-x-6 gap-y-2 rounded"
+    [formGroup]="userFormGroup"
+    (ngSubmit)="onSubmit()"
+  >
+    <div class="form-control col-span-3 md:col-span-1">
+      <label class="label" for="userEmail">
+        <span class="label-text {{ setStatusClass(email, false) }}"
+          >Email
+        </span>
+      </label>
+
+      <input
+        id="userEmail"
+        type="text"
+        placeholder="Email"
+        class="input input-bordered {{ setStatusClass(email) }}"
+        formControlName="email"
+        autocomplete="off"
+        required
+      />
+
+      <label class="label" for="userEmail">
+        <span class="label-text-alt text-error">
+          {{ getEmailValidationMessages() }}
+        </span>
+      </label>
+    </div>
+
+    <div class="form-control col-span-3 md:col-span-1">
+      <label class="label" for="firstname">
+        <span class="label-text {{ setStatusClass(firstname, false) }}"
+          >First Name
+        </span>
+      </label>
+
+      <input
+        id="firstname"
+        type="text"
+        placeholder="Jane"
+        class="input input-bordered capitalize {{ setStatusClass(firstname) }}"
+        formControlName="firstname"
+        autocomplete="off"
+        required
+      />
+
+      <label class="label" for="firstname">
+        <span class="label-text-alt text-error">
+          {{ getFirstnameValidationMessages() }}
+        </span>
+      </label>
+    </div>
+
+    <div class="form-control col-span-3 md:col-span-1">
+      <label class="label" for="lastname">
+        <span class="label-text {{ setStatusClass(lastname, false) }}"
+          >Last Name
+        </span>
+      </label>
+
+      <input
+        id="lastname"
+        type="text"
+        placeholder="Doe"
+        class="input input-bordered capitalize {{ setStatusClass(lastname) }}"
+        formControlName="lastname"
+        autocomplete="off"
+        required
+      />
+
+      <label class="label" for="lastname">
+        <span class="label-text-alt text-error">
+          {{ getLastnameValidationMessages() }}
+        </span>
+      </label>
+    </div>
+
+    <div
+      *ngIf="layout === 'edit'"
+      class="form-control col-span-3 md:col-span-1"
+    >
+      <label class="label" for="points">
+        <span class="label-text" [ngClass]="{ 'text-error': hasErrors(points) }"
+          >Points</span
+        >
+      </label>
+
+      <input
+        id="points"
+        type="text"
+        placeholder="0"
+        class="input input-bordered"
+        formControlName="points"
+        autocomplete="off"
+        required
+        [ngClass]="{ 'input-error': hasErrors(points) }"
+      />
+
+      <label class="label" for="points">
+        <span class="label-text-alt text-error">
+          {{ getPointsValidationMessages() }}
+        </span>
+      </label>
+    </div>
+
+    <div class="form-control col-span-3 md:col-span-1">
+      <label class="label" for="role-select">
+        <span class="label-text">Manager</span>
+      </label>
+
+      <select
+        id="manager-select"
+        class="select select-bordered w-full"
+        formControlName="manager"
+      >
+        <option *ngFor="let manager of managers" [value]="manager">
+          {{ manager }}
+        </option>
+      </select>
+
+      <label class="label" for="manager-select">
+        <span class="label-text-alt">
+          <!-- Spacing -->
+        </span>
+      </label>
+    </div>
+
+    <div class="form-control col-span-3 md:col-span-1">
+      <label class="label" for="role-select">
+        <span class="label-text">Role</span>
+      </label>
+
+      <select
+        id="role-select"
+        class="select select-bordered w-full"
+        formControlName="role"
+      >
+        <option *ngFor="let role of roles" [value]="role">
+          {{ role }}
+        </option>
+      </select>
+
+      <label class="label" for="role-select">
+        <span class="label-text-alt">
+          <!-- Spacing -->
+        </span>
+      </label>
+    </div>
+
+    <div
+      class="grid col-span-3"
+      [ngClass]="{
+        'justify-items-center': layout === 'edit',
+        'md:col-span-1 md:justify-items-start': layout === 'create'
+      }"
+    >
+      <div
+        class="form-control"
+        [ngClass]="{ 'self-center': layout === 'create' }"
+      >
+        <label
+          class="label cursor-pointer justify-center md:justify-start items-center"
+          [ngClass]="{ 'md:mt-4': layout === 'create' }"
+        >
+          <span class="text-base mr-6">Full Time</span>
+          <input
+            type="checkbox"
+            class="checkbox checkbox-md"
+            formControlName="fullTime"
+          />
+        </label>
+      </div>
+    </div>
+
+    <div class="grid place-items-center col-span-3 mt-2">
+      <button
+        pRipple
+        type="submit"
+        class="btn btn-secondary m-auto w-full md:btn-wide"
+        [disabled]="isButtonDisabled()"
+      >
+        {{ layout === "edit" ? "Update" : "Create" }}
+      </button>
+    </div>
+  </form>
+</div>

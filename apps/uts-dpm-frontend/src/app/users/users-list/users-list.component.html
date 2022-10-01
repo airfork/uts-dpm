@@ -9,20 +9,26 @@
     <div>
       <a
         class="tab tab-lg tab-bordered"
-        [ngClass]="{ 'tab-active': searchVisible }"
-        (click)="searchVisible = true"
+        [ngClass]="{ 'tab-active': activeTab.search }"
+        (click)="activateTab('search')"
         >Search</a
       >
       <a
         class="tab tab-lg tab-bordered"
-        [ngClass]="{ 'tab-active': !searchVisible }"
-        (click)="searchVisible = false"
+        [ngClass]="{ 'tab-active': activeTab.create }"
+        (click)="activateTab('create')"
+        >Create</a
+      >
+      <a
+        class="tab tab-lg tab-bordered"
+        [ngClass]="{ 'tab-active': activeTab.actions }"
+        (click)="activateTab('actions')"
         >Actions</a
       >
     </div>
   </div>
 
-  <div *ngIf="searchVisible; else actionView">
+  <div *ngIf="activeTab.search">
     <input
       id="userSearch"
       type="text"
@@ -72,14 +78,16 @@
     </p-table>
   </div>
 
-  <ng-template #actionView>
-    <div class="grid grid-cols-2 place-items-center">
-      <div class="col-span-2 md:col-span-1 md:justify-self-end md:mr-5">
-        <a class="link link-hover text-lg">Send Points Email</a>
-      </div>
-      <div class="col-span-2 md:col-span-1 md:justify-self-start md:ml-5">
-        <a class="link link-hover text-lg">Reset Points Balance</a>
-      </div>
+  <div *ngIf="activeTab.create">
+    <app-user-form layout="create" [managers]="managers"></app-user-form>
+  </div>
+
+  <div *ngIf="activeTab.actions" class="grid grid-cols-2 place-items-center">
+    <div class="col-span-2 md:col-span-1 md:justify-self-end md:mr-5">
+      <a class="link link-hover text-lg">Send Points Email</a>
     </div>
-  </ng-template>
+    <div class="col-span-2 md:col-span-1 md:justify-self-start md:ml-5">
+      <a class="link link-hover text-lg">Reset Points Balance</a>
+    </div>
+  </div>
 </div>

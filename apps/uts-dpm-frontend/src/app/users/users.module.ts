@@ -11,9 +11,15 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RippleModule } from 'primeng/ripple';
 import { TableModule } from 'primeng/table';
 import { InputTextModule } from 'primeng/inputtext';
+import { UserFormComponent } from './user-form/user-form.component';
 
 @NgModule({
-  declarations: [UsersListComponent, UsersComponent, UserDetailComponent],
+  declarations: [
+    UsersListComponent,
+    UsersComponent,
+    UserDetailComponent,
+    UserFormComponent,
+  ],
   imports: [
     CommonModule,
     UsersRoutingModule,

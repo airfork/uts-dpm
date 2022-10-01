@@ -31,6 +31,7 @@
             *ngIf="link.path"
             routerLink="{{ link.path }}"
             routerLinkActive="active"
+            [queryParamsHandling]="link.name === 'Users' ? 'preserve' : null"
             (click)="menuItemClick()"
             >{{ link.name }}</a
           >
@@ -54,6 +55,7 @@
           *ngIf="link.path"
           routerLink="{{ link.path }}"
           routerLinkActive="active"
+          [queryParamsHandling]="link.name === 'Users' ? 'preserve' : null"
         >
           {{ link.name }}
         </a>
