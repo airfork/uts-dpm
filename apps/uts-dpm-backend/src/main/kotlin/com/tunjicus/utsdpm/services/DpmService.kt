@@ -9,7 +9,6 @@ import com.tunjicus.utsdpm.exceptions.UserNotAuthorizedException
 import com.tunjicus.utsdpm.exceptions.UserNotFoundException
 import com.tunjicus.utsdpm.repositories.DpmRepository
 import com.tunjicus.utsdpm.repositories.UserRepository
-import java.time.LocalDateTime
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -97,7 +96,7 @@ class DpmService(
 
   fun getCurrentDpms(): Collection<HomeDpmDto> {
     val currentUser = authService.getCurrentUser()
-    val sixMonthsAgo = LocalDateTime.now().minusMonths(6)
+    val sixMonthsAgo = TimeService.getTodayZonedDateTime().minusMonths(6)
 
     return dpmRepository.getCurrentDpms(currentUser.id!!, sixMonthsAgo).map(HomeDpmDto::from)
   }

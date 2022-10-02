@@ -14,7 +14,7 @@ create table if not exists dpms
   dpmtype   text,
   points    smallint                  not null,
   notes     text,
-  created   timestamp   default now(),
+  created   timestamp with time zone  not null,
   approved  boolean     default false not null,
   location  varchar(10) default 'N/A'::character varying,
   starttime time                      not null,

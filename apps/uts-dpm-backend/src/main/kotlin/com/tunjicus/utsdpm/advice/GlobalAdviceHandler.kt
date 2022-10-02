@@ -44,7 +44,8 @@ class GlobalAdviceHandler(private val request: HttpServletRequest) {
   @ExceptionHandler(
     InvalidDataGenDateException::class,
     UserRoleNotFoundException::class,
-    ManagerNotFoundException::class
+    ManagerNotFoundException::class,
+    SelfDeleteException::class
   )
   fun handleBadRequestExceptions(ex: RuntimeException): ResponseEntity<ExceptionResponse> {
     LOGGER.warn(ex.message)

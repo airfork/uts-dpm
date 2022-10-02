@@ -19,14 +19,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PatchMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @Validated
 @RestController
@@ -178,4 +171,51 @@ class UserController(private val userService: UserService) {
   @ResponseStatus(HttpStatus.CREATED)
   @PostMapping
   fun createUser(@Valid @RequestBody dto: CreateUserDto) = userService.createUser(dto)
+
+  @Operation(
+    summary = "Resets the points balance of all part-timers and ignores all of their approved DPMs",
+    responses =
+      [
+        ApiResponse(responseCode = "200", description = "Reset was completed successfully"),
+        ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized, need to login",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+        ApiResponse(
+          responseCode = "403",
+          description = "User does not have the correct permissions to perform this action",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+      ]
+  )
+  @PreAuthorize("hasRole('ADMIN')")
+  @PatchMapping("/points/reset")
+  fun resetPointBalances() = userService.resetPointBalances()
+
+  @Operation(
+    summary = "Deletes the specified user",
+    responses =
+    [
+      ApiResponse(responseCode = "200", description = "User was successfully deleted"),
+      ApiResponse(
+        responseCode = "400",
+        description = "Bad request, likely due to trying to self-delete",
+        content = [Content(schema = Schema(implementation = ExceptionResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized, need to login",
+        content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "User does not have the correct permissions to perform this action",
+        content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+      ),
+    ]
+  )
+  @PreAuthorize("hasRole('ADMIN')")
+  @DeleteMapping("/{id}")
+  fun delete(@PathVariable id: Int) = userService.deleteUser(id)
 }

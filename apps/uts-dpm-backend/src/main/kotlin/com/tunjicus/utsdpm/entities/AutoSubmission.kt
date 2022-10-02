@@ -1,6 +1,7 @@
 package com.tunjicus.utsdpm.entities
 
-import java.time.LocalDateTime
+import com.tunjicus.utsdpm.services.TimeService
+import java.time.ZonedDateTime
 import javax.persistence.*
 
 @Entity
@@ -11,10 +12,10 @@ class AutoSubmission {
   @Column(name = "auto_submission_id")
   var id: Int? = null
 
-  @Column(name = "submitted", insertable = false, updatable = false)
-  var submitted: LocalDateTime? = null
+  @Column(name = "submitted", updatable = false)
+  var submitted: ZonedDateTime = TimeService.getTodayZonedDateTime()
 
   companion object {
-    fun min() = AutoSubmission().apply { submitted = LocalDateTime.MIN }
+    fun min() = AutoSubmission().apply { submitted = ZonedDateTime.now().minusYears(2000) }
   }
 }

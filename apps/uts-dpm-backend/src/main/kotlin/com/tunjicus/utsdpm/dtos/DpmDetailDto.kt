@@ -5,7 +5,6 @@ import com.tunjicus.utsdpm.helpers.formatCreatedAt
 import com.tunjicus.utsdpm.helpers.formatOutboundDpmDate
 import com.tunjicus.utsdpm.helpers.formatOutboundDpmTime
 import com.tunjicus.utsdpm.helpers.generateDpmStatusMessage
-import com.tunjicus.utsdpm.services.TimeService
 
 class DpmDetailDto(
   val id: Int,
@@ -35,7 +34,7 @@ class DpmDetailDto(
         location = dpm.location!!,
         date = formatOutboundDpmDate(dpm.date),
         time = formatOutboundDpmTime(dpm.startTime, dpm.endTime),
-        createdAt = formatCreatedAt(dpm.created!!.atZone(TimeService.ZONE_ID)),
+        createdAt = formatCreatedAt(dpm.created),
         notes = dpm.notes,
         status = generateDpmStatusMessage(dpm.approved!!, dpm.ignored!!),
         ignored = dpm.ignored!!

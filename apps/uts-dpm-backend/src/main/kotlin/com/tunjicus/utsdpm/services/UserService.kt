@@ -6,20 +6,20 @@ import com.tunjicus.utsdpm.dtos.UserDetailDto
 import com.tunjicus.utsdpm.dtos.UsernameDto
 import com.tunjicus.utsdpm.entities.User
 import com.tunjicus.utsdpm.enums.RoleName
-import com.tunjicus.utsdpm.exceptions.ManagerNotFoundException
-import com.tunjicus.utsdpm.exceptions.NameNotFoundException
-import com.tunjicus.utsdpm.exceptions.UserAlreadyExistsException
-import com.tunjicus.utsdpm.exceptions.UserNotFoundException
+import com.tunjicus.utsdpm.exceptions.*
+import com.tunjicus.utsdpm.repositories.DpmRepository
 import com.tunjicus.utsdpm.repositories.RoleRepository
 import com.tunjicus.utsdpm.repositories.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class UserService(
   private val userRepository: UserRepository,
   private val roleRepository: RoleRepository,
+  private val dpmRepository: DpmRepository,
   private val authService: AuthService,
   private val passwordEncoder: PasswordEncoder
 ) {
@@ -38,7 +38,6 @@ class UserService(
         return ((first ?: "") + " " + (last ?: "")).trim()
       }
 
-    LOGGER.info("Current user: ${authService.getCurrentUser()}")
     return userRepository.findAllSorted().map {
       UsernameDto(it.id ?: -1, generateName(it.firstname, it.lastname))
     }
@@ -101,5 +100,26 @@ class UserService(
       }
 
     userRepository.save(user)
+  }
+
+  // resets points of part-timers to 0
+  // ignores all approved DPMs of part-timers
+  @Transactional
+  fun resetPointBalances() {
+    LOGGER.info("Resetting part-timer point balances")
+    userRepository.resetPartTimerPoints()
+    dpmRepository.ignorePartTimerDpms()
+  }
+
+  @Transactional
+  fun deleteUser(id: Int) {
+    val deletedUser = userRepository.findById(id).orElseThrow { UserNotFoundException(id) }
+    val currentUser = authService.getCurrentUser()
+    if (currentUser.id == deletedUser.id) throw SelfDeleteException()
+
+    dpmRepository.deleteByUser(deletedUser)
+    dpmRepository.changeCreatedUser(currentUser, deletedUser)
+    userRepository.changeManager(currentUser, deletedUser)
+    userRepository.delete(deletedUser)
   }
 }

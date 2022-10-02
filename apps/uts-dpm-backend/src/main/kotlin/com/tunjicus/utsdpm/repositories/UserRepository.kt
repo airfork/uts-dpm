@@ -1,6 +1,7 @@
 package com.tunjicus.utsdpm.repositories
 
 import com.tunjicus.utsdpm.entities.User
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.query.Param
@@ -27,4 +28,12 @@ interface UserRepository : CrudRepository<User, Int> {
   fun findByUsername(username: String): User?
 
   fun existsByUsername(username: String): Boolean
+
+  @Modifying
+  @Query("UPDATE User u SET u.points=0 WHERE u.fullTime=false")
+  fun resetPartTimerPoints()
+
+  @Modifying
+  @Query("UPDATE User u SET u.manager=:new WHERE u.manager=:old")
+  fun changeManager(new: User, old: User)
 }

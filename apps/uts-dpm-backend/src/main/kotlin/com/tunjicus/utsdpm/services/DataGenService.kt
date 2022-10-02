@@ -9,7 +9,7 @@ import com.tunjicus.utsdpm.repositories.DpmRepository
 import com.tunjicus.utsdpm.repositories.UserRepository
 import java.io.File
 import java.io.FileOutputStream
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.Sheet
@@ -45,7 +45,7 @@ class DataGenService(
     val cellFont = workbook.createFont()
     cellFont.fontName = "Arial"
     cellFont.fontHeightInPoints = 12.toShort()
-    style.setFont(headerFont)
+    style.setFont(cellFont)
 
     val currentUser = authService.getCurrentUser()
     var dpms = dpmRepository.findAllByCreatedAfterAndCreatedBeforeOrderByCreatedDesc(start, end)
@@ -86,7 +86,7 @@ class DataGenService(
     val cellFont = workbook.createFont()
     cellFont.fontName = "Arial"
     cellFont.fontHeightInPoints = 12.toShort()
-    style.setFont(headerFont)
+    style.setFont(cellFont)
 
     val currentUser = authService.getCurrentUser()
     var users = userRepository.findAllSorted()
@@ -111,9 +111,8 @@ class DataGenService(
   companion object {
     private val LOGGER = LoggerFactory.getLogger(DataGenService::class.java)
     private val DATE_FORMAT = DateTimeFormatter.ofPattern("MM-dd-yyyy")
-    // postgres timestamps can't support LocalDateTime min/max
-    private val MIN_TIMESTAMP = LocalDateTime.now().minusYears(3000)
-    private val MAX_TIMESTAMP = LocalDateTime.now().plusYears(3000)
+    private val MIN_TIMESTAMP = ZonedDateTime.now().minusYears(3000)
+    private val MAX_TIMESTAMP = ZonedDateTime.now().plusYears(3000)
     private const val SMALL_WIDTH = 4000
     private const val LARGE_WIDTH = 7000
     private const val MEDIUM_WIDTH = 5000
@@ -161,71 +160,86 @@ class DataGenService(
 
     fun setUserRows(sheet: Sheet, user: User, index: Int, style: XSSFCellStyle) {
       val row = sheet.createRow(index + 1)
-      row.rowStyle = style
       var cellIndex = 0
 
       var cell = row.createCell(cellIndex++)
       cell.setCellValue(user.lastname)
+      cell.cellStyle = style
 
       cell = row.createCell(cellIndex++)
       cell.setCellValue(user.firstname)
+      cell.cellStyle = style
 
       cell = row.createCell(cellIndex++)
       cell.setCellValue(user.points.toString())
+      cell.cellStyle = style
 
       cell = row.createCell(cellIndex)
       cell.setCellValue("${user.manager?.firstname} ${user.manager?.lastname}")
+      cell.cellStyle = style
     }
 
     fun setDpmRows(sheet: Sheet, dpm: Dpm, index: Int, style: XSSFCellStyle) {
       val row = sheet.createRow(index + 1)
-      row.rowStyle = style
       var cellIndex = 0
 
       var cell = row.createCell(cellIndex++)
       cell.setCellValue(dpm.user?.firstname)
+      cell.cellStyle = style
 
       cell = row.createCell(cellIndex++)
       cell.setCellValue(dpm.user?.lastname)
+      cell.cellStyle = style
 
       cell = row.createCell(cellIndex++)
       cell.setCellValue(dpm.block)
+      cell.cellStyle = style
 
       cell = row.createCell(cellIndex++)
       cell.setCellValue(dpm.location)
+      cell.cellStyle = style
 
       cell = row.createCell(cellIndex++)
       cell.setCellValue(formatOutboundDpmTime(dpm.startTime))
+      cell.cellStyle = style
 
       cell = row.createCell(cellIndex++)
       cell.setCellValue(formatOutboundDpmTime(dpm.endTime))
+      cell.cellStyle = style
 
       cell = row.createCell(cellIndex++)
       cell.setCellValue(formatOutboundDpmDate(dpm.date))
+      cell.cellStyle = style
 
       cell = row.createCell(cellIndex++)
       cell.setCellValue(dpm.dpmType)
+      cell.cellStyle = style
 
       cell = row.createCell(cellIndex++)
       cell.setCellValue(dpm.points?.toString())
+      cell.cellStyle = style
 
       cell = row.createCell(cellIndex++)
       cell.setCellValue(dpm.notes)
+      cell.cellStyle = style
 
       cell = row.createCell(cellIndex++)
       cell.setCellValue(generateDpmStatusMessage(dpm.approved!!, dpm.ignored!!))
+      cell.cellStyle = style
 
       cell = row.createCell(cellIndex++)
-      cell.setCellValue(formatCreatedAtExcel(dpm.created!!.atZone(TimeService.ZONE_ID)))
+      cell.setCellValue(formatCreatedAtExcel(dpm.created))
+      cell.cellStyle = style
 
       cell = row.createCell(cellIndex)
       cell.setCellValue("${dpm.createdUser?.firstname} ${dpm.createdUser?.lastname}".trim())
+      cell.cellStyle = style
     }
 
     private fun getStartAndEndDates(
       startDate: String?,
       endDate: String?
-    ): Pair<LocalDateTime, LocalDateTime> {
+    ): Pair<ZonedDateTime, ZonedDateTime> {
       if (startDate == null && endDate == null) {
         LOGGER.info("Generating spreadsheet for all DPMs")
         return Pair(MIN_TIMESTAMP, MAX_TIMESTAMP)

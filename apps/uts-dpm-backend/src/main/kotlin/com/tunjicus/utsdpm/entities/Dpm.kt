@@ -1,7 +1,9 @@
 package com.tunjicus.utsdpm.entities
 
+import com.tunjicus.utsdpm.services.TimeService
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import javax.persistence.*
 
 @Entity
@@ -35,8 +37,8 @@ class Dpm {
   @Column(name = "notes")
   var notes: String? = null
 
-  @Column(name = "created", insertable = false, updatable = false)
-  var created: LocalDateTime? = null
+  @Column(name = "created", updatable = false)
+  var created: ZonedDateTime = TimeService.getTodayZonedDateTime()
 
   @Column(name = "approved")
   var approved: Boolean? = false
@@ -86,7 +88,7 @@ class Dpm {
     result = 31 * result + (dpmType?.hashCode() ?: 0)
     result = 31 * result + (points ?: 0)
     result = 31 * result + (notes?.hashCode() ?: 0)
-    result = 31 * result + (created?.hashCode() ?: 0)
+    result = 31 * result + created.hashCode()
     result = 31 * result + (approved?.hashCode() ?: 0)
     result = 31 * result + (location?.hashCode() ?: 0)
     result = 31 * result + (startTime?.hashCode() ?: 0)

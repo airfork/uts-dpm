@@ -1,5 +1,6 @@
 package com.tunjicus.utsdpm.helpers
 
+import com.tunjicus.utsdpm.services.TimeService
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
@@ -32,12 +33,12 @@ fun formatCreatedAt(date: ZonedDateTime): String = CREATED_AT_FORMAT.format(date
 
 fun formatCreatedAtExcel(date: ZonedDateTime): String = CREATED_EXCEL_FORMAT.format(date)
 
-fun formatDateOrNull(date: String, formatter: DateTimeFormatter): LocalDateTime? {
+fun formatDateOrNull(date: String, formatter: DateTimeFormatter): ZonedDateTime? {
   return try {
-    LocalDate.parse(date, formatter).atStartOfDay()
+    LocalDate.parse(date, formatter).atStartOfDay().atZone(TimeService.ZONE_ID)
   } catch (_: DateTimeParseException) {
     null
   }
 }
 
-fun formatSubmittedAt(timestamp: LocalDateTime): String = SUBMITTED_AT_FORMAT.format(timestamp)
+fun formatSubmittedAt(timestamp: ZonedDateTime): String = SUBMITTED_AT_FORMAT.format(timestamp)

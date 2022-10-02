@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
 
 @Service
 class AutogenService(
@@ -52,20 +51,20 @@ class AutogenService(
     val today = TimeService.getTodayDate()
     val lastSubmission = autoSubmissionRepository.findMostRecent() ?: AutoSubmission.min()
 
-    if (!today.isEqual(lastSubmission.submitted?.toLocalDate())) {
+    if (!today.isEqual(lastSubmission.submitted.toLocalDate())) {
       return AutogenWrapperDto(dpms = autogen().map(AutogenDpmDto::from))
     }
 
     // should not happen
     if (autogenDpms.isEmpty()) autogenDpms.addAll(autogen().map(AutogenDpmDto::from))
-    return AutogenWrapperDto(formatSubmittedAt(lastSubmission.submitted!!), autogenDpms)
+    return AutogenWrapperDto(formatSubmittedAt(lastSubmission.submitted), autogenDpms)
   }
 
   fun autoSubmit() {
     val lastSubmission = autoSubmissionRepository.findMostRecent() ?: AutoSubmission.min()
     val today = TimeService.getTodayDate()
 
-    if (today.isEqual(lastSubmission.submitted?.toLocalDate())) {
+    if (today.isEqual(lastSubmission.submitted.toLocalDate())) {
       throw AutoSubmitAlreadyCalledException()
     }
 
@@ -90,7 +89,7 @@ class AutogenService(
   @Transactional
   fun cleanupAutoSubmissionsTable() {
     LOGGER.info("Running auto submissions cleanup job")
-    val monthAgo = LocalDateTime.now().minusMonths(1)
+    val monthAgo = TimeService.getTodayZonedDateTime().minusMonths(1)
     val rowsDeleted = autoSubmissionRepository.deleteBySubmittedBefore(monthAgo)
 
     LOGGER.info("Cleanup job complete - $rowsDeleted entries removed")

@@ -4,7 +4,6 @@ import com.tunjicus.utsdpm.entities.Dpm
 import com.tunjicus.utsdpm.helpers.formatCreatedAt
 import com.tunjicus.utsdpm.helpers.formatOutboundDpmDate
 import com.tunjicus.utsdpm.helpers.formatOutboundDpmTime
-import com.tunjicus.utsdpm.services.TimeService
 
 open class ApprovalDpmDto(
   val id: Int,
@@ -31,7 +30,7 @@ open class ApprovalDpmDto(
         location = dpm.location!!,
         date = formatOutboundDpmDate(dpm.date),
         time = formatOutboundDpmTime(dpm.startTime, dpm.endTime),
-        createdAt = formatCreatedAt(dpm.created!!.atZone(TimeService.ZONE_ID)),
+        createdAt = formatCreatedAt(dpm.created),
         notes = dpm.notes
       )
     }
