@@ -83,14 +83,24 @@
     </p-table>
   </div>
 
-  <div *ngIf="activeTab.actions">
-    <div class="grid grid-cols-2 place-items-center">
-      <div class="col-span-2 md:col-span-1 md:justify-self-end md:mr-5">
-        <a class="link link-hover text-lg">Send Points Email</a>
-      </div>
-      <div class="col-span-2 md:col-span-1 md:justify-self-start md:ml-5">
-        <a class="link link-hover text-lg text-error">Delete User</a>
-      </div>
+  <div *ngIf="activeTab.actions" class="flex flex-wrap justify-center">
+    <div class="mx-4 basis-full lg:basis-auto grid place-items-center">
+      <a class="link link-hover text-lg" (click)="resetClick()"
+        >Reset Password</a
+      >
+    </div>
+    <div class="mx-4 basis-full lg:basis-auto grid place-items-center">
+      <a class="link link-hover text-lg" (click)="sendEmailClick()"
+        >Send Points Email</a
+      >
+    </div>
+    <div
+      *ngIf="!viewingSelf()"
+      class="mx-4 basis-full lg:basis-auto grid place-items-center"
+    >
+      <a class="link link-hover text-lg text-error" (click)="deleteUserClick()"
+        >Delete User</a
+      >
     </div>
   </div>
 </div>
@@ -175,3 +185,10 @@
     </div>
   </label>
 </label>
+
+<app-confirm-box
+  [message]="modalMessage"
+  [outputKey]="outputKey"
+  [(isOpen)]="modalOpen"
+  (confirmed)="handleConfirmEvent($event)"
+></app-confirm-box>

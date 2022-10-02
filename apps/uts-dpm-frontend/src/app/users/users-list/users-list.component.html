@@ -82,12 +82,23 @@
     <app-user-form layout="create" [managers]="managers"></app-user-form>
   </div>
 
-  <div *ngIf="activeTab.actions" class="grid grid-cols-2 place-items-center">
-    <div class="col-span-2 md:col-span-1 md:justify-self-end md:mr-5">
-      <a class="link link-hover text-lg">Send Points Email</a>
+  <div *ngIf="activeTab.actions" class="flex flex-wrap justify-center">
+    <div class="mx-4 basis-full lg:basis-auto grid place-items-center">
+      <a class="link link-hover text-lg" (click)="sendEmailClick()"
+        >Send Points Email</a
+      >
     </div>
-    <div class="col-span-2 md:col-span-1 md:justify-self-start md:ml-5">
-      <a class="link link-hover text-lg">Reset Points Balance</a>
+    <div class="mx-4 basis-full lg:basis-auto grid place-items-center">
+      <a class="link link-hover text-lg" (click)="resetPointsClick()"
+        >Reset Points Balance</a
+      >
     </div>
   </div>
 </div>
+
+<app-confirm-box
+  [message]="modalMessage"
+  [outputKey]="outputKey"
+  [(isOpen)]="modalOpen"
+  (confirmed)="handleConfirmEvent($event)"
+></app-confirm-box>

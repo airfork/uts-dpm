@@ -34,8 +34,8 @@ export class AutogenComponent implements OnInit {
       .submit()
       .pipe(first())
       .subscribe(() => {
-        this.notificationService.showSuccess('Submitted DPMs!', '');
-        this.submittedTime = formatDate(new Date(), 'hhmm', this.locale);
+        this.notificationService.showSuccess('Submitted DPMs!');
+        this.submittedTime = formatDate(new Date(), 'HHmm', this.locale);
       });
   }
 }

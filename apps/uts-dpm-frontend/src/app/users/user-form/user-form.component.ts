@@ -241,8 +241,8 @@ export class UserFormComponent implements OnInit, OnChanges {
     );
 
     if (
-      this.authService.userData.username.toLowerCase() ===
-      this.user.email.toLowerCase()
+      this.authService.userData.username.toLowerCase().trim() ===
+      this.user.email.toLowerCase().trim()
     ) {
       this.userFormGroup.get('role')!.disable();
     }
@@ -255,7 +255,7 @@ export class UserFormComponent implements OnInit, OnChanges {
       .updateUser(this.formGroupToUserDetailDto(), this.userId!)
       .pipe(first())
       .subscribe(() => {
-        this.notificationService.showSuccess('User updated', '');
+        this.notificationService.showSuccess('User updated');
         const values = this.userFormGroup.value;
 
         // role is not set if the formControl is disabled
@@ -274,7 +274,7 @@ export class UserFormComponent implements OnInit, OnChanges {
       .pipe(first())
       .subscribe({
         next: () => {
-          this.notificationService.showSuccess('User created', '');
+          this.notificationService.showSuccess('User created');
           this.userFormGroup.reset({
             manager: this.managers![0],
             role: this.roles![0],

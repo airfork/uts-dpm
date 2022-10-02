@@ -60,6 +60,6 @@ export class NavbarComponent {
     this.authService.logout();
     this.router
       .navigate(['/login'])
-      .then(() => this.notificationService.showInfo('Logged out', ''));
+      .then(() => this.notificationService.showInfo('Logged out'));
   }
 }

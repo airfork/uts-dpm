@@ -34,10 +34,7 @@ export class DatagenService {
         },
         error: (error: HttpErrorResponse) => {
           if (error.status === 303) {
-            this.notificationService.showWarning(
-              'Password change required',
-              ''
-            );
+            this.notificationService.showWarning('Password change required');
             return;
           }
 
@@ -66,10 +63,7 @@ export class DatagenService {
         },
         error: (error: HttpErrorResponse) => {
           if (error.status === 303) {
-            this.notificationService.showWarning(
-              'Password change required',
-              ''
-            );
+            this.notificationService.showWarning('Password change required');
             return;
           }
 

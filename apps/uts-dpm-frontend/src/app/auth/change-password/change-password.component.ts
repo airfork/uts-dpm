@@ -47,8 +47,7 @@ export class ChangePasswordComponent implements OnInit {
         if (!required) {
           this.router.navigate(['/']).then(() => {
             this.notificationService.showWarning(
-              'Cannot change password currently',
-              ''
+              'Cannot change password currently'
             );
           });
         }
@@ -65,10 +64,7 @@ export class ChangePasswordComponent implements OnInit {
           this.router
             .navigate(['/'])
             .then(() =>
-              this.notificationService.showSuccess(
-                'Password has been changed',
-                ''
-              )
+              this.notificationService.showSuccess('Password has been changed')
             );
         },
         error: (error: HttpErrorResponse) => {
@@ -86,7 +82,7 @@ export class ChangePasswordComponent implements OnInit {
             this.confirmPassword?.markAsTouched();
           } else if (error.status === 422) {
             this.notificationService.showError(
-              'Please check the new and confifrm password fields again',
+              'Please check the new and confirm password fields again',
               'Error'
             );
             this.changePasswordFormGroup.reset({

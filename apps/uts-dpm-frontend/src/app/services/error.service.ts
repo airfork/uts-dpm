@@ -14,7 +14,7 @@ export class ErrorService {
     detailMessage: string
   ): Observable<never> {
     if (error.status === 303) {
-      this.notificationService.showWarning('Password change required', '');
+      this.notificationService.showWarning('Password change required');
       return throwError(
         () => new Error('Request failed, password change required')
       );

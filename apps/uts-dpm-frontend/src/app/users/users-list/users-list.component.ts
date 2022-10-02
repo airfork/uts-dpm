@@ -9,8 +9,13 @@ import UsernameDto from '../../models/username-dto';
 import { FormatService } from '../../services/format.service';
 import { first } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
-
-type tab = 'actions' | 'create' | 'search';
+import { ListTab } from '../shared/tab.types';
+import {
+  LIST_EMAIL_MESSAGE,
+  LIST_RESET_MESSAGE,
+  ListOutputKey,
+} from '../shared/confirm-box-info';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-users-list',
@@ -22,10 +27,14 @@ export class UsersListComponent implements OnInit {
   filteredUsers: UsernameDto[] = [];
   activeTab = { actions: false, create: false, search: true };
   managers: string[] | null = null;
+  modalOpen = false;
+  modalMessage = '';
+  outputKey: ListOutputKey = 'email';
 
   constructor(
     private userService: UserService,
     private formatService: FormatService,
+    private notificationService: NotificationService,
     private changeDetector: ChangeDetectorRef,
     private router: Router,
     private route: ActivatedRoute
@@ -34,7 +43,7 @@ export class UsersListComponent implements OnInit {
   ngOnInit() {
     // jump to tab based on query param
     this.route.queryParamMap.pipe(first()).subscribe((value) => {
-      const tab = value.get('tab') as tab;
+      const tab = value.get('tab') as ListTab;
       if (tab) this.activateTab(tab);
     });
 
@@ -48,7 +57,7 @@ export class UsersListComponent implements OnInit {
       });
   }
 
-  activateTab(tab: tab) {
+  activateTab(tab: ListTab) {
     switch (tab) {
       case 'actions':
         this.saveTabInUrl(tab);
@@ -93,11 +102,47 @@ export class UsersListComponent implements OnInit {
     this.router.navigate([`/users/${id}`]);
   }
 
+  sendEmailClick() {
+    this.outputKey = 'email';
+    this.modalMessage = LIST_EMAIL_MESSAGE;
+    this.modalOpen = true;
+  }
+
+  resetPointsClick() {
+    this.outputKey = 'reset';
+    this.modalMessage = LIST_RESET_MESSAGE;
+    this.modalOpen = true;
+  }
+
+  handleConfirmEvent($event: string) {
+    switch ($event as ListOutputKey) {
+      case 'email':
+        console.log('Sending points email');
+        break;
+      case 'reset':
+        this.resetPointBalances();
+        break;
+      default:
+        console.warn('Unknown user list output event: ' + $event);
+    }
+  }
+
   get format() {
     return this.formatService;
   }
 
-  private saveTabInUrl(tab: tab) {
+  private resetPointBalances() {
+    this.userService
+      .resetPointBalances()
+      .pipe(first())
+      .subscribe(() =>
+        this.notificationService.showSuccess(
+          'Part-timer point balances have been reset'
+        )
+      );
+  }
+
+  private saveTabInUrl(tab: ListTab) {
     // update query param to save tab state
     // need to set title in callback as it gets reset
     this.router.navigate(['.'], {

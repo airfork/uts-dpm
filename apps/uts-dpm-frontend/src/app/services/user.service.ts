@@ -39,7 +39,7 @@ export class UserService {
     return this.http.get<GetUserDetailDto>(`${BASE_URL}/${id}`).pipe(
       catchError((error: HttpErrorResponse) => {
         if (error.status === 303) {
-          this.notificationService.showWarning('Password change required', '');
+          this.notificationService.showWarning('Password change required');
           return throwError(
             () => new Error('Request failed, password change required')
           );
@@ -121,6 +121,28 @@ export class UserService {
         return this.errorService.errorResponse(
           error,
           'Something went wrong trying to create a user'
+        );
+      })
+    );
+  }
+
+  resetPointBalances(): Observable<any> {
+    return this.http.patch(BASE_URL + '/points/reset', null).pipe(
+      catchError((error: HttpErrorResponse) => {
+        return this.errorService.errorResponse(
+          error,
+          'Something went wrong trying to reset the point balances'
+        );
+      })
+    );
+  }
+
+  deleteUser(id: string): Observable<any> {
+    return this.http.delete(`${BASE_URL}/${id}`).pipe(
+      catchError((error: HttpErrorResponse) => {
+        return this.errorService.errorResponse(
+          error,
+          'Something went wrong trying to delete the user with id: ' + id
         );
       })
     );

@@ -9,9 +9,14 @@ import { LazyLoadEvent } from 'primeng/api';
 import { DpmService } from '../../services/dpm.service';
 import { ApprovalsService } from '../../services/approvals.service';
 import { UserService } from '../../services/user.service';
-
-// can't use actions for tab name due to routing edge case
-type tab = 'detail-actions' | 'dpms' | 'info';
+import { DetailTab } from '../shared/tab.types';
+import {
+  DETAIL_DELETE_MESSAGE,
+  DETAIL_EMAIL_MESSAGE,
+  DETAIL_RESET_MESSAGE,
+  DetailOutputKey,
+} from '../shared/confirm-box-info';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-user-detail',
@@ -26,8 +31,10 @@ export class UserDetailComponent implements OnInit {
   activeTab = { info: true, dpms: false, actions: false };
   user?: GetUserDetailDto;
   currentDpm?: DpmDetailDto;
-  modalOpen = false;
   dpms: DpmDetailDto[] = [];
+  modalOpen = false;
+  modalMessage = '';
+  outputKey: DetailOutputKey = 'email';
 
   constructor(
     private router: Router,
@@ -36,7 +43,8 @@ export class UserDetailComponent implements OnInit {
     private titleService: Title,
     private notificationService: NotificationService,
     private dpmService: DpmService,
-    private approvalsService: ApprovalsService
+    private approvalsService: ApprovalsService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -54,7 +62,7 @@ export class UserDetailComponent implements OnInit {
 
     // jump to tab based on query param
     this.route.queryParamMap.pipe(first()).subscribe((value) => {
-      const tab = value.get('tab') as tab;
+      const tab = value.get('tab') as DetailTab;
       if (tab) this.activateTab(tab);
     });
   }
@@ -75,7 +83,7 @@ export class UserDetailComponent implements OnInit {
       });
   }
 
-  activateTab(tab: tab) {
+  activateTab(tab: DetailTab) {
     switch (tab) {
       case 'detail-actions':
         this.saveTabInUrl(tab);
@@ -115,6 +123,52 @@ export class UserDetailComponent implements OnInit {
       });
   }
 
+  handleConfirmEvent($event: string) {
+    switch ($event as DetailOutputKey) {
+      case 'delete':
+        this.deleteUser();
+        break;
+      case 'email':
+        console.log('Sending this user a points balance email');
+        break;
+      case 'reset':
+        console.log("Resetting this user's password");
+        break;
+      default:
+        console.warn('Unknown user detail output key: ' + $event);
+    }
+  }
+
+  deleteUserClick() {
+    // shouldn't happen, but just in case
+    if (this.viewingSelf()) {
+      this.notificationService.showWarning("You can't delete yourself -_-");
+      return;
+    }
+    this.modalMessage = DETAIL_DELETE_MESSAGE;
+    this.outputKey = 'delete';
+    this.modalOpen = true;
+  }
+
+  sendEmailClick() {
+    this.modalMessage = DETAIL_EMAIL_MESSAGE;
+    this.outputKey = 'email';
+    this.modalOpen = true;
+  }
+
+  resetClick() {
+    this.modalMessage = DETAIL_RESET_MESSAGE;
+    this.outputKey = 'reset';
+    this.modalOpen = true;
+  }
+
+  viewingSelf(): boolean {
+    return (
+      this.authService.userData.username.toLowerCase().trim() ===
+      this.user?.email.toLowerCase().trim()
+    );
+  }
+
   private setTitle() {
     if (this.user) {
       this.titleService.setTitle(
@@ -125,7 +179,7 @@ export class UserDetailComponent implements OnInit {
     }
   }
 
-  private saveTabInUrl(tab: tab) {
+  private saveTabInUrl(tab: DetailTab) {
     // update query param to save tab state
     // need to set title in callback as it gets reset
     this.router
@@ -135,5 +189,18 @@ export class UserDetailComponent implements OnInit {
         replaceUrl: true,
       })
       .then(() => this.setTitle());
+  }
+
+  private deleteUser() {
+    this.userService
+      .deleteUser(this.userId)
+      .pipe(first())
+      .subscribe(() => {
+        this.router
+          .navigate(['/users'])
+          .then(() =>
+            this.notificationService.showSuccess('User has been deleted')
+          );
+      });
   }
 }
