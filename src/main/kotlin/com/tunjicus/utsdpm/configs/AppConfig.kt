@@ -16,7 +16,11 @@ class AppConfig(private val requestLoggingInterceptor: RequestLoggingInterceptor
   override fun addCorsMappings(registry: CorsRegistry) {
     registry
       .addMapping("/**")
-      .allowedOrigins("http://localhost:4200", "http://localhost:10000")
+      .allowedOrigins(
+        "http://localhost:4200",
+        "http://localhost:10000",
+        "https://uts-dpm-frontend.web.app"
+      )
       .allowedMethods("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
       .exposedHeaders("Content-Disposition")
   }
