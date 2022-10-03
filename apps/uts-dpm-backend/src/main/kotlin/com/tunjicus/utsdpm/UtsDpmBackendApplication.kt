@@ -32,10 +32,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 )
 @SpringBootApplication
 @EnableScheduling
-class UtsDpmBackendApplication {
-  fun addResourceHandlers(registry: ResourceHandlerRegistry) =
-    registry.addResourceHandler("/").addResourceLocations("/index.html")
-}
+class UtsDpmBackendApplication
 
 fun main(args: Array<String>) {
   runApplication<UtsDpmBackendApplication>(*args)
