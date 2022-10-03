@@ -58,4 +58,8 @@ interface DpmRepository : PagingAndSortingRepository<Dpm, Int> {
   @Modifying
   @Query("UPDATE Dpm d SET d.createdUser=:new WHERE d.createdUser=:old")
   fun changeCreatedUser(new: User, old: User)
+
+  @Modifying
+  @Query("UPDATE Dpm d set d.ignored=true WHERE d.approved=false AND d.user=:user")
+  fun ignoreUnapproved(user: User)
 }

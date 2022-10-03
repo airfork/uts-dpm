@@ -256,15 +256,18 @@ export class UserFormComponent implements OnInit, OnChanges {
       .pipe(first())
       .subscribe(() => {
         this.notificationService.showSuccess('User updated');
-        const values = this.userFormGroup.value;
 
+        const newValues = { ...this.userFormGroup.value };
+        if (!this.user!.fullTime && newValues.fullTime!) {
+          newValues.points = 0;
+        }
         // role is not set if the formControl is disabled
         // role formControl is disabled if user is viewing themselves
-        if (!values.role) {
-          this.userFormGroup.reset({ ...values, role: this.roles[0] });
-        } else {
-          this.userFormGroup.reset({ ...values });
+        if (!newValues.role) {
+          newValues.role = this.roles[0];
         }
+
+        this.userFormGroup.reset({ ...newValues });
       });
   }
 

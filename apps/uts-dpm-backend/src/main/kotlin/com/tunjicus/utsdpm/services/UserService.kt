@@ -48,6 +48,7 @@ class UserService(
     return GetUserDetailDto.from(user, userRepository.findAllManagers().map { it.trim() })
   }
 
+  @Transactional
   fun updateUser(dto: UserDetailDto, id: Int) {
     val user = userRepository.findById(id).orElseThrow { UserNotFoundException(id) }
 
@@ -55,10 +56,18 @@ class UserService(
     dto.firstname?.let { user.firstname = it }
     dto.lastname?.let { user.lastname = it }
     dto.points?.let { user.points = it }
-    dto.fullTime?.let { user.fullTime = it }
     dto.role?.let {
       val role = RoleName.from(it)
       user.role = if (role != null) roleRepository.findByRoleName(role) else null
+    }
+
+    // If user is becoming a fulltimer, set their point balance to 0, and ignore unapproved dpms
+    dto.fullTime?.let {
+      if (it && user.fullTime != true) {
+        user.points = 0
+        dpmRepository.ignoreUnapproved(user)
+      }
+      user.fullTime = it
     }
 
     dto.manager?.let {
