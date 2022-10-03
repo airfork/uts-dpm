@@ -7,13 +7,16 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 @Component
-class AppConfig(private val requestLoggingInterceptor: RequestLoggingInterceptor) : WebMvcConfigurer {
+class AppConfig(private val requestLoggingInterceptor: RequestLoggingInterceptor) :
+  WebMvcConfigurer {
   override fun addInterceptors(registry: InterceptorRegistry) {
     registry.addInterceptor(requestLoggingInterceptor)
   }
 
   override fun addCorsMappings(registry: CorsRegistry) {
-    registry.addMapping("/**").allowedOrigins("http://localhost:4200")
+    registry
+      .addMapping("/**")
+      .allowedOrigins("http://localhost:4200", "http://localhost:10000")
       .allowedMethods("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
       .exposedHeaders("Content-Disposition")
   }

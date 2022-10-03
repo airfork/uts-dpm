@@ -16,9 +16,9 @@ create table if not exists users
 
 comment on table users is 'Holds user data';
 
-alter table users
-  owner to postgres;
-
 create unique index users_id_uindex
   on users (id);
+
+alter table users
+  owner to postgres;
 

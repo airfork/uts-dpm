@@ -65,6 +65,9 @@ class SecurityAdapter(private val userDetailsService: UserDetailsService) {
       .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
       .and()
       .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter::class.java)
+      .requiresChannel()
+      .requestMatchers({ it.getHeader("X-Forwarded-Proto") != null })
+      .requiresSecure()
 
     return http.build()
   }

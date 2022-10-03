@@ -6,7 +6,8 @@
     "build": {
       "executor": "@nxrocks/nx-spring-boot:build",
       "options": {
-        "root": "apps/uts-dpm-backend"
+        "root": "apps/uts-dpm-backend",
+        "args": ["-Dactive.profile=prod", "-DskipTests"]
       },
       "dependsOn": [
         "^install"
@@ -39,7 +40,8 @@
     "run": {
       "executor": "@nxrocks/nx-spring-boot:run",
       "options": {
-        "root": "apps/uts-dpm-backend"
+        "root": "apps/uts-dpm-backend",
+        "args": ["-Dactive.profile=local"]
       }
     },
     "serve": {

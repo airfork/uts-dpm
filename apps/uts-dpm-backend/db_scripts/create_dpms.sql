@@ -24,9 +24,9 @@ create table if not exists dpms
 
 comment on table dpms is 'Holds user dpms';
 
-alter table dpms
-  owner to postgres;
-
 create unique index dpms_id_uindex
   on dpms (id);
+
+alter table dpms
+  owner to postgres;
 
