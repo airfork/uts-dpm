@@ -7,6 +7,7 @@ import com.tunjicus.utsdpm.dtos.UsernameDto
 import com.tunjicus.utsdpm.exceptions.ExceptionResponse
 import com.tunjicus.utsdpm.exceptions.ExceptionResponses
 import com.tunjicus.utsdpm.exceptions.SecurityExceptionResponse
+import com.tunjicus.utsdpm.exceptions.UserNotFoundException
 import com.tunjicus.utsdpm.services.UserService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.ArraySchema
@@ -73,7 +74,13 @@ class UserController(private val userService: UserService) {
   )
   @PreAuthorize("hasRole('ADMIN')")
   @GetMapping("/{id}")
-  fun getUser(@PathVariable id: Int): GetUserDetailDto = userService.findById(id)
+  fun getUser(@PathVariable id: String): GetUserDetailDto {
+    return try {
+      userService.findById(id.toInt())
+    } catch (ex: NumberFormatException) {
+      throw UserNotFoundException(id)
+    }
+  }
 
   @Operation(
     summary = "Updates user information",
@@ -196,24 +203,24 @@ class UserController(private val userService: UserService) {
   @Operation(
     summary = "Deletes the specified user",
     responses =
-    [
-      ApiResponse(responseCode = "200", description = "User was successfully deleted"),
-      ApiResponse(
-        responseCode = "400",
-        description = "Bad request, likely due to trying to self-delete",
-        content = [Content(schema = Schema(implementation = ExceptionResponse::class))]
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized, need to login",
-        content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "User does not have the correct permissions to perform this action",
-        content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
-      ),
-    ]
+      [
+        ApiResponse(responseCode = "200", description = "User was successfully deleted"),
+        ApiResponse(
+          responseCode = "400",
+          description = "Bad request, likely due to trying to self-delete",
+          content = [Content(schema = Schema(implementation = ExceptionResponse::class))]
+        ),
+        ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized, need to login",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+        ApiResponse(
+          responseCode = "403",
+          description = "User does not have the correct permissions to perform this action",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+      ]
   )
   @PreAuthorize("hasRole('ADMIN')")
   @DeleteMapping("/{id}")
