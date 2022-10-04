@@ -1,12 +1,15 @@
 package com.tunjicus.utsdpm.services
 
 import com.tunjicus.utsdpm.dtos.*
+import com.tunjicus.utsdpm.emailModels.DpmReceived
 import com.tunjicus.utsdpm.entities.User
 import com.tunjicus.utsdpm.enums.RoleName
 import com.tunjicus.utsdpm.exceptions.DpmNotFoundException
 import com.tunjicus.utsdpm.exceptions.NameNotFoundException
 import com.tunjicus.utsdpm.exceptions.UserNotAuthorizedException
 import com.tunjicus.utsdpm.exceptions.UserNotFoundException
+import com.tunjicus.utsdpm.helpers.Constants
+import com.tunjicus.utsdpm.helpers.formatOutboundDpmDate
 import com.tunjicus.utsdpm.repositories.DpmRepository
 import com.tunjicus.utsdpm.repositories.UserRepository
 import org.slf4j.LoggerFactory
@@ -18,7 +21,9 @@ import org.springframework.stereotype.Service
 class DpmService(
   private val userRepository: UserRepository,
   private val dpmRepository: DpmRepository,
-  private val authService: AuthService
+  private val authService: AuthService,
+  private val emailService: EmailService,
+  private val constants: Constants
 ) {
   companion object {
     private val LOGGER = LoggerFactory.getLogger(DpmService::class.java)
@@ -137,6 +142,21 @@ class DpmService(
       if (dto.approved && dpm.approved != true && dpm.ignored != true) {
         dpm.user?.points = dpm.user?.points?.plus(dpm.points ?: 0)
         dpm.approved = true
+
+        val user = dpm.user!!
+        val manager = user.manager!!
+        emailService
+          .sendDpmEmail(
+            user.username!!,
+            DpmReceived(
+              name = user.firstname!!,
+              dpmType = dpm.dpmType!!,
+              receivedDate = formatOutboundDpmDate(dpm.date),
+              manager = "${manager.firstname!!} ${manager.lastname!!}",
+              url = constants.baseUrl()
+            )
+          )
+          .thenRun { LOGGER.info("DPM email sent to ${user.username!!}") }
       }
 
       // Just change the value

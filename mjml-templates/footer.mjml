@@ -1,0 +1,9 @@
+<mj-section>
+
+  <mj-column>
+    <mj-text font-weight="600">
+      Copyright © ${year} University Transit Service. All rights reserved.
+    </mj-text>
+  </mj-column>
+
+</mj-section>

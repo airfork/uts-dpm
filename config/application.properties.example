@@ -1,3 +1,4 @@
 app.w2wUser=USER
 app.w2wPass=PASS
 app.jwt.secret=SECRET
+app.mailgun.key=KEY

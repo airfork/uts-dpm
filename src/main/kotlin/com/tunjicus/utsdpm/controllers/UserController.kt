@@ -220,9 +220,97 @@ class UserController(private val userService: UserService) {
           description = "User does not have the correct permissions to perform this action",
           content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
         ),
+        ApiResponse(
+          responseCode = "404",
+          description = "Failed to find a user with the passed in id",
+          content = [Content(schema = Schema(implementation = ExceptionResponse::class))]
+        ),
       ]
   )
   @PreAuthorize("hasRole('ADMIN')")
   @DeleteMapping("/{id}")
   fun delete(@PathVariable id: Int) = userService.deleteUser(id)
+
+  @Operation(
+    summary = "Sends the user their points balance via email",
+    responses =
+      [
+        ApiResponse(
+          responseCode = "200",
+          description =
+            "Email request went through successfully. The email send itself might fail later"
+        ),
+        ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized, need to login",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+        ApiResponse(
+          responseCode = "403",
+          description = "User does not have the correct permissions to perform this action",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+        ApiResponse(
+          responseCode = "404",
+          description = "Failed to find a user with the passed in id",
+          content = [Content(schema = Schema(implementation = ExceptionResponse::class))]
+        ),
+      ]
+  )
+  @PreAuthorize("hasRole('ADMIN')")
+  @GetMapping("/{id}/points")
+  fun sendUserPointsEmail(@PathVariable id: Int) = userService.sendPointsEmail(id)
+
+  @Operation(
+    summary = "Resets the user's password and sends them an email",
+    responses =
+      [
+        ApiResponse(
+          responseCode = "200",
+          description = "Password reset and email sent. The email send itself might fail later"
+        ),
+        ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized, need to login",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+        ApiResponse(
+          responseCode = "403",
+          description = "User does not have the correct permissions to perform this action",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+        ApiResponse(
+          responseCode = "404",
+          description = "Failed to find a user with the passed in id",
+          content = [Content(schema = Schema(implementation = ExceptionResponse::class))]
+        ),
+      ]
+  )
+  @PreAuthorize("hasRole('ADMIN')")
+  @GetMapping("/{id}/reset")
+  fun resetUserPassword(@PathVariable id: Int) = userService.resetPassword(id)
+
+  @Operation(
+    summary = "Sends a points balance email to all users",
+    responses =
+      [
+        ApiResponse(
+          responseCode = "200",
+          description = "Emails have been sent. The email send itself might fail later"
+        ),
+        ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized, need to login",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+        ApiResponse(
+          responseCode = "403",
+          description = "User does not have the correct permissions to perform this action",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+      ]
+  )
+  @PreAuthorize("hasRole('ADMIN')")
+  @GetMapping("/points")
+  fun sendPointsEmailAll() = userService.sendPointsEmailAll()
 }

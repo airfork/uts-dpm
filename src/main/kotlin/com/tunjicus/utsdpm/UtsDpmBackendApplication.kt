@@ -6,10 +6,13 @@ import io.swagger.v3.oas.annotations.enums.SecuritySchemeType
 import io.swagger.v3.oas.annotations.info.Info
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.security.SecurityScheme
+import java.util.concurrent.Executor
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import org.springframework.context.annotation.Bean
+import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.scheduling.annotation.EnableScheduling
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 
 @OpenAPIDefinition(
   info =
@@ -32,8 +35,20 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 )
 @SpringBootApplication
 @EnableScheduling
+@EnableAsync
 class UtsDpmBackendApplication
 
 fun main(args: Array<String>) {
   runApplication<UtsDpmBackendApplication>(*args)
+}
+
+@Bean
+fun taskExecutor(): Executor {
+  val executor = ThreadPoolTaskExecutor()
+  executor.corePoolSize = 2
+  executor.maxPoolSize = 5
+  executor.queueCapacity = 500
+  executor.setThreadNamePrefix("EmailThread-")
+  executor.initialize()
+  return executor
 }

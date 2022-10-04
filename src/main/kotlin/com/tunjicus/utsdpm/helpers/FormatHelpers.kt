@@ -42,3 +42,5 @@ fun formatDateOrNull(date: String, formatter: DateTimeFormatter): ZonedDateTime?
 }
 
 fun formatSubmittedAt(timestamp: ZonedDateTime): String = SUBMITTED_AT_FORMAT.format(timestamp)
+
+fun formatCurrentYear(): String = LocalDate.now().year.toString()

@@ -1,0 +1,27 @@
+<mjml>
+  <mj-head>
+    <mj-title>DPM Points Balance</mj-title>
+    <mj-font name="Poppins"
+       href="https://fonts.googleapis.com/css?family=Poppins" />
+    <mj-attributes>
+      <mj-text align="center" color="#555" font-family="Poppins, serif" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#eee">
+    <mj-include path="./header.mjml" />
+    <mj-section background-color="#fafafa">
+      <mj-column width="400px">
+        
+        <mj-text font-weight="900" align="left" font-size="18px" color="#626262">${name},</mj-text>
+        <mj-text color="#525252" align="left" line-height="1.3" font-size="14px">Below is your current points balance. To get more details about this value, please talk to ${manager}. </mj-text>
+        
+        <mj-spacer></mj-spacer>
+        <mj-text font-weight="900" align="left" font-size="14px">
+        	Balance: ${points} points
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    
+    <mj-include path="./footer.mjml" />
+  </mj-body>
+</mjml>

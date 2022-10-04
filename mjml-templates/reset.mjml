@@ -1,0 +1,31 @@
+<mjml>
+  <mj-head>
+    <mj-title>Password Reset</mj-title>
+    <mj-font name="Poppins"
+       href="https://fonts.googleapis.com/css?family=Poppins" />
+    <mj-attributes>
+      <mj-text align="center" color="#555" font-family="Poppins, serif" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#eee">
+    <mj-include path="./header.mjml" />
+    <mj-section background-color="#fafafa">
+      <mj-column width="400px">
+        
+        <mj-text font-weight="900" align="left" font-size="18px" color="#626262">${name},</mj-text>
+        <mj-text color="#525252" align="left" line-height="1.3" font-size="14px">
+          Your password has been reset. Please copy your temporary password and log in to set your new password.
+         </mj-text>
+        <mj-text color="#525252" font-weight="900" align="left" line-height="1.3" font-size="14px">
+          Temporary Password: ${password}
+         </mj-text>
+        <mj-button background-color="#232D4B" href="${url}" font-family="Poppins, serif">Login</mj-button>
+        <mj-text color="#525252" align="left" line-height="1.3" font-size="14px">
+          If you did not request this, please contact an admin. 
+         </mj-text>
+      </mj-column>
+    </mj-section>
+    
+    <mj-include path="./footer.mjml" />
+  </mj-body>
+</mjml>

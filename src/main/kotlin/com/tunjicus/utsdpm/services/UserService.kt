@@ -4,9 +4,13 @@ import com.tunjicus.utsdpm.dtos.CreateUserDto
 import com.tunjicus.utsdpm.dtos.GetUserDetailDto
 import com.tunjicus.utsdpm.dtos.UserDetailDto
 import com.tunjicus.utsdpm.dtos.UsernameDto
+import com.tunjicus.utsdpm.emailModels.PointsBalance
+import com.tunjicus.utsdpm.emailModels.Reset
+import com.tunjicus.utsdpm.emailModels.Welcome
 import com.tunjicus.utsdpm.entities.User
 import com.tunjicus.utsdpm.enums.RoleName
 import com.tunjicus.utsdpm.exceptions.*
+import com.tunjicus.utsdpm.helpers.Constants
 import com.tunjicus.utsdpm.repositories.DpmRepository
 import com.tunjicus.utsdpm.repositories.RoleRepository
 import com.tunjicus.utsdpm.repositories.UserRepository
@@ -21,7 +25,9 @@ class UserService(
   private val roleRepository: RoleRepository,
   private val dpmRepository: DpmRepository,
   private val authService: AuthService,
-  private val passwordEncoder: PasswordEncoder
+  private val passwordEncoder: PasswordEncoder,
+  private val emailService: EmailService,
+  private val constants: Constants
 ) {
   companion object {
     private val LOGGER = LoggerFactory.getLogger(UserService::class.java)
@@ -94,8 +100,6 @@ class UserService(
     val role = if (roleName != null) roleRepository.findByRoleName(roleName) else null
     val password = generateTempPassword()
 
-    LOGGER.info("Created user with a password of $password")
-
     val user =
       User().apply {
         username = userDto.email
@@ -109,6 +113,9 @@ class UserService(
       }
 
     userRepository.save(user)
+    emailService
+      .sendWelcomeEmail(user.username!!, Welcome(user.firstname!!, password, constants.baseUrl()))
+      .thenRun { LOGGER.info("Sent welcome email to ${user.username!!}") }
   }
 
   // resets points of part-timers to 0
@@ -130,5 +137,37 @@ class UserService(
     dpmRepository.changeCreatedUser(currentUser, deletedUser)
     userRepository.changeManager(currentUser, deletedUser)
     userRepository.delete(deletedUser)
+  }
+
+  fun sendPointsEmail(id: Int) {
+    val user = userRepository.findById(id).orElseThrow { UserNotFoundException(id) }
+    val manager = user.manager!!
+    emailService
+      .sendPointsEmail(
+        user.username!!,
+        PointsBalance(
+          user.firstname!!,
+          "${manager.firstname!!} ${manager.lastname!!}",
+          user.points!!
+        )
+      )
+      .thenRun { LOGGER.info("Points email sent to ${user.username!!}") }
+  }
+
+  fun sendPointsEmailAll() = userRepository.findAll().forEach { sendPointsEmail(it.id!!) }
+
+  fun resetPassword(id: Int) {
+    val user = userRepository.findById(id).orElseThrow { UserNotFoundException(id) }
+    val password = generateTempPassword()
+
+    user.password = passwordEncoder.encode(password)
+    user.changed = false
+    userRepository.save(user)
+    emailService
+      .sendResetPasswordEmail(
+        user.username!!,
+        Reset(user.firstname!!, password, constants.baseUrl())
+      )
+      .thenRun { LOGGER.info("Sent password reset email to ${user.username!!}") }
   }
 }
