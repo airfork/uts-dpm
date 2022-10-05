@@ -4,7 +4,7 @@
     <mj-font name="Poppins"
        href="https://fonts.googleapis.com/css?family=Poppins" />
     <mj-attributes>
-      <mj-text align="center" color="#555" font-family="Poppins, serif" />
+      <mj-text align="center" color="#555" font-family="Poppins, Arial, 'Helvetica Neue', Helvetica, sans-serif" />
     </mj-attributes>
   </mj-head>
   <mj-body background-color="#eee">

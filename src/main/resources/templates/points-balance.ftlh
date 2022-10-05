@@ -106,7 +106,7 @@
                                 <tbody>
                                 <tr>
                                     <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                                        <div style="font-family:Poppins, serif;font-size:13px;line-height:1;text-align:center;color:#626262;">
+                                        <div style="font-family:Poppins, Arial, 'Helvetica Neue', Helvetica, sans-serif;font-size:13px;line-height:1;text-align:center;color:#626262;">
                                             <h2> University Transit Service </h2>
                                         </div>
                                     </td>
@@ -132,12 +132,12 @@
                                 <tbody>
                                 <tr>
                                     <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                                        <div style="font-family:Poppins, serif;font-size:18px;font-weight:900;line-height:1;text-align:left;color:#626262;">${name},</div>
+                                        <div style="font-family:Poppins, Arial, 'Helvetica Neue', Helvetica, sans-serif;font-size:18px;font-weight:900;line-height:1;text-align:left;color:#626262;">${name},</div>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                                        <div style="font-family:Poppins, serif;font-size:14px;line-height:1.3;text-align:left;color:#525252;">Below is your current points balance. To get more details about this value, please talk to ${manager}.</div>
+                                        <div style="font-family:Poppins, Arial, 'Helvetica Neue', Helvetica, sans-serif;font-size:14px;line-height:1.3;text-align:left;color:#525252;">Below is your current points balance. To get more details about this value, please talk to ${manager}.</div>
                                     </td>
                                 </tr>
                                 <tr>
@@ -147,7 +147,7 @@
                                 </tr>
                                 <tr>
                                     <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                                        <div style="font-family:Poppins, serif;font-size:14px;font-weight:900;line-height:1;text-align:left;color:#555555;">Balance: ${points} points</div>
+                                        <div style="font-family:Poppins, Arial, 'Helvetica Neue', Helvetica, sans-serif;font-size:14px;font-weight:900;line-height:1;text-align:left;color:#555555;">Balance: ${points} points</div>
                                     </td>
                                 </tr>
                                 </tbody>
@@ -171,7 +171,7 @@
                                 <tbody>
                                 <tr>
                                     <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                                        <div style="font-family:Poppins, serif;font-size:13px;font-weight:600;line-height:1;text-align:center;color:#555555;">Copyright © ${year} University Transit Service. All rights reserved.</div>
+                                        <div style="font-family:Poppins, Arial, 'Helvetica Neue', Helvetica, sans-serif;font-size:13px;font-weight:600;line-height:1;text-align:center;color:#555555;">Copyright © ${year} University Transit Service. All rights reserved.</div>
                                     </td>
                                 </tr>
                                 </tbody>

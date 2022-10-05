@@ -4,7 +4,7 @@
     <mj-font name="Poppins"
        href="https://fonts.googleapis.com/css?family=Poppins" />
     <mj-attributes>
-      <mj-text align="center" color="#555" font-family="Poppins, serif" />
+      <mj-text align="center" color="#555" font-family="Poppins, Arial, 'Helvetica Neue', Helvetica, sans-serif" />
     </mj-attributes>
   </mj-head>
   <mj-body background-color="#eee">
@@ -14,7 +14,7 @@
         
         <mj-text font-weight="900" align="left" font-size="18px" color="#626262">${name},</mj-text>
         <mj-text color="#525252" align="left" line-height="1.3" font-size="14px"> You received a ${dpmType} DPM on ${receivedDate}. If you have any issues with this, please contact ${manager} directly. </mj-text>
-        <mj-button background-color="#232D4B" href="${url}" font-family="Poppins, serif">View DPMs</mj-button>
+        <mj-button background-color="#232D4B" href="${url}" font-family="Poppins, Arial, 'Helvetica Neue', Helvetica, sans-serif">View DPMs</mj-button>
       </mj-column>
     </mj-section>
     
