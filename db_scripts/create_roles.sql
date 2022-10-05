@@ -5,6 +5,3 @@ create table if not exists roles
       primary key,
   name    varchar(100) not null
 );
-
-alter table roles
-  owner to postgres;

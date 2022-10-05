@@ -10,7 +10,7 @@ create table users
     lastname  varchar(255)            not null,
     fulltime  boolean   default false not null,
     changed   boolean   default false not null,
-    points    smallint  default 0,
+    points    smallint  default 0     not null,
     added     timestamp default now()
 );
 

@@ -9,23 +9,27 @@ import com.tunjicus.utsdpm.emailModels.Reset
 import com.tunjicus.utsdpm.emailModels.Welcome
 import com.tunjicus.utsdpm.helpers.Constants
 import freemarker.template.Configuration
-import org.slf4j.LoggerFactory
+import java.util.concurrent.CompletableFuture
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.env.Environment
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils
-import java.util.concurrent.CompletableFuture
 
 @Service
-class EmailService(private val fmConfiguration: Configuration, private val constants: Constants) {
-  companion object {
-    private val LOGGER = LoggerFactory.getLogger(EmailService::class.java)
-    private const val DOMAIN = "utsdpm.com"
-    private const val EMAIL_FROM = "DPM@utsdpm.com"
-  }
+class EmailService(
+  private val fmConfiguration: Configuration,
+  private val environment: Environment,
+  constants: Constants
+) {
 
   private val mailgunClient: MailgunMessagesApi =
-    MailgunClient.config(constants.mailgunKey())
-      .createApi(MailgunMessagesApi::class.java)
+    MailgunClient.config(constants.mailgunKey()).createApi(MailgunMessagesApi::class.java)
+
+  // send only to this email if in local profile
+  @Value("\${app.email.override}") private lateinit var recipientOverride: String
+  @Value("\${app.email.domain}") private lateinit var domain: String
+  @Value("\${app.email.from}") private lateinit var emailFrom: String
 
   @Async
   fun sendPointsEmail(to: String, model: PointsBalance): CompletableFuture<Void> =
@@ -44,15 +48,17 @@ class EmailService(private val fmConfiguration: Configuration, private val const
     sendEmail(to, generateWelcomeEmail(model), "Welcome to UTS DPM")
 
   private fun sendEmail(to: String, html: String, subject: String): CompletableFuture<Void> {
-    val message =
-      Message.builder()
-        .from(EMAIL_FROM)
-        .to(to)
-        .subject(subject)
-        .html(html)
-        .build()
+    // TODO: Remove prod profile from if statement
+    val recipient =
+      if (environment.activeProfiles.contains("local") || environment.activeProfiles.contains("prod")) {
+        recipientOverride
+      } else {
+        to
+      }
 
-    mailgunClient.sendMessage(DOMAIN, message)
+    val message =
+      Message.builder().from(emailFrom).to(recipient).subject(subject).html(html).build()
+    mailgunClient.sendMessage(domain, message)
     return CompletableFuture.completedFuture(null)
   }
 
