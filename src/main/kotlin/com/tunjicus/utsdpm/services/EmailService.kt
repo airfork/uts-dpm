@@ -3,10 +3,10 @@ package com.tunjicus.utsdpm.services
 import com.mailgun.api.v3.MailgunMessagesApi
 import com.mailgun.client.MailgunClient
 import com.mailgun.model.message.Message
-import com.tunjicus.utsdpm.emailModels.DpmReceived
-import com.tunjicus.utsdpm.emailModels.PointsBalance
-import com.tunjicus.utsdpm.emailModels.Reset
-import com.tunjicus.utsdpm.emailModels.Welcome
+import com.tunjicus.utsdpm.models.DpmReceivedEmail
+import com.tunjicus.utsdpm.models.PointsBalanceEmail
+import com.tunjicus.utsdpm.models.ResetEmail
+import com.tunjicus.utsdpm.models.WelcomeEmail
 import com.tunjicus.utsdpm.helpers.Constants
 import freemarker.template.Configuration
 import java.util.concurrent.CompletableFuture
@@ -32,19 +32,19 @@ class EmailService(
   @Value("\${app.email.from}") private lateinit var emailFrom: String
 
   @Async
-  fun sendPointsEmail(to: String, model: PointsBalance): CompletableFuture<Void> =
+  fun sendPointsEmail(to: String, model: PointsBalanceEmail): CompletableFuture<Void> =
     sendEmail(to, generatePointsBalanceEmail(model), "DPM Points Balance")
 
   @Async
-  fun sendDpmEmail(to: String, model: DpmReceived): CompletableFuture<Void> =
+  fun sendDpmEmail(to: String, model: DpmReceivedEmail): CompletableFuture<Void> =
     sendEmail(to, generateDpmReceivedEmail(model), "DPM Received: ${model.dpmType}")
 
   @Async
-  fun sendResetPasswordEmail(to: String, model: Reset): CompletableFuture<Void> =
+  fun sendResetPasswordEmail(to: String, model: ResetEmail): CompletableFuture<Void> =
     sendEmail(to, generateResetPasswordEmail(model), "Password has been reset")
 
   @Async
-  fun sendWelcomeEmail(to: String, model: Welcome): CompletableFuture<Void> =
+  fun sendWelcomeEmail(to: String, model: WelcomeEmail): CompletableFuture<Void> =
     sendEmail(to, generateWelcomeEmail(model), "Welcome to UTS DPM")
 
   private fun sendEmail(to: String, html: String, subject: String): CompletableFuture<Void> {
@@ -62,25 +62,25 @@ class EmailService(
     return CompletableFuture.completedFuture(null)
   }
 
-  private fun generateDpmReceivedEmail(model: DpmReceived): String =
+  private fun generateDpmReceivedEmail(model: DpmReceivedEmail): String =
     FreeMarkerTemplateUtils.processTemplateIntoString(
       fmConfiguration.getTemplate("dpm-received.ftlh"),
       model.toMap()
     )
 
-  private fun generatePointsBalanceEmail(model: PointsBalance): String =
+  private fun generatePointsBalanceEmail(model: PointsBalanceEmail): String =
     FreeMarkerTemplateUtils.processTemplateIntoString(
       fmConfiguration.getTemplate("points-balance.ftlh"),
       model.toMap()
     )
 
-  private fun generateWelcomeEmail(model: Welcome): String =
+  private fun generateWelcomeEmail(model: WelcomeEmail): String =
     FreeMarkerTemplateUtils.processTemplateIntoString(
       fmConfiguration.getTemplate("welcome.ftlh"),
       model.toMap()
     )
 
-  private fun generateResetPasswordEmail(model: Reset): String =
+  private fun generateResetPasswordEmail(model: ResetEmail): String =
     FreeMarkerTemplateUtils.processTemplateIntoString(
       fmConfiguration.getTemplate("reset-password.ftlh"),
       model.toMap()

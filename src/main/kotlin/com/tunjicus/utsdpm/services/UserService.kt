@@ -4,13 +4,13 @@ import com.tunjicus.utsdpm.dtos.CreateUserDto
 import com.tunjicus.utsdpm.dtos.GetUserDetailDto
 import com.tunjicus.utsdpm.dtos.UserDetailDto
 import com.tunjicus.utsdpm.dtos.UsernameDto
-import com.tunjicus.utsdpm.emailModels.PointsBalance
-import com.tunjicus.utsdpm.emailModels.Reset
-import com.tunjicus.utsdpm.emailModels.Welcome
 import com.tunjicus.utsdpm.entities.User
 import com.tunjicus.utsdpm.enums.RoleName
 import com.tunjicus.utsdpm.exceptions.*
 import com.tunjicus.utsdpm.helpers.Constants
+import com.tunjicus.utsdpm.models.PointsBalanceEmail
+import com.tunjicus.utsdpm.models.ResetEmail
+import com.tunjicus.utsdpm.models.WelcomeEmail
 import com.tunjicus.utsdpm.repositories.DpmRepository
 import com.tunjicus.utsdpm.repositories.RoleRepository
 import com.tunjicus.utsdpm.repositories.UserRepository
@@ -29,14 +29,6 @@ class UserService(
   private val emailService: EmailService,
   private val constants: Constants
 ) {
-  companion object {
-    private val LOGGER = LoggerFactory.getLogger(UserService::class.java)
-
-    private fun generateTempPassword(): String {
-      val charset = "ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz0123456789"
-      return (1..10).map { charset.random() }.joinToString("")
-    }
-  }
 
   fun getAllUserNames(): Collection<UsernameDto> {
     val generateName =
@@ -78,8 +70,7 @@ class UserService(
 
     dto.manager?.let {
       val manager = userRepository.findByFullName(it) ?: throw ManagerNotFoundException(it)
-      if (manager.role?.roleName != RoleName.MANAGER && manager.role?.roleName != RoleName.ADMIN)
-        throw ManagerNotFoundException(it)
+      if (!user.hasAnyRole(RoleName.MANAGER, RoleName.ADMIN)) throw ManagerNotFoundException(it)
       user.manager = manager
     }
 
@@ -113,9 +104,7 @@ class UserService(
       }
 
     userRepository.save(user)
-    emailService
-      .sendWelcomeEmail(user.username!!, Welcome(user.firstname!!, password, constants.baseUrl()))
-      .thenRun { LOGGER.info("Sent welcome email to ${user.username!!}") }
+    sendWelcomeEmail(user, password)
   }
 
   // resets points of part-timers to 0
@@ -145,7 +134,7 @@ class UserService(
     emailService
       .sendPointsEmail(
         user.username!!,
-        PointsBalance(
+        PointsBalanceEmail(
           user.firstname!!,
           "${manager.firstname!!} ${manager.lastname!!}",
           user.points!!
@@ -163,11 +152,32 @@ class UserService(
     user.password = passwordEncoder.encode(password)
     user.changed = false
     userRepository.save(user)
+
+    sendPasswordResetEmail(user, password)
+  }
+
+  private fun sendPasswordResetEmail(user: User, password: String) =
     emailService
       .sendResetPasswordEmail(
         user.username!!,
-        Reset(user.firstname!!, password, constants.baseUrl())
+        ResetEmail(user.firstname!!, password, constants.baseUrl())
       )
       .thenRun { LOGGER.info("Sent password reset email to ${user.username!!}") }
+
+  private fun sendWelcomeEmail(user: User, password: String) =
+    emailService
+      .sendWelcomeEmail(
+        user.username!!,
+        WelcomeEmail(user.firstname!!, password, constants.baseUrl())
+      )
+      .thenRun { LOGGER.info("Sent welcome email to ${user.username!!}") }
+
+  companion object {
+    private val LOGGER = LoggerFactory.getLogger(UserService::class.java)
+
+    private fun generateTempPassword(): String {
+      val charset = "ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz0123456789"
+      return (1..10).map { charset.random() }.joinToString("")
+    }
   }
 }

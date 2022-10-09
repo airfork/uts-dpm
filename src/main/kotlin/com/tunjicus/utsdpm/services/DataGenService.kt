@@ -11,7 +11,9 @@ import java.io.File
 import java.io.FileOutputStream
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.CellStyle
+import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.xssf.usermodel.XSSFCellStyle
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
@@ -25,87 +27,55 @@ class DataGenService(
   private val authService: AuthService
 ) {
   fun generateDpmSpreadSheet(startDate: String?, endDate: String?): String {
-    LOGGER.info("Startdate: $startDate, EndDate: $endDate")
-    val (start, end) = getStartAndEndDates(startDate, endDate)
+    LOGGER.info("Start date: $startDate, End date: $endDate")
     val workbook = XSSFWorkbook()
     val sheet = workbook.createSheet("DPMs")
+    setColumnWidthsAndHeader(sheet, createHeaderStyle(workbook), DPM_HEADERS)
 
-    val headerStyle = workbook.createCellStyle()
-    val headerFont = workbook.createFont()
-
-    headerFont.fontName = "Arial"
-    headerFont.fontHeightInPoints = 14.toShort()
-    headerFont.bold = true
-    headerStyle.setFont(headerFont)
-    setColumnWidthsAndHeader(sheet, headerStyle, DPM_HEADERS)
-
-    val style = workbook.createCellStyle()
-    style.wrapText = true
-
-    val cellFont = workbook.createFont()
-    cellFont.fontName = "Arial"
-    cellFont.fontHeightInPoints = 12.toShort()
-    style.setFont(cellFont)
-
-    val currentUser = authService.getCurrentUser()
-    var dpms = dpmRepository.findAllByCreatedAfterAndCreatedBeforeOrderByCreatedDesc(start, end)
-    if (currentUser.role?.roleName == RoleName.MANAGER) {
-      dpms = dpms.filter { it.user?.manager?.id == currentUser.id }
-    }
-
+    val dpms = getDpmsInRange(startDate, endDate)
+    val cellStyle = createCellStyle(workbook)
     for ((index, dpm) in dpms.withIndex()) {
-      setDpmRows(sheet, dpm, index, style)
+      setDpmRows(sheet.createRow(index + 1), dpm, cellStyle)
     }
 
-    val tempFile = File.createTempFile("dpms", ".xlsx")
-    val fileLocation = tempFile.absolutePath
-
-    val outputStream = FileOutputStream(fileLocation)
-    workbook.write(outputStream)
-    workbook.close()
-
-    return fileLocation
+    return saveWorkbook(workbook, "dpms")
   }
 
   fun generateUserSpreadSheet(): String {
     val workbook = XSSFWorkbook()
     val sheet = workbook.createSheet("Users")
+    setColumnWidthsAndHeader(sheet, createHeaderStyle(workbook), USER_HEADERS)
 
-    val headerStyle = workbook.createCellStyle()
-    val headerFont = workbook.createFont()
+    val users = getUsers()
+    val cellStyle = createCellStyle(workbook)
+    for ((index, user) in users.withIndex()) {
+      setUserRows(sheet.createRow(index + 1), user, cellStyle)
+    }
 
-    headerFont.fontName = "Arial"
-    headerFont.fontHeightInPoints = 14.toShort()
-    headerFont.bold = true
-    headerStyle.setFont(headerFont)
-    setColumnWidthsAndHeader(sheet, headerStyle, USER_HEADERS)
+    return saveWorkbook(workbook, "users")
+  }
 
-    val style = workbook.createCellStyle()
-    style.wrapText = true
+  private fun getDpmsInRange(startDate: String?, endDate: String?): Collection<Dpm> {
+    val (start, end) = getStartAndEndDates(startDate, endDate)
+    val currentUser = authService.getCurrentUser()
+    var dpms = dpmRepository.findAllByCreatedAfterAndCreatedBeforeOrderByCreatedDesc(start, end)
 
-    val cellFont = workbook.createFont()
-    cellFont.fontName = "Arial"
-    cellFont.fontHeightInPoints = 12.toShort()
-    style.setFont(cellFont)
+    if (currentUser.hasAnyRole(RoleName.MANAGER)) {
+      dpms = dpms.filter { it.user?.manager?.id == currentUser.id }
+    }
 
+    return dpms
+  }
+
+  private fun getUsers(): Collection<User> {
     val currentUser = authService.getCurrentUser()
     var users = userRepository.findAllSorted()
-    if (currentUser.role?.roleName == RoleName.MANAGER) {
+
+    if (currentUser.hasAnyRole(RoleName.MANAGER)) {
       users = users.filter { it.manager?.id == currentUser.id }
     }
 
-    for ((index, user) in users.withIndex()) {
-      setUserRows(sheet, user, index, style)
-    }
-
-    val tempFile = File.createTempFile("users", ".xlsx")
-    val fileLocation = tempFile.absolutePath
-
-    val outputStream = FileOutputStream(fileLocation)
-    workbook.write(outputStream)
-    workbook.close()
-
-    return fileLocation
+    return users
   }
 
   companion object {
@@ -143,7 +113,39 @@ class DataGenService(
     private val USER_HEADERS =
       listOf(LAST_NAME_HEADER, FIRST_NAME_HEADER, POINTS_HEADER, Pair("Manager", LARGE_WIDTH))
 
-    fun setColumnWidthsAndHeader(
+    private fun saveWorkbook(workbook: XSSFWorkbook, prefix: String): String {
+      val tempFile = File.createTempFile(prefix, ".xlsx")
+      val fileLocation = tempFile.absolutePath
+
+      val outputStream = FileOutputStream(fileLocation)
+      workbook.write(outputStream)
+      workbook.close()
+      return fileLocation
+    }
+
+    private fun createHeaderStyle(workbook: XSSFWorkbook): XSSFCellStyle {
+      val headerFont = workbook.createFont()
+      headerFont.fontName = "Arial"
+      headerFont.fontHeightInPoints = 14.toShort()
+      headerFont.bold = true
+
+      val headerStyle = workbook.createCellStyle()
+      headerStyle.setFont(headerFont)
+      return headerStyle
+    }
+
+    private fun createCellStyle(workbook: XSSFWorkbook): XSSFCellStyle {
+      val cellFont = workbook.createFont()
+      cellFont.fontName = "Arial"
+      cellFont.fontHeightInPoints = 12.toShort()
+
+      val style = workbook.createCellStyle()
+      style.wrapText = true
+      style.setFont(cellFont)
+      return style
+    }
+
+    private fun setColumnWidthsAndHeader(
       sheet: Sheet,
       headerStyle: CellStyle,
       headers: List<Pair<String, Int>>
@@ -158,82 +160,46 @@ class DataGenService(
       }
     }
 
-    fun setUserRows(sheet: Sheet, user: User, index: Int, style: XSSFCellStyle) {
-      val row = sheet.createRow(index + 1)
-      var cellIndex = 0
-
-      var cell = row.createCell(cellIndex++)
-      cell.setCellValue(user.lastname)
-      cell.cellStyle = style
-
-      cell = row.createCell(cellIndex++)
-      cell.setCellValue(user.firstname)
-      cell.cellStyle = style
-
-      cell = row.createCell(cellIndex++)
-      cell.setCellValue(user.points.toString())
-      cell.cellStyle = style
-
-      cell = row.createCell(cellIndex)
-      cell.setCellValue("${user.manager?.firstname} ${user.manager?.lastname}")
-      cell.cellStyle = style
+    private fun setRow(row: Row, style: XSSFCellStyle, contents: List<String?>) {
+      var cell: Cell
+      for ((index, value) in contents.withIndex()) {
+        cell = row.createCell(index)
+        cell.setCellValue(value)
+        cell.cellStyle = style
+      }
     }
 
-    fun setDpmRows(sheet: Sheet, dpm: Dpm, index: Int, style: XSSFCellStyle) {
-      val row = sheet.createRow(index + 1)
-      var cellIndex = 0
+    private fun setUserRows(row: Row, user: User, style: XSSFCellStyle) {
+      val rowContents =
+        listOf(
+          user.lastname,
+          user.firstname,
+          user.points?.toString(),
+          "${user.manager?.firstname} ${user.manager?.lastname}"
+        )
 
-      var cell = row.createCell(cellIndex++)
-      cell.setCellValue(dpm.user?.firstname)
-      cell.cellStyle = style
+      setRow(row, style, rowContents)
+    }
 
-      cell = row.createCell(cellIndex++)
-      cell.setCellValue(dpm.user?.lastname)
-      cell.cellStyle = style
+    private fun setDpmRows(row: Row, dpm: Dpm, style: XSSFCellStyle) {
+      val rowContents =
+        listOf(
+          dpm.user?.firstname,
+          dpm.user?.lastname,
+          dpm.block,
+          dpm.location,
+          formatOutboundDpmTime(dpm.startTime),
+          formatOutboundDpmTime(dpm.endTime),
+          formatOutboundDpmDate(dpm.date),
+          dpm.dpmType,
+          dpm.points?.toString(),
+          dpm.notes,
+          generateDpmStatusMessage(dpm.approved!!, dpm.ignored!!),
+          formatCreatedAtExcel(dpm.created),
+          "${dpm.createdUser?.firstname} ${dpm.createdUser?.lastname}".trim()
+        )
 
-      cell = row.createCell(cellIndex++)
-      cell.setCellValue(dpm.block)
-      cell.cellStyle = style
-
-      cell = row.createCell(cellIndex++)
-      cell.setCellValue(dpm.location)
-      cell.cellStyle = style
-
-      cell = row.createCell(cellIndex++)
-      cell.setCellValue(formatOutboundDpmTime(dpm.startTime))
-      cell.cellStyle = style
-
-      cell = row.createCell(cellIndex++)
-      cell.setCellValue(formatOutboundDpmTime(dpm.endTime))
-      cell.cellStyle = style
-
-      cell = row.createCell(cellIndex++)
-      cell.setCellValue(formatOutboundDpmDate(dpm.date))
-      cell.cellStyle = style
-
-      cell = row.createCell(cellIndex++)
-      cell.setCellValue(dpm.dpmType)
-      cell.cellStyle = style
-
-      cell = row.createCell(cellIndex++)
-      cell.setCellValue(dpm.points?.toString())
-      cell.cellStyle = style
-
-      cell = row.createCell(cellIndex++)
-      cell.setCellValue(dpm.notes)
-      cell.cellStyle = style
-
-      cell = row.createCell(cellIndex++)
-      cell.setCellValue(generateDpmStatusMessage(dpm.approved!!, dpm.ignored!!))
-      cell.cellStyle = style
-
-      cell = row.createCell(cellIndex++)
-      cell.setCellValue(formatCreatedAtExcel(dpm.created))
-      cell.cellStyle = style
-
-      cell = row.createCell(cellIndex)
-      cell.setCellValue("${dpm.createdUser?.firstname} ${dpm.createdUser?.lastname}".trim())
-      cell.cellStyle = style
+      setRow(row, style, rowContents)
     }
 
     private fun getStartAndEndDates(

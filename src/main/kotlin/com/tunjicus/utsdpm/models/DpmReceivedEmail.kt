@@ -1,8 +1,8 @@
-package com.tunjicus.utsdpm.emailModels
+package com.tunjicus.utsdpm.models
 
 import com.tunjicus.utsdpm.helpers.formatCurrentYear
 
-data class DpmReceived(
+data class DpmReceivedEmail(
   val name: String,
   val dpmType: String,
   val receivedDate: String,

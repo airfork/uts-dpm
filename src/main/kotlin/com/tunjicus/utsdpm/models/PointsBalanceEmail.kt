@@ -1,8 +1,8 @@
-package com.tunjicus.utsdpm.emailModels
+package com.tunjicus.utsdpm.models
 
 import com.tunjicus.utsdpm.helpers.formatCurrentYear
 
-data class PointsBalance(val name: String, val manager: String, val points: Int) {
+data class PointsBalanceEmail(val name: String, val manager: String, val points: Int) {
   private val year: String = formatCurrentYear()
   fun toMap(): Map<String, String> =
     mapOf(

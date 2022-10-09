@@ -1,8 +1,8 @@
-package com.tunjicus.utsdpm.emailModels
+package com.tunjicus.utsdpm.models
 
 import com.tunjicus.utsdpm.helpers.formatCurrentYear
 
-open class Welcome(
+open class WelcomeEmail(
     val name: String,
     val password: String,
     val url: String,

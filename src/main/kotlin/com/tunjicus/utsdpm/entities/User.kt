@@ -1,5 +1,6 @@
 package com.tunjicus.utsdpm.entities
 
+import com.tunjicus.utsdpm.enums.RoleName
 import javax.persistence.*
 
 @Entity
@@ -77,5 +78,12 @@ class User {
     result = 31 * result + (dpms?.hashCode() ?: 0)
     result = 31 * result + (role?.hashCode() ?: 0)
     return result
+  }
+
+  fun hasAnyRole(vararg roles: RoleName): Boolean {
+    // shadow role to avoid smart cast issues
+    val role = role
+    if (role?.roleName == null) return false
+    return roles.contains(role.roleName)
   }
 }

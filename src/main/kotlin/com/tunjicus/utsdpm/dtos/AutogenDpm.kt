@@ -2,18 +2,26 @@ package com.tunjicus.utsdpm.dtos
 
 import com.tunjicus.utsdpm.entities.Dpm
 import com.tunjicus.utsdpm.helpers.formatInboundDpmTime
+import com.tunjicus.utsdpm.models.ShiftInfo
 import com.tunjicus.utsdpm.services.TimeService
 
-data class AutogenDpm(
-  val name: String,
-  val block: String,
-  val startTime: String,
-  val endTime: String,
-  val location: String,
-  val type: String,
-  val points: Int,
+class AutogenDpm(shiftInfo: ShiftInfo) {
+  val name: String = shiftInfo.name
+  val block: String = shiftInfo.block
+  val startTime: String = shiftInfo.startTime
+  val endTime: String = shiftInfo.endTime
+  val location: String = shiftInfo.location
+  val type: String
+  val points: Int
   val notes: String
-) {
+
+  init {
+    val dpmType = shiftInfo.getDPMType()
+    type = dpmType.type
+    points = dpmType.points
+    notes = dpmType.notes
+  }
+
   fun toDpm(): Dpm {
     val dpm = Dpm()
     dpm.block = block
