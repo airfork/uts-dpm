@@ -9,7 +9,7 @@ import com.tunjicus.utsdpm.exceptions.NameNotFoundException
 import com.tunjicus.utsdpm.exceptions.UserNotAuthorizedException
 import com.tunjicus.utsdpm.exceptions.UserNotFoundException
 import com.tunjicus.utsdpm.helpers.Constants
-import com.tunjicus.utsdpm.helpers.formatOutboundDpmDate
+import com.tunjicus.utsdpm.helpers.FormatHelpers
 import com.tunjicus.utsdpm.models.DpmReceivedEmail
 import com.tunjicus.utsdpm.repositories.DpmRepository
 import com.tunjicus.utsdpm.repositories.UserRepository
@@ -129,7 +129,7 @@ class DpmService(
         DpmReceivedEmail(
           name = user.firstname!!,
           dpmType = dpm.dpmType!!,
-          receivedDate = formatOutboundDpmDate(dpm.date),
+          receivedDate = FormatHelpers.outboundDpmDate(dpm.date),
           manager = "${manager.firstname!!} ${manager.lastname!!}",
           url = constants.baseUrl()
         )

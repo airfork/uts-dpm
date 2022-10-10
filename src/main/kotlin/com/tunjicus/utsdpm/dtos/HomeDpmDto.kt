@@ -1,8 +1,7 @@
 package com.tunjicus.utsdpm.dtos
 
 import com.tunjicus.utsdpm.entities.Dpm
-import com.tunjicus.utsdpm.helpers.formatOutboundDpmDate
-import com.tunjicus.utsdpm.helpers.formatOutboundDpmTime
+import com.tunjicus.utsdpm.helpers.FormatHelpers
 
 data class HomeDpmDto(
   val type: String,
@@ -20,8 +19,8 @@ data class HomeDpmDto(
         dpm.points!!,
         dpm.block!!,
         dpm.location!!,
-        formatOutboundDpmDate(dpm.date),
-        formatOutboundDpmTime(dpm.startTime, dpm.endTime),
+        FormatHelpers.outboundDpmDate(dpm.date),
+        FormatHelpers.outboundDpmTime(dpm.startTime, dpm.endTime),
         dpm.notes
       )
     }

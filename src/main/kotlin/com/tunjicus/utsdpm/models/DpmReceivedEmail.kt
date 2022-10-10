@@ -1,6 +1,6 @@
 package com.tunjicus.utsdpm.models
 
-import com.tunjicus.utsdpm.helpers.formatCurrentYear
+import com.tunjicus.utsdpm.helpers.FormatHelpers
 
 data class DpmReceivedEmail(
   val name: String,
@@ -9,7 +9,7 @@ data class DpmReceivedEmail(
   val manager: String,
   val url: String
 ) {
-  private val year: String = formatCurrentYear()
+  private val year: String = FormatHelpers.currentYear()
 
   fun toMap(): Map<String, String> =
     mapOf(

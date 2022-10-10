@@ -5,6 +5,7 @@ import com.tunjicus.utsdpm.entities.User
 import com.tunjicus.utsdpm.enums.RoleName
 import com.tunjicus.utsdpm.exceptions.InvalidDataGenDateException
 import com.tunjicus.utsdpm.helpers.*
+import com.tunjicus.utsdpm.models.excel.*
 import com.tunjicus.utsdpm.repositories.DpmRepository
 import com.tunjicus.utsdpm.repositories.UserRepository
 import java.io.File
@@ -30,12 +31,12 @@ class DataGenService(
     LOGGER.info("Start date: $startDate, End date: $endDate")
     val workbook = XSSFWorkbook()
     val sheet = workbook.createSheet("DPMs")
-    setColumnWidthsAndHeader(sheet, createHeaderStyle(workbook), DPM_HEADERS)
+    setColumnWidthsAndHeader(sheet, createHeaderStyle(workbook), DPM_HEADER)
 
     val dpms = getDpmsInRange(startDate, endDate)
     val cellStyle = createCellStyle(workbook)
     for ((index, dpm) in dpms.withIndex()) {
-      setDpmRows(sheet.createRow(index + 1), dpm, cellStyle)
+      setRow(sheet.createRow(index + 1), cellStyle, DpmRow(dpm))
     }
 
     return saveWorkbook(workbook, "dpms")
@@ -44,12 +45,12 @@ class DataGenService(
   fun generateUserSpreadSheet(): String {
     val workbook = XSSFWorkbook()
     val sheet = workbook.createSheet("Users")
-    setColumnWidthsAndHeader(sheet, createHeaderStyle(workbook), USER_HEADERS)
+    setColumnWidthsAndHeader(sheet, createHeaderStyle(workbook), USER_HEADER)
 
     val users = getUsers()
     val cellStyle = createCellStyle(workbook)
     for ((index, user) in users.withIndex()) {
-      setUserRows(sheet.createRow(index + 1), user, cellStyle)
+      setRow(sheet.createRow(index + 1), cellStyle, UserRow(user))
     }
 
     return saveWorkbook(workbook, "users")
@@ -83,35 +84,8 @@ class DataGenService(
     private val DATE_FORMAT = DateTimeFormatter.ofPattern("MM-dd-yyyy")
     private val MIN_TIMESTAMP = ZonedDateTime.now().minusYears(3000)
     private val MAX_TIMESTAMP = ZonedDateTime.now().plusYears(3000)
-    private const val SMALL_WIDTH = 4000
-    private const val LARGE_WIDTH = 7000
-    private const val MEDIUM_WIDTH = 5000
-    private const val EXTRA_LARGE_WIDTH = 14000
-    private const val NOTES_WIDTH = 17000
-
-    private val FIRST_NAME_HEADER = Pair("First Name", LARGE_WIDTH)
-    private val LAST_NAME_HEADER = Pair("Last Name", LARGE_WIDTH)
-    private val POINTS_HEADER = Pair("Points", SMALL_WIDTH)
-
-    private val DPM_HEADERS =
-      listOf(
-        FIRST_NAME_HEADER,
-        LAST_NAME_HEADER,
-        Pair("Block", MEDIUM_WIDTH),
-        Pair("Location", MEDIUM_WIDTH),
-        Pair("Start Time", MEDIUM_WIDTH),
-        Pair("End Time", MEDIUM_WIDTH),
-        Pair("Date", MEDIUM_WIDTH),
-        Pair("Type", EXTRA_LARGE_WIDTH),
-        POINTS_HEADER,
-        Pair("Notes", NOTES_WIDTH),
-        Pair("Status", LARGE_WIDTH + 2000),
-        Pair("Created", LARGE_WIDTH),
-        Pair("Created By", LARGE_WIDTH),
-      )
-
-    private val USER_HEADERS =
-      listOf(LAST_NAME_HEADER, FIRST_NAME_HEADER, POINTS_HEADER, Pair("Manager", LARGE_WIDTH))
+    private val USER_HEADER = UserHeader()
+    private val DPM_HEADER = DpmHeader()
 
     private fun saveWorkbook(workbook: XSSFWorkbook, prefix: String): String {
       val tempFile = File.createTempFile(prefix, ".xlsx")
@@ -148,58 +122,25 @@ class DataGenService(
     private fun setColumnWidthsAndHeader(
       sheet: Sheet,
       headerStyle: CellStyle,
-      headers: List<Pair<String, Int>>
+      header: ExcelHeader
     ) {
-      val header = sheet.createRow(0)
+      val row = sheet.createRow(0)
 
-      for ((index, value) in headers.withIndex()) {
+      for ((index, value) in header.getHeaders().withIndex()) {
         sheet.setColumnWidth(index, value.second)
-        val headerCell = header.createCell(index)
+        val headerCell = row.createCell(index)
         headerCell.setCellValue(value.first)
         headerCell.cellStyle = headerStyle
       }
     }
 
-    private fun setRow(row: Row, style: XSSFCellStyle, contents: List<String?>) {
+    private fun setRow(row: Row, style: XSSFCellStyle, contents: ExcelRow) {
       var cell: Cell
-      for ((index, value) in contents.withIndex()) {
+      for ((index, value) in contents.getRow().withIndex()) {
         cell = row.createCell(index)
         cell.setCellValue(value)
         cell.cellStyle = style
       }
-    }
-
-    private fun setUserRows(row: Row, user: User, style: XSSFCellStyle) {
-      val rowContents =
-        listOf(
-          user.lastname,
-          user.firstname,
-          user.points?.toString(),
-          "${user.manager?.firstname} ${user.manager?.lastname}"
-        )
-
-      setRow(row, style, rowContents)
-    }
-
-    private fun setDpmRows(row: Row, dpm: Dpm, style: XSSFCellStyle) {
-      val rowContents =
-        listOf(
-          dpm.user?.firstname,
-          dpm.user?.lastname,
-          dpm.block,
-          dpm.location,
-          formatOutboundDpmTime(dpm.startTime),
-          formatOutboundDpmTime(dpm.endTime),
-          formatOutboundDpmDate(dpm.date),
-          dpm.dpmType,
-          dpm.points?.toString(),
-          dpm.notes,
-          generateDpmStatusMessage(dpm.approved!!, dpm.ignored!!),
-          formatCreatedAtExcel(dpm.created),
-          "${dpm.createdUser?.firstname} ${dpm.createdUser?.lastname}".trim()
-        )
-
-      setRow(row, style, rowContents)
     }
 
     private fun getStartAndEndDates(
@@ -213,7 +154,7 @@ class DataGenService(
 
       if (startDate == null) {
         val end =
-          formatDateOrNull(endDate!!, DATE_FORMAT)?.plusDays(1)
+          FormatHelpers.dateOrNull(endDate!!, DATE_FORMAT)?.plusDays(1)
             ?: throw InvalidDataGenDateException(
               "endDate query param is not in the correct format - MM-dd-yyyy"
             )
@@ -224,7 +165,7 @@ class DataGenService(
 
       if (endDate == null) {
         val start =
-          formatDateOrNull(startDate, DATE_FORMAT)
+          FormatHelpers.dateOrNull(startDate, DATE_FORMAT)
             ?: throw InvalidDataGenDateException(
               "startDate query param is not in the correct format - MM-dd-yyyy"
             )
@@ -234,13 +175,13 @@ class DataGenService(
       }
 
       val start =
-        formatDateOrNull(startDate, DATE_FORMAT)
+        FormatHelpers.dateOrNull(startDate, DATE_FORMAT)
           ?: throw InvalidDataGenDateException(
             "startDate query param is not in the correct format - MM-dd-yyyy"
           )
 
       val end =
-        formatDateOrNull(endDate, DATE_FORMAT)?.plusDays(1)
+        FormatHelpers.dateOrNull(endDate, DATE_FORMAT)?.plusDays(1)
           ?: throw InvalidDataGenDateException(
             "endDate query param is not in the correct format - MM-dd-yyyy"
           )

@@ -1,10 +1,8 @@
 package com.tunjicus.utsdpm.dtos
 
 import com.tunjicus.utsdpm.entities.Dpm
-import com.tunjicus.utsdpm.helpers.formatCreatedAt
-import com.tunjicus.utsdpm.helpers.formatOutboundDpmDate
-import com.tunjicus.utsdpm.helpers.formatOutboundDpmTime
-import com.tunjicus.utsdpm.helpers.generateDpmStatusMessage
+import com.tunjicus.utsdpm.helpers.FormatHelpers
+import com.tunjicus.utsdpm.helpers.MiscHelpers
 
 class DpmDetailDto(
   val id: Int,
@@ -32,11 +30,11 @@ class DpmDetailDto(
         points = dpm.points!!,
         block = dpm.block!!,
         location = dpm.location!!,
-        date = formatOutboundDpmDate(dpm.date),
-        time = formatOutboundDpmTime(dpm.startTime, dpm.endTime),
-        createdAt = formatCreatedAt(dpm.created),
+        date = FormatHelpers.outboundDpmDate(dpm.date),
+        time = FormatHelpers.outboundDpmTime(dpm.startTime, dpm.endTime),
+        createdAt = FormatHelpers.createdAt(dpm.created),
         notes = dpm.notes,
-        status = generateDpmStatusMessage(dpm.approved!!, dpm.ignored!!),
+        status = MiscHelpers.generateDpmStatusMessage(dpm.approved!!, dpm.ignored!!),
         ignored = dpm.ignored!!
       )
     }

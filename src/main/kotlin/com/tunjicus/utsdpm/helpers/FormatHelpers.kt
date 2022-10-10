@@ -14,33 +14,35 @@ private val CREATED_AT_FORMAT = DateTimeFormatter.ofPattern("MM/dd/yyyy '@' HHmm
 private val CREATED_EXCEL_FORMAT = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm")
 private val SUBMITTED_AT_FORMAT = DateTimeFormatter.ofPattern("HHmm")
 
-fun formatOutboundDpmDate(date: LocalDate?): String = DATE_FORMAT.format(date)
+object FormatHelpers {
+  fun outboundDpmDate(date: LocalDate?): String = DATE_FORMAT.format(date)
 
-fun formatOutboundDpmTime(start: LocalDateTime?, end: LocalDateTime? = null): String {
-  if (end == null) return OUTBOUND_TIME_FORMAT.format(start)
+  fun outboundDpmTime(start: LocalDateTime?, end: LocalDateTime? = null): String {
+    if (end == null) return OUTBOUND_TIME_FORMAT.format(start)
 
-  return "${OUTBOUND_TIME_FORMAT.format(start)} - ${OUTBOUND_TIME_FORMAT.format(end)}"
-}
-
-fun formatInboundDpmDate(date: String?): LocalDate = LocalDate.parse(date, DATE_FORMAT)
-
-fun formatInboundDpmTime(time: String?): LocalDateTime {
-  val today = DATE_FORMAT.format(LocalDateTime.now())
-  return LocalDateTime.parse("$today $time", INBOUND_TIME_FORMAT)
-}
-
-fun formatCreatedAt(date: ZonedDateTime): String = CREATED_AT_FORMAT.format(date)
-
-fun formatCreatedAtExcel(date: ZonedDateTime): String = CREATED_EXCEL_FORMAT.format(date)
-
-fun formatDateOrNull(date: String, formatter: DateTimeFormatter): ZonedDateTime? {
-  return try {
-    LocalDate.parse(date, formatter).atStartOfDay().atZone(TimeService.ZONE_ID)
-  } catch (_: DateTimeParseException) {
-    null
+    return "${OUTBOUND_TIME_FORMAT.format(start)} - ${OUTBOUND_TIME_FORMAT.format(end)}"
   }
+
+  fun inboundDpmDate(date: String?): LocalDate = LocalDate.parse(date, DATE_FORMAT)
+
+  fun inboundDpmTime(time: String?): LocalDateTime {
+    val today = DATE_FORMAT.format(LocalDateTime.now())
+    return LocalDateTime.parse("$today $time", INBOUND_TIME_FORMAT)
+  }
+
+  fun createdAt(date: ZonedDateTime): String = CREATED_AT_FORMAT.format(date)
+
+  fun createdAtExcel(date: ZonedDateTime): String = CREATED_EXCEL_FORMAT.format(date)
+
+  fun dateOrNull(date: String, formatter: DateTimeFormatter): ZonedDateTime? {
+    return try {
+      LocalDate.parse(date, formatter).atStartOfDay().atZone(TimeService.ZONE_ID)
+    } catch (_: DateTimeParseException) {
+      null
+    }
+  }
+
+  fun submittedAt(timestamp: ZonedDateTime): String = SUBMITTED_AT_FORMAT.format(timestamp)
+
+  fun currentYear(): String = LocalDate.now().year.toString()
 }
-
-fun formatSubmittedAt(timestamp: ZonedDateTime): String = SUBMITTED_AT_FORMAT.format(timestamp)
-
-fun formatCurrentYear(): String = LocalDate.now().year.toString()

@@ -7,7 +7,7 @@ import com.tunjicus.utsdpm.entities.AutoSubmission
 import com.tunjicus.utsdpm.exceptions.AutoSubmitAlreadyCalledException
 import com.tunjicus.utsdpm.exceptions.AutogenException
 import com.tunjicus.utsdpm.exceptions.NameNotFoundException
-import com.tunjicus.utsdpm.helpers.formatSubmittedAt
+import com.tunjicus.utsdpm.helpers.FormatHelpers
 import com.tunjicus.utsdpm.models.ShiftInfo
 import com.tunjicus.utsdpm.repositories.AutoSubmissionRepository
 import java.util.concurrent.CopyOnWriteArrayList
@@ -37,7 +37,7 @@ class AutogenService(
 
     // handle case where app restarts and DPMs have already been submitted
     if (autogenDpms.isEmpty()) autogenDpms.addAll(autogen().map(AutogenDpmDto::from))
-    return AutogenWrapperDto(formatSubmittedAt(lastSubmission().submitted), autogenDpms)
+    return AutogenWrapperDto(FormatHelpers.submittedAt(lastSubmission().submitted), autogenDpms)
   }
 
   fun autoSubmit() {
@@ -153,7 +153,9 @@ class AutogenService(
 
         val (valid, message) = shiftInfo.isValid()
         if (!valid) {
-          LOGGER.info("$message - $shiftSplit")
+          if (message.isNotBlank()) {
+            LOGGER.info("$message - $shiftSplit")
+          }
           position++
           continue
         }
@@ -189,7 +191,7 @@ class AutogenService(
     // REGEX patterns
     private val SID = """SID=\w+""".toRegex()
     private val DLL_PATH = """data-w2w="/cgi-bin/w2wG.?\.dll""".toRegex()
-    private val SHIFT_REGEX = """\wwl\("\d+",\d,"#\w+","[\w\d -:,~><^?@=|\\\[\]{}`]+;""".toRegex()
+    private val SHIFT_REGEX = """\wwl\("\d+",\d,"#\w+","[\w -:,~><^?@=|\\\[\]{}`]+;""".toRegex()
     private val BLOCK_LINE_REGEX = """sh\(\d+,"[\[\w+\]a-zA-Z ()]+","\d+""".toRegex()
     private val BLOCK_REGEX = """\[\w+]""".toRegex()
     private val BLOCK_COUNT_REGEX = """"\d+""".toRegex()

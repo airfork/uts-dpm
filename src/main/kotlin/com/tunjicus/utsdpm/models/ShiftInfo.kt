@@ -24,7 +24,7 @@ class ShiftInfo(val block: String, shiftSplit: List<String>) {
 
   fun isValid(): Pair<Boolean, String> {
     if (!isShiftColorValid()) {
-      return Pair(false, "Shift does not have a valid DPM color")
+      return Pair(false, "")
     }
 
     if (!isTimeRangeValid()) {

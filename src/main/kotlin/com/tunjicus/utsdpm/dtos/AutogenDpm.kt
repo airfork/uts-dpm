@@ -1,7 +1,7 @@
 package com.tunjicus.utsdpm.dtos
 
 import com.tunjicus.utsdpm.entities.Dpm
-import com.tunjicus.utsdpm.helpers.formatInboundDpmTime
+import com.tunjicus.utsdpm.helpers.FormatHelpers
 import com.tunjicus.utsdpm.models.ShiftInfo
 import com.tunjicus.utsdpm.services.TimeService
 
@@ -30,8 +30,8 @@ class AutogenDpm(shiftInfo: ShiftInfo) {
     dpm.location = location
     dpm.notes = notes
     dpm.points = points
-    dpm.startTime = formatInboundDpmTime(startTime)
-    dpm.endTime = formatInboundDpmTime(endTime)
+    dpm.startTime = FormatHelpers.inboundDpmTime(startTime)
+    dpm.endTime = FormatHelpers.inboundDpmTime(endTime)
     return dpm
   }
 }
