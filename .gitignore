@@ -79,3 +79,5 @@ build/
 /config/*
 !/config/README.md
 !/config/*.example
+
+.fleet/
