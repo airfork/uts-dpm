@@ -24,7 +24,8 @@ class AppConfig(
       .allowedOrigins(
         "http://localhost:4200",
         "http://localhost:10000",
-        "https://uts-dpm-frontend.web.app"
+        "https://utsdpm.com",
+        "https://www.utsdpm.com"
       )
       .allowedMethods("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
       .exposedHeaders("Content-Disposition")
