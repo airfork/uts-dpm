@@ -73,7 +73,8 @@ class AutogenService(
   }
 
   private fun alreadyCalledToday(): Boolean =
-    TimeService.getTodayDate().isEqual(lastSubmission().submitted.toLocalDate())
+    TimeService.getTodayDate()
+      .isEqual(lastSubmission().submitted.withZoneSameLocal(TimeService.ZONE_ID).toLocalDate())
 
   private fun lastSubmission(): AutoSubmission =
     autoSubmissionRepository.findMostRecent() ?: AutoSubmission.min()
