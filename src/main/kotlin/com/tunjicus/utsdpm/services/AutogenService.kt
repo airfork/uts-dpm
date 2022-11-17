@@ -38,7 +38,12 @@ class AutogenService(
 
     // handle case where app restarts and DPMs have already been submitted
     if (autogenDpms.isEmpty()) autogenDpms.addAll(autogen().map(AutogenDpmDto::from))
-    return AutogenWrapperDto(FormatHelpers.submittedAt(lastSubmission().submitted), autogenDpms)
+    return AutogenWrapperDto(
+      FormatHelpers.submittedAt(
+        lastSubmission().submitted.withZoneSameInstant(TimeService.ZONE_ID)
+      ),
+      autogenDpms
+    )
   }
 
   fun autoSubmit() {
