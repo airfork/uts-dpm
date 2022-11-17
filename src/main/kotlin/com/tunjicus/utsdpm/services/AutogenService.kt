@@ -31,6 +31,7 @@ class AutogenService(
   @Value("\${app.w2wPass}") private lateinit var w2wPass: String
 
   fun autogenDtos(): AutogenWrapperDto {
+    LOGGER.info("Today's date: ${TimeService.getTodayDate()}")
     if (!alreadyCalledToday()) {
       return AutogenWrapperDto(dpms = autogen().map(AutogenDpmDto::from))
     }
