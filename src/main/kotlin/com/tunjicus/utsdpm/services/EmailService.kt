@@ -48,9 +48,8 @@ class EmailService(
     sendEmail(to, generateWelcomeEmail(model), "Welcome to UTS DPM")
 
   private fun sendEmail(to: String, html: String, subject: String): CompletableFuture<Void> {
-    // TODO: Remove prod profile from if statement
     val recipient =
-      if (environment.activeProfiles.contains("local") || environment.activeProfiles.contains("prod")) {
+      if (environment.activeProfiles.contains("local")) {
         recipientOverride
       } else {
         to
