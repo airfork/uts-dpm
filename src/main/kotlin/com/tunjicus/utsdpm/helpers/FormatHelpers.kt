@@ -30,9 +30,11 @@ object FormatHelpers {
     return LocalDateTime.parse("$today $time", INBOUND_TIME_FORMAT)
   }
 
-  fun createdAt(date: ZonedDateTime): String = CREATED_AT_FORMAT.format(date)
+  fun createdAt(date: ZonedDateTime): String =
+    CREATED_AT_FORMAT.format(date.withZoneSameInstant(TimeService.ZONE_ID))
 
-  fun createdAtExcel(date: ZonedDateTime): String = CREATED_EXCEL_FORMAT.format(date)
+  fun createdAtExcel(date: ZonedDateTime): String =
+    CREATED_EXCEL_FORMAT.format(date.withZoneSameInstant(TimeService.ZONE_ID))
 
   fun dateOrNull(date: String, formatter: DateTimeFormatter): ZonedDateTime? {
     return try {
@@ -42,7 +44,8 @@ object FormatHelpers {
     }
   }
 
-  fun submittedAt(timestamp: ZonedDateTime): String = SUBMITTED_AT_FORMAT.format(timestamp)
+  fun submittedAt(timestamp: ZonedDateTime): String =
+    SUBMITTED_AT_FORMAT.format(timestamp.withZoneSameInstant(TimeService.ZONE_ID))
 
   fun currentYear(): String = LocalDate.now().year.toString()
 }
