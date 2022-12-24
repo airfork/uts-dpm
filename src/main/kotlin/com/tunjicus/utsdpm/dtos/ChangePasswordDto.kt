@@ -1,6 +1,6 @@
 package com.tunjicus.utsdpm.dtos
 
-import javax.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotBlank
 import org.hibernate.validator.constraints.Length
 
 class ChangePasswordDto {

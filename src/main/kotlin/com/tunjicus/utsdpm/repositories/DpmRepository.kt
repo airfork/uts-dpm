@@ -7,10 +7,11 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.PagingAndSortingRepository
 import org.springframework.data.repository.query.Param
 
-interface DpmRepository : PagingAndSortingRepository<Dpm, Int> {
+interface DpmRepository : PagingAndSortingRepository<Dpm, Int>, CrudRepository<Dpm, Int> {
   @Query(
     value =
       "select * from dpms " +

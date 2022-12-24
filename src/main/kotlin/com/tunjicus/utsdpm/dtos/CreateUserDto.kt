@@ -1,7 +1,7 @@
 package com.tunjicus.utsdpm.dtos
 
-import javax.validation.constraints.Email
-import javax.validation.constraints.NotBlank
+import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.NotBlank
 
 class CreateUserDto {
   @NotBlank(message = "email cannot be empty")

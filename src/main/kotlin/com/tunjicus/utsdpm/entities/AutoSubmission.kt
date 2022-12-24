@@ -2,7 +2,7 @@ package com.tunjicus.utsdpm.entities
 
 import com.tunjicus.utsdpm.services.TimeService
 import java.time.ZonedDateTime
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity
 @Table(name = "auto_submissions")

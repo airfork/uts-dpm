@@ -2,8 +2,8 @@ package com.tunjicus.utsdpm.validators
 
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import javax.validation.ConstraintValidator
-import javax.validation.ConstraintValidatorContext
+import jakarta.validation.ConstraintValidator
+import jakarta.validation.ConstraintValidatorContext
 
 class ValidDateFormatValidator : ConstraintValidator<ValidDateFormat, String> {
   private var format: String? = null

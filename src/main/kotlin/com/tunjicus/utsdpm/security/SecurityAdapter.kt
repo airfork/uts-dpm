@@ -1,13 +1,13 @@
 package com.tunjicus.utsdpm.security
 
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -19,7 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true)
 class SecurityAdapter(private val userDetailsService: UserDetailsService) {
   companion object {
     private val NO_AUTH_LIST =
@@ -36,38 +36,37 @@ class SecurityAdapter(private val userDetailsService: UserDetailsService) {
 
   @Bean
   fun filterChain(http: HttpSecurity): SecurityFilterChain {
-    http
-      .headers()
-      .frameOptions()
-      .sameOrigin()
-      .and()
-      .csrf()
-      .disable()
-      .authorizeRequests()
-      .antMatchers(*NO_AUTH_LIST)
-      .permitAll()
-      .antMatchers(HttpMethod.OPTIONS, "/**")
-      .permitAll()
-      .antMatchers("/api/**")
-      .authenticated()
-      .and()
-      .exceptionHandling()
-      .authenticationEntryPoint { request, response, authException ->
-        run {
-          response.sendError(
-            HttpServletResponse.SC_UNAUTHORIZED,
-            "UNAUTHORIZED : " + authException.message
-          )
+    http.headers().frameOptions().sameOrigin().and().csrf().disable().authorizeHttpRequests {
+      authorize ->
+      authorize
+        .requestMatchers(*NO_AUTH_LIST)
+        .permitAll()
+        .requestMatchers(HttpMethod.OPTIONS, "/**")
+        .permitAll()
+        .requestMatchers("/api/**")
+        .authenticated()
+        .and()
+        .exceptionHandling()
+        .authenticationEntryPoint { _, response, authException ->
+          run {
+            response.sendError(
+              HttpServletResponse.SC_UNAUTHORIZED,
+              "UNAUTHORIZED : " + authException.message
+            )
+          }
         }
-      }
-      .and()
-      .sessionManagement()
-      .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-      .and()
-      .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter::class.java)
-      .requiresChannel()
-      .requestMatchers({ it.getHeader("X-Forwarded-Proto") != null })
-      .requiresSecure()
+        .and()
+        .sessionManagement()
+        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        .and()
+        .addFilterBefore(
+          jwtAuthenticationFilter(),
+          UsernamePasswordAuthenticationFilter::class.java
+        )
+        .requiresChannel()
+        .requestMatchers({ it.getHeader("X-Forwarded-Proto") != null })
+        .requiresSecure()
+    }
 
     return http.build()
   }
