@@ -1,7 +1,7 @@
 package com.tunjicus.utsdpm.entities
 
 import com.tunjicus.utsdpm.enums.RoleName
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity
 @Table(name = "users")

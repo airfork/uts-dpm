@@ -1,7 +1,7 @@
 package com.tunjicus.utsdpm.advice
 
 import com.tunjicus.utsdpm.exceptions.*
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

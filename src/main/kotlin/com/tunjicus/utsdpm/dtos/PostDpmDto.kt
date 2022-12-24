@@ -5,8 +5,8 @@ import com.tunjicus.utsdpm.helpers.FormatHelpers
 import com.tunjicus.utsdpm.services.DpmService
 import com.tunjicus.utsdpm.validators.ValidDateFormat
 import com.tunjicus.utsdpm.validators.ValidType
-import javax.validation.constraints.NotBlank
-import javax.validation.constraints.Pattern
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Pattern
 import org.hibernate.validator.constraints.Length
 
 data class PostDpmDto(

@@ -4,7 +4,7 @@ import com.tunjicus.utsdpm.services.TimeService
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity
 @Table(name = "dpms")
