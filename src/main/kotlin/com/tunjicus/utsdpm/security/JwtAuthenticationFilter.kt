@@ -6,6 +6,8 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetailsService
@@ -45,7 +47,8 @@ class JwtAuthenticationFilter : OncePerRequestFilter() {
             !request.requestURL.contains("/changePassword", true) &&
               !request.requestURL.contains("/changeCheck", true)
           ) {
-            response.sendError(HttpServletResponse.SC_SEE_OTHER)
+            response.status = HttpStatus.SEE_OTHER.value()
+            response.contentType = MediaType.APPLICATION_JSON_VALUE
             return
           }
         }

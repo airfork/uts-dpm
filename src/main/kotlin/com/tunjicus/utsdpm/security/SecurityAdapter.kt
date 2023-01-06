@@ -36,37 +36,45 @@ class SecurityAdapter(private val userDetailsService: UserDetailsService) {
 
   @Bean
   fun filterChain(http: HttpSecurity): SecurityFilterChain {
-    http.headers().frameOptions().sameOrigin().and().csrf().disable().authorizeHttpRequests {
-      authorize ->
-      authorize
-        .requestMatchers(*NO_AUTH_LIST)
-        .permitAll()
-        .requestMatchers(HttpMethod.OPTIONS, "/**")
-        .permitAll()
-        .requestMatchers("/api/**")
-        .authenticated()
-        .and()
-        .exceptionHandling()
-        .authenticationEntryPoint { _, response, authException ->
-          run {
-            response.sendError(
-              HttpServletResponse.SC_UNAUTHORIZED,
-              "UNAUTHORIZED : " + authException.message
-            )
+    http
+      .cors()
+      .and()
+      .headers()
+      .frameOptions()
+      .sameOrigin()
+      .and()
+      .csrf()
+      .disable()
+      .authorizeHttpRequests { authorize ->
+        authorize
+          .requestMatchers(*NO_AUTH_LIST)
+          .permitAll()
+          .requestMatchers(HttpMethod.OPTIONS, "/**")
+          .permitAll()
+          .requestMatchers("/api/**")
+          .authenticated()
+          .and()
+          .exceptionHandling()
+          .authenticationEntryPoint { _, response, authException ->
+            run {
+              response.sendError(
+                HttpServletResponse.SC_UNAUTHORIZED,
+                "UNAUTHORIZED : " + authException.message
+              )
+            }
           }
-        }
-        .and()
-        .sessionManagement()
-        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        .and()
-        .addFilterBefore(
-          jwtAuthenticationFilter(),
-          UsernamePasswordAuthenticationFilter::class.java
-        )
-        .requiresChannel()
-        .requestMatchers({ it.getHeader("X-Forwarded-Proto") != null })
-        .requiresSecure()
-    }
+          .and()
+          .sessionManagement()
+          .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+          .and()
+          .addFilterBefore(
+            jwtAuthenticationFilter(),
+            UsernamePasswordAuthenticationFilter::class.java
+          )
+          .requiresChannel()
+          .requestMatchers({ it.getHeader("X-Forwarded-Proto") != null })
+          .requiresSecure()
+      }
 
     return http.build()
   }
