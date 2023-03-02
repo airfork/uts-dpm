@@ -69,8 +69,8 @@ class UserService(
     }
 
     dto.manager?.let {
-      val manager = userRepository.findByFullName(it) ?: throw ManagerNotFoundException(it)
-      if (!user.hasAnyRole(RoleName.MANAGER, RoleName.ADMIN)) throw ManagerNotFoundException(it)
+      val manager = userRepository.findByFullName(it.trim()) ?: throw ManagerNotFoundException(it)
+      if (!manager.hasAnyRole(RoleName.MANAGER, RoleName.ADMIN)) throw ManagerNotFoundException(it)
       user.manager = manager
     }
 

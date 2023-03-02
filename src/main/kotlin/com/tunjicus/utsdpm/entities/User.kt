@@ -39,7 +39,8 @@ class User {
   var role: Role? = null
 
   override fun toString(): String {
-    return "User(id=$id, manager='${manager?.firstname} ${manager?.lastname}', username=$username, firstname=$firstname, lastname=$lastname, fullTime=$fullTime, points=$points, role=$role)"
+    return "User(id=$id, manager='${manager?.firstname} ${manager?.lastname}', username=$username, " +
+            "firstname=$firstname, lastname=$lastname, fullTime=$fullTime, points=$points, role=$role)"
   }
 
   override fun equals(other: Any?): Boolean {
