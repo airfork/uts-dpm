@@ -18,3 +18,5 @@ services:
       - ./db_scripts:/docker-entrypoint-initdb.d/
     ports:
       - "5432:5432"
+    labels:
+      org.springframework.boot.service-connection: postgres

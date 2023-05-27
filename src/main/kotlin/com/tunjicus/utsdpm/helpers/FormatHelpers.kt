@@ -2,12 +2,12 @@ package com.tunjicus.utsdpm.helpers
 
 import com.tunjicus.utsdpm.services.TimeService
 import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
-private val INBOUND_TIME_FORMAT = DateTimeFormatter.ofPattern("MM/dd/yyyy HHmm")
+private val INBOUND_TIME_FORMAT = DateTimeFormatter.ofPattern("HHmm")
 private val OUTBOUND_TIME_FORMAT = DateTimeFormatter.ofPattern("HHmm")
 private val DATE_FORMAT = DateTimeFormatter.ofPattern("MM/dd/yyyy")
 private val CREATED_AT_FORMAT = DateTimeFormatter.ofPattern("MM/dd/yyyy '@' HHmm")
@@ -17,7 +17,7 @@ private val SUBMITTED_AT_FORMAT = DateTimeFormatter.ofPattern("HHmm")
 object FormatHelpers {
   fun outboundDpmDate(date: LocalDate?): String = DATE_FORMAT.format(date)
 
-  fun outboundDpmTime(start: LocalDateTime?, end: LocalDateTime? = null): String {
+  fun outboundDpmTime(start: LocalTime?, end: LocalTime? = null): String {
     if (end == null) return OUTBOUND_TIME_FORMAT.format(start)
 
     return "${OUTBOUND_TIME_FORMAT.format(start)} - ${OUTBOUND_TIME_FORMAT.format(end)}"
@@ -25,10 +25,7 @@ object FormatHelpers {
 
   fun inboundDpmDate(date: String?): LocalDate = LocalDate.parse(date, DATE_FORMAT)
 
-  fun inboundDpmTime(time: String?): LocalDateTime {
-    val today = DATE_FORMAT.format(LocalDateTime.now())
-    return LocalDateTime.parse("$today $time", INBOUND_TIME_FORMAT)
-  }
+  fun inboundDpmTime(time: String?): LocalTime = LocalTime.parse(time, INBOUND_TIME_FORMAT)
 
   fun createdAt(date: ZonedDateTime): String =
     CREATED_AT_FORMAT.format(date.withZoneSameInstant(TimeService.ZONE_ID))

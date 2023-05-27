@@ -1,18 +1,15 @@
 package com.tunjicus.utsdpm.entities
 
 import com.tunjicus.utsdpm.services.TimeService
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZonedDateTime
 import jakarta.persistence.*
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZonedDateTime
 
 @Entity
 @Table(name = "dpms")
 class Dpm {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "id")
-  var id: Int? = null
+  @Id @GeneratedValue(strategy = GenerationType.IDENTITY) @Column(name = "id") var id: Int? = null
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "createid")
@@ -22,38 +19,28 @@ class Dpm {
   @JoinColumn(name = "userid")
   var user: User? = null
 
-  @Column(name = "block", length = 20)
-  var block: String? = null
+  @Column(name = "block", length = 20) var block: String? = null
 
-  @Column(name = "date")
-  var date: LocalDate? = null
+  @Column(name = "date") var date: LocalDate? = null
 
-  @Column(name = "dpmtype")
-  var dpmType: String? = null
+  @Column(name = "dpmtype") var dpmType: String? = null
 
-  @Column(name = "points", nullable = false, columnDefinition = "int2")
-  var points: Int? = null
+  @Column(name = "points", nullable = false, columnDefinition = "int2") var points: Int? = null
 
-  @Column(name = "notes")
-  var notes: String? = null
+  @Column(name = "notes") var notes: String? = null
 
   @Column(name = "created", updatable = false)
   var created: ZonedDateTime = TimeService.getTodayZonedDateTime()
 
-  @Column(name = "approved")
-  var approved: Boolean? = false
+  @Column(name = "approved") var approved: Boolean? = false
 
-  @Column(name = "location")
-  var location: String? = null
+  @Column(name = "location") var location: String? = null
 
-  @Column(name = "starttime", nullable = false)
-  var startTime: LocalDateTime? = null
+  @Column(name = "starttime", nullable = false) var startTime: LocalTime? = null
 
-  @Column(name = "endtime", nullable = false)
-  var endTime: LocalDateTime? = null
+  @Column(name = "endtime", nullable = false) var endTime: LocalTime? = null
 
-  @Column(name = "ignored")
-  var ignored: Boolean? = false
+  @Column(name = "ignored") var ignored: Boolean? = false
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -74,9 +61,7 @@ class Dpm {
     if (location != other.location) return false
     if (startTime != other.startTime) return false
     if (endTime != other.endTime) return false
-    if (ignored != other.ignored) return false
-
-    return true
+    return ignored == other.ignored
   }
 
   override fun hashCode(): Int {
