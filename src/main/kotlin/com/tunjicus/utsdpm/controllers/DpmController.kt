@@ -54,7 +54,8 @@ class DpmController(private val dpmService: DpmService) {
           responseCode = "422",
           description = "Unable to find user the DPM is meant for",
           content = [Content(schema = Schema(implementation = ExceptionResponse::class))]
-        )]
+        )
+      ]
   )
   @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST', 'MANAGER', 'SUPERVISOR')")
   @PostMapping
@@ -75,13 +76,14 @@ class DpmController(private val dpmService: DpmService) {
           responseCode = "401",
           description = "Unauthorized, need to login",
           content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
-        )]
+        )
+      ]
   )
   @GetMapping("/current")
   fun getCurrentDpms(): Collection<HomeDpmDto> = dpmService.getCurrentDpms()
 
   @Operation(
-    summary = "Gets all the unapproved dpms",
+    summary = "Gets all the unapproved dpms (paginated)",
     description =
       "Unapproved dpms are ones that have approved set to null or false (legacy) and have ignored set to null or false." +
         "Admins can view all unapproved dpms, but managers can only view dpms for people they manage",
@@ -107,7 +109,14 @@ class DpmController(private val dpmService: DpmService) {
   )
   @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   @GetMapping("/approvals")
-  fun getUnapprovedDpms(): Collection<ApprovalDpmDto> = dpmService.getUnapprovedDpms()
+  fun getUnapprovedDpms(
+    @Parameter(description = "The page number for pagination")
+    @RequestParam(defaultValue = "0")
+    page: Int,
+    @Parameter(description = "The page size for pagination")
+    @RequestParam(defaultValue = "10")
+    size: Int,
+  ): Page<ApprovalDpmDto> = dpmService.getUnapprovedDpms(page, size)
 
   @Operation(
     summary = "Updates dpm fields",
@@ -129,7 +138,8 @@ class DpmController(private val dpmService: DpmService) {
           responseCode = "404",
           description = "Failed to find a dpm with the id in the path variable",
           content = [Content(schema = Schema(implementation = ExceptionResponse::class))]
-        )]
+        )
+      ]
   )
   @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   @PatchMapping("/{id}")
@@ -157,7 +167,8 @@ class DpmController(private val dpmService: DpmService) {
           responseCode = "404",
           description = "Failed to find a user with the id in the path variable",
           content = [Content(schema = Schema(implementation = ExceptionResponse::class))]
-        )]
+        )
+      ]
   )
   @PreAuthorize("hasRole('ADMIN')")
   @GetMapping("/user/{id}")

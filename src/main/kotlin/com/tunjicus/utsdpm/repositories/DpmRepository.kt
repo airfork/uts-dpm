@@ -33,7 +33,35 @@ interface DpmRepository : PagingAndSortingRepository<Dpm, Int>, CrudRepository<D
         "order by created desc",
     nativeQuery = true
   )
-  fun getUnapprovedDpms(): Collection<Dpm>
+  fun getUnapprovedDpms(pageable: Pageable): Page<Dpm>
+
+  @Query(
+    value =
+    """
+      select d.id,
+             d.createid,
+             d.userid,
+             d.block,
+             d.date,
+             d.dpmtype,
+             d.points,
+             d.notes,
+             d.created,
+             d.approved,
+             d.location,
+             d.starttime,
+             d.endtime,
+             d.ignored
+      from dpms d
+               inner join users u on u.id = d.userid
+      where d.approved is distinct from true
+        and d.ignored is distinct from true
+        and u.managerid = :managerId
+      order by d.created desc
+    """,
+    nativeQuery = true
+  )
+  fun getUnapprovedDpms(managerId: Int, pageable: Pageable): Page<Dpm>
 
   fun findAllByCreatedAfterAndCreatedBeforeOrderByCreatedDesc(
     after: ZonedDateTime,
@@ -53,8 +81,7 @@ interface DpmRepository : PagingAndSortingRepository<Dpm, Int>, CrudRepository<D
   )
   fun ignorePartTimerDpms()
 
-  @Modifying
-  fun deleteByUser(user: User)
+  @Modifying fun deleteByUser(user: User)
 
   @Modifying
   @Query("UPDATE Dpm d SET d.createdUser=:new WHERE d.createdUser=:old")

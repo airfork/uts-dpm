@@ -60,14 +60,14 @@ class DpmService(
 
   // If manager, get unapproved dpms for managed users
   // Get all if admin
-  fun getUnapprovedDpms(): Collection<ApprovalDpmDto> {
+  fun getUnapprovedDpms(page: Int, size: Int): Page<ApprovalDpmDto> {
+    val pageRequest = PageRequest.of(maxOf(page, 0), size)
     val currentUser = authService.getCurrentUser()
-    val unapprovedDpms = dpmRepository.getUnapprovedDpms()
 
     return when (currentUser.role?.roleName) {
-      RoleName.ADMIN -> unapprovedDpms.map(ApprovalDpmDto::from)
+      RoleName.ADMIN -> dpmRepository.getUnapprovedDpms(pageRequest).map(ApprovalDpmDto::from)
       RoleName.MANAGER ->
-        unapprovedDpms.filter { it.user?.manager?.id == currentUser.id }.map(ApprovalDpmDto::from)
+        dpmRepository.getUnapprovedDpms(currentUser.id!!, pageRequest).map(ApprovalDpmDto::from)
       else -> throw UserNotAuthorizedException()
     }
   }
