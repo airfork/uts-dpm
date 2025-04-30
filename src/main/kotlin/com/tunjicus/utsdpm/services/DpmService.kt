@@ -1,5 +1,6 @@
 package com.tunjicus.utsdpm.services
 
+import com.tunjicus.utsdpm.configs.AppProperties
 import com.tunjicus.utsdpm.dtos.*
 import com.tunjicus.utsdpm.entities.Dpm
 import com.tunjicus.utsdpm.entities.User
@@ -8,7 +9,6 @@ import com.tunjicus.utsdpm.exceptions.DpmNotFoundException
 import com.tunjicus.utsdpm.exceptions.NameNotFoundException
 import com.tunjicus.utsdpm.exceptions.UserNotAuthorizedException
 import com.tunjicus.utsdpm.exceptions.UserNotFoundException
-import com.tunjicus.utsdpm.helpers.Constants
 import com.tunjicus.utsdpm.helpers.FormatHelpers
 import com.tunjicus.utsdpm.models.DpmReceivedEmail
 import com.tunjicus.utsdpm.repositories.DpmRepository
@@ -24,7 +24,7 @@ class DpmService(
   private val dpmRepository: DpmRepository,
   private val authService: AuthService,
   private val emailService: EmailService,
-  private val constants: Constants
+  private val appProperties: AppProperties
 ) {
   fun newDpm(dpmDto: PostDpmDto) {
     val createdBy = authService.getCurrentUser()
@@ -131,7 +131,7 @@ class DpmService(
           dpmType = dpm.dpmType!!,
           receivedDate = FormatHelpers.outboundDpmDate(dpm.date),
           manager = "${manager.firstname!!} ${manager.lastname!!}",
-          url = constants.baseUrl()
+          url = appProperties.baseUrl
         )
       )
       .thenRun { LOGGER.info("DPM email sent to ${user.username!!}") }

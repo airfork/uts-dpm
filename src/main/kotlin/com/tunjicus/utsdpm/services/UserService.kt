@@ -1,5 +1,6 @@
 package com.tunjicus.utsdpm.services
 
+import com.tunjicus.utsdpm.configs.AppProperties
 import com.tunjicus.utsdpm.dtos.CreateUserDto
 import com.tunjicus.utsdpm.dtos.GetUserDetailDto
 import com.tunjicus.utsdpm.dtos.UserDetailDto
@@ -7,7 +8,6 @@ import com.tunjicus.utsdpm.dtos.UsernameDto
 import com.tunjicus.utsdpm.entities.User
 import com.tunjicus.utsdpm.enums.RoleName
 import com.tunjicus.utsdpm.exceptions.*
-import com.tunjicus.utsdpm.helpers.Constants
 import com.tunjicus.utsdpm.models.PointsBalanceEmail
 import com.tunjicus.utsdpm.models.ResetEmail
 import com.tunjicus.utsdpm.models.WelcomeEmail
@@ -27,7 +27,7 @@ class UserService(
   private val authService: AuthService,
   private val passwordEncoder: PasswordEncoder,
   private val emailService: EmailService,
-  private val constants: Constants
+  private val appProperties: AppProperties
 ) {
 
   fun getAllUserNames(): Collection<UsernameDto> {
@@ -160,7 +160,7 @@ class UserService(
     emailService
       .sendResetPasswordEmail(
         user.username!!,
-        ResetEmail(user.firstname!!, password, constants.baseUrl())
+        ResetEmail(user.firstname!!, password, appProperties.baseUrl)
       )
       .thenRun { LOGGER.info("Sent password reset email to ${user.username!!}") }
 
@@ -168,7 +168,7 @@ class UserService(
     emailService
       .sendWelcomeEmail(
         user.username!!,
-        WelcomeEmail(user.firstname!!, password, constants.baseUrl())
+        WelcomeEmail(user.firstname!!, password, appProperties.baseUrl)
       )
       .thenRun { LOGGER.info("Sent welcome email to ${user.username!!}") }
 

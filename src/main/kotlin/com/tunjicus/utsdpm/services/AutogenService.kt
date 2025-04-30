@@ -1,5 +1,6 @@
 package com.tunjicus.utsdpm.services
 
+import com.tunjicus.utsdpm.configs.AppProperties
 import com.tunjicus.utsdpm.dtos.AutogenDpm
 import com.tunjicus.utsdpm.dtos.AutogenDpmDto
 import com.tunjicus.utsdpm.dtos.AutogenWrapperDto
@@ -10,26 +11,23 @@ import com.tunjicus.utsdpm.exceptions.NameNotFoundException
 import com.tunjicus.utsdpm.helpers.FormatHelpers
 import com.tunjicus.utsdpm.models.ShiftInfo
 import com.tunjicus.utsdpm.repositories.AutoSubmissionRepository
-import java.util.concurrent.CopyOnWriteArrayList
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.concurrent.CopyOnWriteArrayList
 
 @Service
 class AutogenService(
-  private val autoSubmissionRepository: AutoSubmissionRepository,
-  private val dpmService: DpmService,
-  private val authService: AuthService
+    private val autoSubmissionRepository: AutoSubmissionRepository,
+    private val dpmService: DpmService,
+    private val authService: AuthService,
+    private val appProperties: AppProperties,
 ) {
-  @Value("\${app.w2wUser}") private lateinit var w2wUser: String
-  @Value("\${app.w2wPass}") private lateinit var w2wPass: String
-
   fun autogenDtos(): AutogenWrapperDto {
     if (!alreadyCalledToday()) {
       return AutogenWrapperDto(dpms = autogen().map(AutogenDpmDto::from))
@@ -38,11 +36,9 @@ class AutogenService(
     // handle case where app restarts and DPMs have already been submitted
     if (autogenDpms.isEmpty()) autogenDpms.addAll(autogen().map(AutogenDpmDto::from))
     return AutogenWrapperDto(
-      FormatHelpers.submittedAt(
-        lastSubmission().submitted.withZoneSameInstant(TimeService.ZONE_ID)
-      ),
-      autogenDpms
-    )
+        FormatHelpers.submittedAt(
+            lastSubmission().submitted.withZoneSameInstant(TimeService.ZONE_ID)),
+        autogenDpms)
   }
 
   fun autoSubmit() {
@@ -78,21 +74,24 @@ class AutogenService(
   }
 
   private fun alreadyCalledToday(): Boolean =
-    TimeService.getTodayDate()
-      .isEqual(lastSubmission().submitted.withZoneSameInstant(TimeService.ZONE_ID).toLocalDate())
+      TimeService.getTodayDate()
+          .isEqual(
+              lastSubmission().submitted.withZoneSameInstant(TimeService.ZONE_ID).toLocalDate())
 
   private fun lastSubmission(): AutoSubmission =
-    autoSubmissionRepository.findMostRecent() ?: AutoSubmission.min()
+      autoSubmissionRepository.findMostRecent() ?: AutoSubmission.min()
 
   private fun autogen(): List<AutogenDpm> {
     val loginBody = loginRequest()
     val sid =
-      SID.find(loginBody)?.value ?: throw AutogenException("Failed to find SID in login body")
+        SID.find(loginBody)?.value ?: throw AutogenException("Failed to find SID in login body")
     var dllPath =
-      DLL_PATH.find(loginBody)?.value ?: throw AutogenException("Failed to find DLL in login body")
+        DLL_PATH.find(loginBody)?.value
+            ?: throw AutogenException("Failed to find DLL in login body")
     dllPath = dllPath.removePrefix("data-w2w=\"")
 
     val schedulePage = schedulePageRequest(sid, dllPath)
+    LOGGER.info("Schedule page: $schedulePage")
     val shifts = SHIFT_REGEX.findAll(schedulePage).map { it.value }
     val blocks = BLOCK_LINE_REGEX.findAll(schedulePage).map { it.value }
 
@@ -104,18 +103,18 @@ class AutogenService(
 
     CLIENT.newCall(request).execute().use {
       return it.body?.string()
-        ?: throw AutogenException("When2Work login request returned an empty body")
+          ?: throw AutogenException("When2Work login request returned an empty body")
     }
   }
 
   private fun schedulePageRequest(sid: String, dllPath: String): String {
     val dayOfWeek = TimeService.getTodayZonedDateTime().dayOfWeek.value - 1
     val request =
-      Request.Builder().url(String.format(DAY_VIEW_LINK, dllPath, sid, dayOfWeek)).build()
+        Request.Builder().url(String.format(DAY_VIEW_LINK, dllPath, sid, dayOfWeek)).build()
 
     CLIENT.newCall(request).execute().use {
       return it.body?.string()
-        ?: throw AutogenException("Failed to get request body from schedule page request")
+          ?: throw AutogenException("Failed to get request body from schedule page request")
     }
   }
 
@@ -133,18 +132,17 @@ class AutogenService(
       }
 
       val block =
-        BLOCK_REGEX.find(line)?.value?.trim()
-          ?: throw AutogenException("Failed to find block in line: $line")
+          BLOCK_REGEX.find(line)?.value?.trim()
+              ?: throw AutogenException("Failed to find block in line: $line")
       val blockShiftCount =
-        BLOCK_COUNT_REGEX.find(line)?.value?.trim('"')?.toInt()
-          ?: throw AutogenException("Failed to find shift count for block $block")
+          BLOCK_COUNT_REGEX.find(line)?.value?.trim('"')?.toInt()
+              ?: throw AutogenException("Failed to find shift count for block $block")
 
       val maxBlockPosition = position + blockShiftCount
       while (position < maxBlockPosition) {
         if (position >= shifts.size) {
           throw AutogenException(
-            "Failed to parse all blocks. Please make sure that all blocks contain a value for location"
-          )
+              "Failed to parse all blocks. Please make sure that all blocks contain a value for location")
         }
 
         val shift = shifts[position]
@@ -175,16 +173,16 @@ class AutogenService(
   }
 
   private fun createLoginFormData(): RequestBody =
-    MultipartBody.Builder()
-      .setType(MultipartBody.FORM)
-      .addFormDataPart("UserId1", w2wUser)
-      .addFormDataPart("Password1", w2wPass)
-      .addFormDataPart("Launch", "")
-      .addFormDataPart("LaunchParams", "")
-      .addFormDataPart("Submit1", "Please Wait...")
-      .addFormDataPart("captca_required", "false")
-      .addFormDataPart("name", "signin")
-      .build()
+      MultipartBody.Builder()
+          .setType(MultipartBody.FORM)
+          .addFormDataPart("UserId1", appProperties.w2wUser)
+          .addFormDataPart("Password1", appProperties.w2wPass)
+          .addFormDataPart("Launch", "")
+          .addFormDataPart("LaunchParams", "")
+          .addFormDataPart("Submit1", "Please Wait...")
+          .addFormDataPart("captca_required", "false")
+          .addFormDataPart("name", "signin")
+          .build()
 
   companion object {
     private val LOGGER = LoggerFactory.getLogger(AutogenService::class.java)
@@ -192,7 +190,7 @@ class AutogenService(
     private const val LOGIN_URL = "https://whentowork.com/cgi-bin/w2w.dll/login"
 
     private const val DAY_VIEW_LINK =
-      "https://www7.whentowork.com/%s/mgrschedule?%s&lmi=1&view=Pos&Day=%s"
+        "https://www7.whentowork.com/%s/mgrschedule?%s&lmi=1&view=Pos&Day=%s"
 
     // REGEX patterns
     private val SID = """SID=\w+""".toRegex()
