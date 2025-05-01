@@ -1,5 +1,7 @@
 package com.tunjicus.utsdpm.dtos
 
+import com.tunjicus.utsdpm.models.AutogenDpm
+
 data class AutogenDpmDto(
   val name: String,
   val block: String,
