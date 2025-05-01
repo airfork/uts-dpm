@@ -1,6 +1,5 @@
-package com.tunjicus.utsdpm.advice
+package com.tunjicus.utsdpm.exceptions
 
-import com.tunjicus.utsdpm.exceptions.*
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -96,8 +95,8 @@ class GlobalAdviceHandler(private val request: HttpServletRequest) {
   }
 
   private fun createExceptionResponse(
-    status: HttpStatus,
-    message: String
+      status: HttpStatus,
+      message: String
   ): ResponseEntity<ExceptionResponse> {
     return ResponseEntity.status(status)
       .body(
