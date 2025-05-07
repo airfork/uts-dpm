@@ -1,6 +1,6 @@
 package com.tunjicus.utsdpm.models
 
-import com.tunjicus.utsdpm.entities.Dpm
+import com.tunjicus.utsdpm.entities.UserDpm
 import com.tunjicus.utsdpm.enums.ShiftColor
 import com.tunjicus.utsdpm.helpers.FormatHelpers
 import com.tunjicus.utsdpm.services.TimeService
@@ -16,17 +16,17 @@ private constructor(
     val points: Int,
     val notes: String
 ) {
-  fun toDpm(): Dpm {
-    val dpm = Dpm()
-    dpm.block = block
-    dpm.date = TimeService.getTodayDate()
-    dpm.dpmType = type
-    dpm.location = location
-    dpm.notes = notes
-    dpm.points = points
-    dpm.startTime = FormatHelpers.inboundDpmTime(startTime)
-    dpm.endTime = FormatHelpers.inboundDpmTime(endTime)
-    return dpm
+  fun toDpm(): UserDpm {
+    val userDpm = UserDpm()
+    userDpm.block = block
+    userDpm.date = TimeService.getTodayDate()
+    userDpm.dpmType = type
+    userDpm.location = location
+    userDpm.notes = notes
+    userDpm.points = points
+    userDpm.startTime = FormatHelpers.inboundDpmTime(startTime)
+    userDpm.endTime = FormatHelpers.inboundDpmTime(endTime)
+    return userDpm
   }
 
   companion object {

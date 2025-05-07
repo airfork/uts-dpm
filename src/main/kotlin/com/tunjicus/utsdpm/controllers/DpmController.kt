@@ -4,7 +4,7 @@ import com.tunjicus.utsdpm.dtos.*
 import com.tunjicus.utsdpm.exceptions.ExceptionResponse
 import com.tunjicus.utsdpm.exceptions.ExceptionResponses
 import com.tunjicus.utsdpm.exceptions.SecurityExceptionResponse
-import com.tunjicus.utsdpm.services.DpmService
+import com.tunjicus.utsdpm.services.UserDpmService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.ArraySchema
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*
 @Validated
 @RequestMapping(value = ["/api/dpms"], produces = [MediaType.APPLICATION_JSON_VALUE])
 @Tag(name = "DPMs", description = "Endpoints for managing DPM data")
-class DpmController(private val dpmService: DpmService) {
+class DpmController(private val userDpmService: UserDpmService) {
 
   @Operation(
     summary = "Create a dpm for a user",
@@ -60,7 +60,7 @@ class DpmController(private val dpmService: DpmService) {
   @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST', 'MANAGER', 'SUPERVISOR')")
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  fun new(@RequestBody @Valid dpmDto: PostDpmDto) = dpmService.newDpm(dpmDto)
+  fun new(@RequestBody @Valid dpmDto: PostDpmDto) = userDpmService.newDpm(dpmDto)
 
   @Operation(
     summary = "Gets the current user's dpms for the last sixth months",
@@ -80,7 +80,7 @@ class DpmController(private val dpmService: DpmService) {
       ]
   )
   @GetMapping("/current")
-  fun getCurrentDpms(): Collection<HomeDpmDto> = dpmService.getCurrentDpms()
+  fun getCurrentDpms(): Collection<HomeDpmDto> = userDpmService.getCurrentDpms()
 
   @Operation(
     summary = "Gets all the unapproved dpms (paginated)",
@@ -116,7 +116,7 @@ class DpmController(private val dpmService: DpmService) {
     @Parameter(description = "The page size for pagination")
     @RequestParam(defaultValue = "10")
     size: Int,
-  ): Page<ApprovalDpmDto> = dpmService.getUnapprovedDpms(page, size)
+  ): Page<ApprovalDpmDto> = userDpmService.getUnapprovedDpms(page, size)
 
   @Operation(
     summary = "Updates dpm fields",
@@ -146,7 +146,7 @@ class DpmController(private val dpmService: DpmService) {
   fun updateDpm(
     @Parameter(description = "The id of the DPM") @PathVariable id: Int,
     @RequestBody dto: PatchDpmDto
-  ) = dpmService.updateDpm(id, dto)
+  ) = userDpmService.updateDpm(id, dto)
 
   @Operation(
     summary = "Get all the dpms for the user",
@@ -180,5 +180,5 @@ class DpmController(private val dpmService: DpmService) {
     @RequestParam(defaultValue = "10")
     size: Int,
     @Parameter(description = "The id of user") @PathVariable id: Int
-  ): Page<DpmDetailDto> = dpmService.getAll(id, page, size)
+  ): Page<DpmDetailDto> = userDpmService.getAll(id, page, size)
 }

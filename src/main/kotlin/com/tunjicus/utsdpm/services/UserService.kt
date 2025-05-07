@@ -11,7 +11,7 @@ import com.tunjicus.utsdpm.exceptions.*
 import com.tunjicus.utsdpm.models.PointsBalanceEmail
 import com.tunjicus.utsdpm.models.ResetEmail
 import com.tunjicus.utsdpm.models.WelcomeEmail
-import com.tunjicus.utsdpm.repositories.DpmRepository
+import com.tunjicus.utsdpm.repositories.UserDpmRepository
 import com.tunjicus.utsdpm.repositories.RoleRepository
 import com.tunjicus.utsdpm.repositories.UserRepository
 import org.slf4j.LoggerFactory
@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional
 class UserService(
   private val userRepository: UserRepository,
   private val roleRepository: RoleRepository,
-  private val dpmRepository: DpmRepository,
+  private val userDpmRepository: UserDpmRepository,
   private val authService: AuthService,
   private val passwordEncoder: PasswordEncoder,
   private val emailService: EmailService,
@@ -63,7 +63,7 @@ class UserService(
     dto.fullTime?.let {
       if (it && user.fullTime != true) {
         user.points = 0
-        dpmRepository.ignoreUnapproved(user)
+        userDpmRepository.ignoreUnapproved(user)
       }
       user.fullTime = it
     }
@@ -113,7 +113,7 @@ class UserService(
   fun resetPointBalances() {
     LOGGER.info("Resetting part-timer point balances")
     userRepository.resetPartTimerPoints()
-    dpmRepository.ignorePartTimerDpms()
+    userDpmRepository.ignorePartTimerDpms()
   }
 
   @Transactional
@@ -122,8 +122,8 @@ class UserService(
     val currentUser = authService.getCurrentUser()
     if (currentUser.id == deletedUser.id) throw SelfDeleteException()
 
-    dpmRepository.deleteByUser(deletedUser)
-    dpmRepository.changeCreatedUser(currentUser, deletedUser)
+    userDpmRepository.deleteByUser(deletedUser)
+    userDpmRepository.changeCreatedUser(currentUser, deletedUser)
     userRepository.changeManager(currentUser, deletedUser)
     userRepository.delete(deletedUser)
   }

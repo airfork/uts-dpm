@@ -27,11 +27,11 @@ import org.springframework.web.util.UriComponentsBuilder
 
 @Service
 class AutogenService(
-    private val autoSubmissionRepository: AutoSubmissionRepository,
-    private val dpmService: DpmService,
-    private val authService: AuthService,
-    private val appProperties: AppProperties,
-    private val objectMapper: ObjectMapper
+  private val autoSubmissionRepository: AutoSubmissionRepository,
+  private val userDpmService: UserDpmService,
+  private val authService: AuthService,
+  private val appProperties: AppProperties,
+  private val objectMapper: ObjectMapper
 ) {
   fun autogenDtos(): AutogenWrapperDto {
     if (!alreadyCalledToday()) {
@@ -55,7 +55,7 @@ class AutogenService(
     val currentUser = authService.getCurrentUser()
     for (dpm in dpms) {
       try {
-        dpmService.newDpm(dpm, currentUser)
+        userDpmService.newDpm(dpm, currentUser)
       } catch (ex: NameNotFoundException) {
         LOGGER.warn(ex.localizedMessage)
       }

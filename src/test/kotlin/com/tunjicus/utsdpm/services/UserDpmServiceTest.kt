@@ -5,7 +5,7 @@ import com.tunjicus.utsdpm.dtos.PostDpmDto
 import com.tunjicus.utsdpm.entities.Role
 import com.tunjicus.utsdpm.entities.User
 import com.tunjicus.utsdpm.enums.RoleName
-import com.tunjicus.utsdpm.repositories.DpmRepository
+import com.tunjicus.utsdpm.repositories.UserDpmRepository
 import com.tunjicus.utsdpm.repositories.RoleRepository
 import com.tunjicus.utsdpm.repositories.UserRepository
 import jakarta.transaction.Transactional
@@ -20,12 +20,12 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-class DpmServiceTest : BaseIntegrationTest() {
-  @Autowired private lateinit var dpmService: DpmService
+class UserDpmServiceTest : BaseIntegrationTest() {
+  @Autowired private lateinit var userDpmService: UserDpmService
 
   @Autowired private lateinit var userRepository: UserRepository
 
-  @Autowired private lateinit var dpmRepository: DpmRepository
+  @Autowired private lateinit var userDpmRepository: UserDpmRepository
 
   @Autowired private lateinit var roleRepository: RoleRepository
 
@@ -77,7 +77,7 @@ class DpmServiceTest : BaseIntegrationTest() {
 
   @AfterEach
   fun cleanUp() {
-    dpmRepository.deleteAll()
+    userDpmRepository.deleteAll()
     userRepository.deleteAll()
   }
 
@@ -103,14 +103,14 @@ class DpmServiceTest : BaseIntegrationTest() {
             notes = "Test comment")
 
     // When
-    dpmService.newDpm(dpmDto)
+    userDpmService.newDpm(dpmDto)
 
     val lastWeek = ZonedDateTime.now().minusWeeks(1)
     val tomorrow = ZonedDateTime.now().plusDays(1)
 
     // Then
     val savedDpms =
-        dpmRepository.findAllByCreatedAfterAndCreatedBeforeOrderByCreatedDesc(lastWeek, tomorrow)
+        userDpmRepository.findAllByCreatedAfterAndCreatedBeforeOrderByCreatedDesc(lastWeek, tomorrow)
     assertThat(savedDpms).hasSize(1)
 
     val savedDpm = savedDpms.first()

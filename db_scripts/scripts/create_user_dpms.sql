@@ -1,4 +1,4 @@
-create table if not exists dpms
+create table if not exists user_dpms
 (
     id        serial
         constraint dpms_pk
@@ -22,7 +22,7 @@ create table if not exists dpms
     ignored   boolean     default false                    not null
 );
 
-comment on table dpms is 'Holds user dpms';
+comment on table user_dpms is 'Holds user dpms';
 
 create unique index dpms_id_uindex
-    on dpms (id);
+    on user_dpms (id);

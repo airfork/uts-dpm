@@ -1,23 +1,23 @@
 package com.tunjicus.utsdpm.models.excel
 
-import com.tunjicus.utsdpm.entities.Dpm
+import com.tunjicus.utsdpm.entities.UserDpm
 import com.tunjicus.utsdpm.helpers.FormatHelpers
 import com.tunjicus.utsdpm.helpers.MiscHelpers
 
-class DpmRow(dpm: Dpm) : ExcelRow {
-  private val firstName = dpm.user?.firstname
-  private val lastName = dpm.user?.lastname
-  private val block = dpm.block
-  private val location = dpm.location
-  private val startTime = FormatHelpers.outboundDpmTime(dpm.startTime)
-  private val endTime = FormatHelpers.outboundDpmTime(dpm.endTime)
-  private val date = FormatHelpers.outboundDpmDate(dpm.date)
-  private val type = dpm.dpmType
-  private val points = dpm.points?.toString()
-  private val notes = dpm.notes
-  private val status = MiscHelpers.generateDpmStatusMessage(dpm.approved!!, dpm.ignored!!)
-  private val createdAt = FormatHelpers.createdAtExcel(dpm.created)
-  private val createdBy = "${dpm.createdUser?.firstname} ${dpm.createdUser?.lastname}".trim()
+class DpmRow(userDpm: UserDpm) : ExcelRow {
+  private val firstName = userDpm.user?.firstname
+  private val lastName = userDpm.user?.lastname
+  private val block = userDpm.block
+  private val location = userDpm.location
+  private val startTime = FormatHelpers.outboundDpmTime(userDpm.startTime)
+  private val endTime = FormatHelpers.outboundDpmTime(userDpm.endTime)
+  private val date = FormatHelpers.outboundDpmDate(userDpm.date)
+  private val type = userDpm.dpmType
+  private val points = userDpm.points?.toString()
+  private val notes = userDpm.notes
+  private val status = MiscHelpers.generateDpmStatusMessage(userDpm.approved!!, userDpm.ignored!!)
+  private val createdAt = FormatHelpers.createdAtExcel(userDpm.created)
+  private val createdBy = "${userDpm.createdUser?.firstname} ${userDpm.createdUser?.lastname}".trim()
 
   override fun getRow(): List<String?> =
     listOf(

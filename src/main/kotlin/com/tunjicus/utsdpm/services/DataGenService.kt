@@ -1,12 +1,12 @@
 package com.tunjicus.utsdpm.services
 
-import com.tunjicus.utsdpm.entities.Dpm
+import com.tunjicus.utsdpm.entities.UserDpm
 import com.tunjicus.utsdpm.entities.User
 import com.tunjicus.utsdpm.enums.RoleName
 import com.tunjicus.utsdpm.exceptions.InvalidDataGenDateException
 import com.tunjicus.utsdpm.helpers.*
 import com.tunjicus.utsdpm.models.excel.*
-import com.tunjicus.utsdpm.repositories.DpmRepository
+import com.tunjicus.utsdpm.repositories.UserDpmRepository
 import com.tunjicus.utsdpm.repositories.UserRepository
 import java.io.File
 import java.io.FileOutputStream
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class DataGenService(
-  private val dpmRepository: DpmRepository,
+  private val userDpmRepository: UserDpmRepository,
   private val userRepository: UserRepository,
   private val authService: AuthService
 ) {
@@ -56,10 +56,10 @@ class DataGenService(
     return saveWorkbook(workbook, "users")
   }
 
-  private fun getDpmsInRange(startDate: String?, endDate: String?): Collection<Dpm> {
+  private fun getDpmsInRange(startDate: String?, endDate: String?): Collection<UserDpm> {
     val (start, end) = getStartAndEndDates(startDate, endDate)
     val currentUser = authService.getCurrentUser()
-    var dpms = dpmRepository.findAllByCreatedAfterAndCreatedBeforeOrderByCreatedDesc(start, end)
+    var dpms = userDpmRepository.findAllByCreatedAfterAndCreatedBeforeOrderByCreatedDesc(start, end)
 
     if (currentUser.hasAnyRole(RoleName.MANAGER)) {
       dpms = dpms.filter { it.user?.manager?.id == currentUser.id }

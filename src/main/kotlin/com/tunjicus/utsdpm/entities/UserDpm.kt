@@ -7,8 +7,8 @@ import java.time.LocalTime
 import java.time.ZonedDateTime
 
 @Entity
-@Table(name = "dpms")
-class Dpm {
+@Table(name = "user_dpms")
+class UserDpm {
   @Id @GeneratedValue(strategy = GenerationType.IDENTITY) @Column(name = "id") var id: Int? = null
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -46,7 +46,7 @@ class Dpm {
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
 
-    other as Dpm
+    other as UserDpm
 
     if (id != other.id) return false
     if (createdUser != other.createdUser) return false

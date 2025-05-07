@@ -1,8 +1,8 @@
 package com.tunjicus.utsdpm.dtos
 
-import com.tunjicus.utsdpm.entities.Dpm
+import com.tunjicus.utsdpm.entities.UserDpm
 import com.tunjicus.utsdpm.helpers.FormatHelpers
-import com.tunjicus.utsdpm.services.DpmService
+import com.tunjicus.utsdpm.services.UserDpmService
 import com.tunjicus.utsdpm.validators.ValidDateFormat
 import com.tunjicus.utsdpm.validators.ValidType
 import jakarta.validation.constraints.NotBlank
@@ -38,16 +38,16 @@ data class PostDpmDto(
   val endTime: String?,
   val notes: String?
 ) {
-  fun toDpm(): Dpm {
-    val dpm = Dpm()
-    dpm.block = block
-    dpm.date = FormatHelpers.inboundDpmDate(date)
-    dpm.dpmType = DpmService.stripPointsFromType(type!!)
-    dpm.location = location
-    dpm.notes = notes
-    dpm.points = DpmService.pointsForType(type)
-    dpm.startTime = FormatHelpers.inboundDpmTime(startTime)
-    dpm.endTime = FormatHelpers.inboundDpmTime(endTime)
-    return dpm
+  fun toDpm(): UserDpm {
+    val userDpm = UserDpm()
+    userDpm.block = block
+    userDpm.date = FormatHelpers.inboundDpmDate(date)
+    userDpm.dpmType = UserDpmService.stripPointsFromType(type!!)
+    userDpm.location = location
+    userDpm.notes = notes
+    userDpm.points = UserDpmService.pointsForType(type)
+    userDpm.startTime = FormatHelpers.inboundDpmTime(startTime)
+    userDpm.endTime = FormatHelpers.inboundDpmTime(endTime)
+    return userDpm
   }
 }
