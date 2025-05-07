@@ -1,0 +1,122 @@
+package com.tunjicus.utsdpm.services
+
+import com.tunjicus.utsdpm.BaseIntegrationTest
+import com.tunjicus.utsdpm.dtos.PostDpmDto
+import com.tunjicus.utsdpm.entities.Role
+import com.tunjicus.utsdpm.entities.User
+import com.tunjicus.utsdpm.enums.RoleName
+import com.tunjicus.utsdpm.repositories.DpmRepository
+import com.tunjicus.utsdpm.repositories.RoleRepository
+import com.tunjicus.utsdpm.repositories.UserRepository
+import jakarta.transaction.Transactional
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.mockito.Mockito.`when`
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.bean.override.mockito.MockitoBean
+import java.time.LocalDate
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
+class DpmServiceTest : BaseIntegrationTest() {
+  @Autowired private lateinit var dpmService: DpmService
+
+  @Autowired private lateinit var userRepository: UserRepository
+
+  @Autowired private lateinit var dpmRepository: DpmRepository
+
+  @Autowired private lateinit var roleRepository: RoleRepository
+
+  @MockitoBean private lateinit var authService: AuthService
+
+  @BeforeEach
+  fun setUp() {
+    val adminRole = roleRepository.save(Role().apply { roleName = RoleName.ADMIN })
+    val managerRole = roleRepository.save(Role().apply { roleName = RoleName.MANAGER })
+
+    // Create test users
+    val sampleManager =
+        User().apply {
+          username = "manager@test.com"
+          firstname = "Test"
+          lastname = "Manager"
+          fullTime = true
+          password = "<PASSWORD>"
+          role = managerRole
+        }
+    userRepository.save(sampleManager)
+
+    val driver =
+        User().apply {
+          username = "driver@test.com"
+          firstname = "Test"
+          lastname = "Driver"
+          points = 0
+          fullTime = true
+          password = "<PASSWORD>"
+          manager = manager
+        }
+    userRepository.save(driver)
+
+    val adminUser =
+        User().apply {
+          username = "admin@test.com"
+          firstname = "Admin"
+          lastname = "User"
+          fullTime = true
+          password = "<PASSWORD>"
+          role = adminRole
+        }
+    userRepository.save(adminUser)
+
+    // Mock the auth service to return our test user
+    `when`(authService.getCurrentUser()).thenReturn(adminUser)
+  }
+
+  @AfterEach
+  fun cleanUp() {
+    dpmRepository.deleteAll()
+    userRepository.deleteAll()
+  }
+
+  @Test
+  @Transactional
+  fun `should create new DPM successfully`() {
+    val dateFormat = DateTimeFormatter.ofPattern("MM/dd/yyyy")
+
+    // Given
+    val driver = userRepository.findByUsername("driver@test.com")!!
+    val admin = userRepository.findByUsername("admin@test.com")!!
+    `when`(authService.getCurrentUser()).thenReturn(admin)
+
+    val dpmDto =
+        PostDpmDto(
+            driver = "${driver.firstname} ${driver.lastname}",
+            block = "10",
+            date = dateFormat.format(LocalDate.now()),
+            type = "Good! (+1 Point)",
+            location = "OFF",
+            startTime = "1000",
+            endTime = "1100",
+            notes = "Test comment")
+
+    // When
+    dpmService.newDpm(dpmDto)
+
+    val lastWeek = ZonedDateTime.now().minusWeeks(1)
+    val tomorrow = ZonedDateTime.now().plusDays(1)
+
+    // Then
+    val savedDpms =
+        dpmRepository.findAllByCreatedAfterAndCreatedBeforeOrderByCreatedDesc(lastWeek, tomorrow)
+    assertThat(savedDpms).hasSize(1)
+
+    val savedDpm = savedDpms.first()
+    assertThat(savedDpm.dpmType).isEqualTo("Good!")
+    assertThat(savedDpm.points).isEqualTo(1)
+    assertThat(savedDpm.createdUser).isEqualTo(admin)
+    assertThat(savedDpm.user).isEqualTo(driver)
+  }
+}
