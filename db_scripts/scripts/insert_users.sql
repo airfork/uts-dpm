@@ -11,4 +11,4 @@ INSERT INTO users (managerid, username, password, firstname, lastname, fulltime,
 VALUES (1, 'john@doe.com', '$2a$12$rEnM6gHwGc3buQylcZOvYuNDa.0l4Xyy61AQuM8Pel4ulD5.hXyda', 'John',
         'Doe', true, true, 0, now());
 
-INSERT INTO user_roles (user_id, role_id) VALUES (1, 1)
+INSERT INTO user_roles (user_id, role_id) VALUES (1, 1);
