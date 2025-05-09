@@ -22,7 +22,7 @@ open class ApprovalDpmDto(
         id = userDpm.id!!,
         driver = userDpm.user?.firstname!! + " " + userDpm.user?.lastname!!,
         createdBy = userDpm.createdUser?.firstname!! + " " + userDpm.createdUser?.lastname,
-        type = userDpm.dpmType!!,
+        type = userDpm.dpmType!!.dpmName,
         points = userDpm.points!!,
         block = userDpm.block!!,
         location = userDpm.location!!,

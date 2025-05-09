@@ -12,27 +12,27 @@ class DpmRow(userDpm: UserDpm) : ExcelRow {
   private val startTime = FormatHelpers.outboundDpmTime(userDpm.startTime)
   private val endTime = FormatHelpers.outboundDpmTime(userDpm.endTime)
   private val date = FormatHelpers.outboundDpmDate(userDpm.date)
-  private val type = userDpm.dpmType
+  private val type = userDpm.dpmType?.dpmName
   private val points = userDpm.points?.toString()
   private val notes = userDpm.notes
   private val status = MiscHelpers.generateDpmStatusMessage(userDpm.approved!!, userDpm.ignored!!)
   private val createdAt = FormatHelpers.createdAtExcel(userDpm.created)
-  private val createdBy = "${userDpm.createdUser?.firstname} ${userDpm.createdUser?.lastname}".trim()
+  private val createdBy =
+      "${userDpm.createdUser?.firstname} ${userDpm.createdUser?.lastname}".trim()
 
   override fun getRow(): List<String?> =
-    listOf(
-      firstName,
-      lastName,
-      block,
-      location,
-      startTime,
-      endTime,
-      date,
-      type,
-      points,
-      notes,
-      status,
-      createdAt,
-      createdBy
-    )
+      listOf(
+          firstName,
+          lastName,
+          block,
+          location,
+          startTime,
+          endTime,
+          date,
+          type,
+          points,
+          notes,
+          status,
+          createdAt,
+          createdBy)
 }

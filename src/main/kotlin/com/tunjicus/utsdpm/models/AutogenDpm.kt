@@ -1,5 +1,6 @@
 package com.tunjicus.utsdpm.models
 
+import com.tunjicus.utsdpm.entities.Dpm
 import com.tunjicus.utsdpm.entities.UserDpm
 import com.tunjicus.utsdpm.enums.ShiftColor
 import com.tunjicus.utsdpm.helpers.FormatHelpers
@@ -12,8 +13,7 @@ private constructor(
     val startTime: String,
     val endTime: String,
     val location: String,
-    val type: String,
-    val points: Int,
+    val type: Dpm,
     val notes: String
 ) {
   fun toDpm(): UserDpm {
@@ -23,37 +23,30 @@ private constructor(
     userDpm.dpmType = type
     userDpm.location = location
     userDpm.notes = notes
-    userDpm.points = points
+    userDpm.points = type.points
     userDpm.startTime = FormatHelpers.inboundDpmTime(startTime)
     userDpm.endTime = FormatHelpers.inboundDpmTime(endTime)
     return userDpm
   }
 
   companion object {
-    private const val GOOD_DPM_VALUE = 1
-    private const val BAD_DPM_VALUE = -10
+    fun hasAllColors(w2wDpms: List<Dpm>): Boolean {
+      val requiredColors = listOf(ShiftColor.GOLD, ShiftColor.RED)
+      return requiredColors.all { color -> w2wDpms.any { it.w2wColorCode == color.code } }
+    }
 
-    fun from(shift: Shift): AutogenDpm? {
+    fun from(shift: Shift, w2wDpms: List<Dpm>): AutogenDpm? {
       val color = ShiftColor.from(shift.colorId)
-      if (color == ShiftColor.UNTRACKED) return null
+      if (color == ShiftColor.UNTRACKED || !hasAllColors(w2wDpms)) return null
 
-      val points: Int
-      val type: String
-      if (color == ShiftColor.GOLD) {
-        type = "Picked Up Block"
-        points = GOOD_DPM_VALUE
-      } else {
-        type = "DNS/Did Not Show"
-        points = BAD_DPM_VALUE
-      }
-
+      val dpmType = w2wDpms.find { it.w2wColorCode == color.code }!!
       val name = "${shift.firstName} ${shift.lastName}".trim()
       val block = shift.block
       val startTime = FormatHelpers.convertW2WTime(shift.startTime)
       val endTime = FormatHelpers.convertW2WTime(shift.endTime)
       val (location, notes) = parseDescription(shift.description)
 
-      return AutogenDpm(name, block, startTime, endTime, location, type, points, notes)
+      return AutogenDpm(name, block, startTime, endTime, location, dpmType, notes)
     }
 
     fun parseDescription(description: String): Pair<String, String> {

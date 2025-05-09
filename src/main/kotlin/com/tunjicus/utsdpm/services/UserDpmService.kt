@@ -2,8 +2,8 @@ package com.tunjicus.utsdpm.services
 
 import com.tunjicus.utsdpm.configs.AppProperties
 import com.tunjicus.utsdpm.dtos.*
-import com.tunjicus.utsdpm.entities.UserDpm
 import com.tunjicus.utsdpm.entities.User
+import com.tunjicus.utsdpm.entities.UserDpm
 import com.tunjicus.utsdpm.enums.RoleName
 import com.tunjicus.utsdpm.exceptions.DpmNotFoundException
 import com.tunjicus.utsdpm.exceptions.NameNotFoundException
@@ -12,6 +12,7 @@ import com.tunjicus.utsdpm.exceptions.UserNotFoundException
 import com.tunjicus.utsdpm.helpers.FormatHelpers
 import com.tunjicus.utsdpm.models.AutogenDpm
 import com.tunjicus.utsdpm.models.DpmReceivedEmail
+import com.tunjicus.utsdpm.repositories.DpmRepository
 import com.tunjicus.utsdpm.repositories.UserDpmRepository
 import com.tunjicus.utsdpm.repositories.UserRepository
 import org.slf4j.LoggerFactory
@@ -21,11 +22,12 @@ import org.springframework.stereotype.Service
 
 @Service
 class UserDpmService(
-  private val userRepository: UserRepository,
-  private val userDpmRepository: UserDpmRepository,
-  private val authService: AuthService,
-  private val emailService: EmailService,
-  private val appProperties: AppProperties
+    private val userRepository: UserRepository,
+    private val userDpmRepository: UserDpmRepository,
+    private val dpmRepository: DpmRepository,
+    private val authService: AuthService,
+    private val emailService: EmailService,
+    private val appProperties: AppProperties
 ) {
   fun newDpm(dpmDto: PostDpmDto) {
     val createdBy = authService.getCurrentUser()
@@ -33,8 +35,14 @@ class UserDpmService(
         userRepository.findByFullName(dpmDto.driver!!) ?: throw NameNotFoundException(dpmDto.driver)
     val dpm = dpmDto.toDpm()
 
+    val dpmType =
+        dpmRepository.findById(dpmDto.type!!).orElseThrow { DpmNotFoundException(dpmDto.type) }
+
     dpm.user = driver
     dpm.createdUser = createdBy
+    dpm.dpmType = dpmType
+    dpm.points = dpmType.points
+
     LOGGER.info("Creating dpm: $dpm")
 
     userDpmRepository.save(dpm)
@@ -69,7 +77,9 @@ class UserDpmService(
     return when (currentUser.role?.roleName) {
       RoleName.ADMIN -> userDpmRepository.getUnapprovedDpms(pageRequest).map(ApprovalDpmDto::from)
       RoleName.MANAGER ->
-          userDpmRepository.getUnapprovedDpms(currentUser.id!!, pageRequest).map(ApprovalDpmDto::from)
+          userDpmRepository
+              .getUnapprovedDpms(currentUser.id!!, pageRequest)
+              .map(ApprovalDpmDto::from)
       else -> throw UserNotAuthorizedException()
     }
   }
@@ -130,7 +140,7 @@ class UserDpmService(
             user.username!!,
             DpmReceivedEmail(
                 name = user.firstname!!,
-                dpmType = userDpm.dpmType!!,
+                dpmType = userDpm.dpmType!!.dpmName,
                 receivedDate = FormatHelpers.outboundDpmDate(userDpm.date),
                 manager = "${manager.firstname!!} ${manager.lastname!!}",
                 url = appProperties.baseUrl))
@@ -139,52 +149,6 @@ class UserDpmService(
 
   companion object {
     private val LOGGER = LoggerFactory.getLogger(UserDpmService::class.java)
-    private val VALID_TYPES =
-        mapOf(
-            Pair("Picked up Block (+1 Point)", 1),
-            Pair("Good! (+1 Point)", 1),
-            Pair("Voluntary Clinic/Road Test Passed (+2 Points)", 2),
-            Pair("200 Hours Safe (+2 Points)", 2),
-            Pair("Custom (+5 Points)", 5),
-            Pair("1-5 Minutes Late to OFF (-1 Point)", -1),
-            Pair("1-5 Minutes Late to BLK (-1 Point)", -1),
-            Pair("Missed Email Announcement (-2 Points)", -2),
-            Pair("Improper Shutdown (-2 Points)", -2),
-            Pair("Off-Route (-2 Points)", -2),
-            Pair("6-15 Minutes Late to Blk (-3 Points)", -3),
-            Pair("Out of Uniform (-5 Points)", -5),
-            Pair("Improper Radio Procedure (-2 Points)", -2),
-            Pair("Improper Bus Log (-5 Points)", -5),
-            Pair("Timesheet/Improper Book Change (-5 Points)", -5),
-            Pair("Custom (-5 Points)", -5),
-            Pair("Passenger Inconvenience (-5 Points)", -5),
-            Pair("16+ Minutes Late (-5 Points)", -5),
-            Pair("Attendance Infraction (-10 Points)", -10),
-            Pair("Moving Downed Bus (-10 Points)", -10),
-            Pair("Improper 10-50 Procedure (-10 Points)", -10),
-            Pair("Failed Ride-Along/Road Test (-10 Points)", -10),
-            Pair("Custom (-10 Points)", -10),
-            Pair("Failure to Report 10-50 (-15 Points)", -15),
-            Pair("Insubordination (-15 Points)", -15),
-            Pair("Safety Offense (-15 Points)", -15),
-            Pair("Preventable Accident 1, 2 (-15 Points)", -15),
-            Pair("Custom (-15 Points)", -15),
-            Pair("DNS/Did Not Show (-10 Points)", -10),
-            Pair("Preventable Accident 3, 4 (-20 Points)", -20),
-        )
-
-    fun isValidType(type: String) = VALID_TYPES.contains(type)
-
-    fun pointsForType(type: String) = VALID_TYPES[type]
-
-    fun stripPointsFromType(type: String): String {
-      if (!isValidType(type)) return type
-
-      val pointStart = type.indexOf('(')
-      if (pointStart == -1) return type
-
-      return type.substring(0, pointStart).trim()
-    }
 
     private fun updateIgnored(dto: PatchDpmDto, userDpm: UserDpm) {
       if (dto.ignored == null) return

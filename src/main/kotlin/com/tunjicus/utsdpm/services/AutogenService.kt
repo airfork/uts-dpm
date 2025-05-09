@@ -15,8 +15,7 @@ import com.tunjicus.utsdpm.models.AssignedShifts
 import com.tunjicus.utsdpm.models.AutogenDpm
 import com.tunjicus.utsdpm.models.Shift
 import com.tunjicus.utsdpm.repositories.AutoSubmissionRepository
-import java.time.format.DateTimeFormatter
-import java.util.concurrent.CopyOnWriteArrayList
+import com.tunjicus.utsdpm.repositories.DpmRepository
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.slf4j.LoggerFactory
@@ -24,14 +23,17 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.util.UriComponentsBuilder
+import java.time.format.DateTimeFormatter
+import java.util.concurrent.CopyOnWriteArrayList
 
 @Service
 class AutogenService(
-  private val autoSubmissionRepository: AutoSubmissionRepository,
-  private val userDpmService: UserDpmService,
-  private val authService: AuthService,
-  private val appProperties: AppProperties,
-  private val objectMapper: ObjectMapper
+    private val autoSubmissionRepository: AutoSubmissionRepository,
+    private val userDpmService: UserDpmService,
+    private val authService: AuthService,
+    private val appProperties: AppProperties,
+    private val objectMapper: ObjectMapper,
+    private val dpmRepository: DpmRepository,
 ) {
   fun autogenDtos(): AutogenWrapperDto {
     if (!alreadyCalledToday()) {
@@ -87,11 +89,13 @@ class AutogenService(
       autoSubmissionRepository.findMostRecent() ?: AutoSubmission.min()
 
   private fun autogen(): List<AutogenDpm> {
+    val w2wDpms = dpmRepository.findW2WDpms()
+
     return getAssignedShifts()
         .filter { ShiftColor.from(it.colorId) != ShiftColor.UNTRACKED }
         .filter { it.block.startsWith("[") }
         .filter { "Y".equals(it.published, true) }
-        .mapNotNull { AutogenDpm.from(it) }
+        .mapNotNull { AutogenDpm.from(it, w2wDpms) }
         .sortedWith(BlockComparator())
   }
 

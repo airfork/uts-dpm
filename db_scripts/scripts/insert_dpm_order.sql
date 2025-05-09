@@ -1,0 +1,2 @@
+insert into dpm_order (dpm_order)
+values ('[{"group":1,"dpms":[1,2,3,4,5]},{"group":2,"dpms":[6]},{"group":3,"dpms":[7,8,9,10,11,12,13,14,15,16]},{"group":4,"dpms":[17,18,19,20,21,22,23]},{"group":5,"dpms":[24,25,26,27,28]},{"group":6,"dpms":[29,30]}]');

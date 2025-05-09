@@ -11,6 +11,6 @@ data class AutogenDpmDto(
 ) {
   companion object {
     fun from(dpm: AutogenDpm) =
-      AutogenDpmDto(dpm.name, dpm.block, dpm.startTime, dpm.endTime, dpm.type)
+      AutogenDpmDto(dpm.name, dpm.block, dpm.startTime, dpm.endTime, dpm.type.dpmName)
   }
 }

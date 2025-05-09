@@ -15,7 +15,7 @@ data class HomeDpmDto(
   companion object {
     fun from(userDpm: UserDpm): HomeDpmDto {
       return HomeDpmDto(
-        userDpm.dpmType!!,
+        userDpm.dpmType!!.dpmName,
         userDpm.points!!,
         userDpm.block!!,
         userDpm.location!!,

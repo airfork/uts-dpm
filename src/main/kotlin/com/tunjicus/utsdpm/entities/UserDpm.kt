@@ -5,25 +5,28 @@ import jakarta.persistence.*
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZonedDateTime
+import org.hibernate.proxy.HibernateProxy
 
 @Entity
 @Table(name = "user_dpms")
 class UserDpm {
-  @Id @GeneratedValue(strategy = GenerationType.IDENTITY) @Column(name = "id") var id: Int? = null
+  @Id @GeneratedValue(strategy = GenerationType.IDENTITY) @Column(name = "user_dpm_id") var id: Int? = null
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "createid")
+  @JoinColumn(name = "create_id")
   var createdUser: User? = null
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "userid")
+  @JoinColumn(name = "user_id")
   var user: User? = null
+
+  @ManyToOne(fetch = FetchType.EAGER, optional = false)
+  @JoinColumn(name = "dpm_id")
+  var dpmType: Dpm? = null
 
   @Column(name = "block", length = 20) var block: String? = null
 
   @Column(name = "date") var date: LocalDate? = null
-
-  @Column(name = "dpmtype") var dpmType: String? = null
 
   @Column(name = "points", nullable = false, columnDefinition = "int2") var points: Int? = null
 
@@ -36,53 +39,35 @@ class UserDpm {
 
   @Column(name = "location") var location: String? = null
 
-  @Column(name = "starttime", nullable = false) var startTime: LocalTime? = null
+  @Column(name = "start_time", nullable = false) var startTime: LocalTime? = null
 
-  @Column(name = "endtime", nullable = false) var endTime: LocalTime? = null
+  @Column(name = "end_time", nullable = false) var endTime: LocalTime? = null
 
   @Column(name = "ignored") var ignored: Boolean? = false
 
-  override fun equals(other: Any?): Boolean {
+  final override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (javaClass != other?.javaClass) return false
-
+    if (other == null) return false
+    val oEffectiveClass =
+        if (other is HibernateProxy) other.hibernateLazyInitializer.persistentClass
+        else other.javaClass
+    val thisEffectiveClass =
+        if (this is HibernateProxy) this.hibernateLazyInitializer.persistentClass
+        else this.javaClass
+    if (thisEffectiveClass != oEffectiveClass) return false
     other as UserDpm
 
-    if (id != other.id) return false
-    if (createdUser != other.createdUser) return false
-    if (user != other.user) return false
-    if (block != other.block) return false
-    if (date != other.date) return false
-    if (dpmType != other.dpmType) return false
-    if (points != other.points) return false
-    if (notes != other.notes) return false
-    if (created != other.created) return false
-    if (approved != other.approved) return false
-    if (location != other.location) return false
-    if (startTime != other.startTime) return false
-    if (endTime != other.endTime) return false
-    return ignored == other.ignored
+    return id != null && id == other.id
   }
 
-  override fun hashCode(): Int {
-    var result = id ?: 0
-    result = 31 * result + (createdUser?.hashCode() ?: 0)
-    result = 31 * result + (user?.hashCode() ?: 0)
-    result = 31 * result + (block?.hashCode() ?: 0)
-    result = 31 * result + (date?.hashCode() ?: 0)
-    result = 31 * result + (dpmType?.hashCode() ?: 0)
-    result = 31 * result + (points ?: 0)
-    result = 31 * result + (notes?.hashCode() ?: 0)
-    result = 31 * result + created.hashCode()
-    result = 31 * result + (approved?.hashCode() ?: 0)
-    result = 31 * result + (location?.hashCode() ?: 0)
-    result = 31 * result + (startTime?.hashCode() ?: 0)
-    result = 31 * result + (endTime?.hashCode() ?: 0)
-    result = 31 * result + (ignored?.hashCode() ?: 0)
-    return result
-  }
+  final override fun hashCode(): Int =
+      if (this is HibernateProxy) this.hibernateLazyInitializer.persistentClass.hashCode()
+      else javaClass.hashCode()
 
-  override fun toString(): String {
-    return "Dpm(id=$id, createdUser=${createdUser?.firstname} ${createdUser?.lastname}, user=${user?.firstname} ${user?.lastname}, block=$block, date=$date, dpmType=$dpmType, points=$points, notes=$notes, created=$created, approved=$approved, location=$location, startTime=$startTime, endTime=$endTime, ignored=$ignored)"
+  final override fun toString(): String {
+    return this::class.simpleName +
+        "(id = $id, createdUser = ${createdUser?.id}, user = ${user?.id}, dpmType = ${dpmType?.dpmName}, " +
+        "block = $block, date = $date, points = $points, notes = $notes, created = $created, " +
+        "approved = $approved, location = $location, startTime = $startTime, endTime = $endTime, ignored = $ignored)"
   }
 }

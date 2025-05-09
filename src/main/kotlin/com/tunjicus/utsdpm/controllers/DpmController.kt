@@ -4,6 +4,7 @@ import com.tunjicus.utsdpm.dtos.*
 import com.tunjicus.utsdpm.exceptions.ExceptionResponse
 import com.tunjicus.utsdpm.exceptions.ExceptionResponses
 import com.tunjicus.utsdpm.exceptions.SecurityExceptionResponse
+import com.tunjicus.utsdpm.services.DpmService
 import com.tunjicus.utsdpm.services.UserDpmService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.*
 @Validated
 @RequestMapping(value = ["/api/dpms"], produces = [MediaType.APPLICATION_JSON_VALUE])
 @Tag(name = "DPMs", description = "Endpoints for managing DPM data")
-class DpmController(private val userDpmService: UserDpmService) {
+class DpmController(private val userDpmService: UserDpmService, private val dpmService: DpmService) {
 
   @Operation(
     summary = "Create a dpm for a user",
@@ -181,4 +182,26 @@ class DpmController(private val userDpmService: UserDpmService) {
     size: Int,
     @Parameter(description = "The id of user") @PathVariable id: Int
   ): Page<DpmDetailDto> = userDpmService.getAll(id, page, size)
+
+  @Operation(
+    summary = "Get an ordered list of all the dpm groups and their dpms",
+    responses =
+      [
+        ApiResponse(responseCode = "200", description = "Request completed successfully"),
+        ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized, need to login",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+        ApiResponse(
+          responseCode = "403",
+          description = "User does not have the correct permissions to perform this action",
+          content = [Content(schema = Schema(implementation = SecurityExceptionResponse::class))]
+        ),
+      ]
+  )
+  @PreAuthorize("hasRole('ADMIN')")
+  @GetMapping("/list")
+  fun listDpms(
+  ): List<DpmGroupDto> = dpmService.getDpmGroupList()
 }
