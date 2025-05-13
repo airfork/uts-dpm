@@ -15,6 +15,8 @@ class DpmGroup {
 
   @Column(name = "group_name", nullable = false, length = 500) lateinit var groupName: String
 
+  @Column(name = "active", nullable = false) var active: Boolean = true
+
   @Column(name = "created_at", updatable = false)
   var createdAt: ZonedDateTime = TimeService.getTodayZonedDateTime()
 
@@ -25,7 +27,7 @@ class DpmGroup {
       fetch = FetchType.EAGER,
       cascade = [CascadeType.ALL],
   )
-  var dpms: MutableList<Dpm>? = null
+  var dpms: MutableList<Dpm>? = mutableListOf()
 
   @PrePersist
   @PreUpdate

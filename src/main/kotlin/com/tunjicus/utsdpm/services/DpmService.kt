@@ -2,15 +2,18 @@ package com.tunjicus.utsdpm.services
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.tunjicus.utsdpm.dtos.DpmGroupDto
-import com.tunjicus.utsdpm.dtos.DpmTypeDto
+import com.tunjicus.utsdpm.dtos.GetDpmGroupDto
+import com.tunjicus.utsdpm.dtos.GetDpmTypeDto
+import com.tunjicus.utsdpm.dtos.PutDpmGroupDto
+import com.tunjicus.utsdpm.dtos.PutDpmTypeDto
 import com.tunjicus.utsdpm.entities.Dpm
 import com.tunjicus.utsdpm.entities.DpmGroup
+import com.tunjicus.utsdpm.entities.DpmOrder
 import com.tunjicus.utsdpm.models.DpmGroupOrder
 import com.tunjicus.utsdpm.repositories.DpmGroupRepository
 import com.tunjicus.utsdpm.repositories.DpmOrderRepository
 import com.tunjicus.utsdpm.repositories.DpmRepository
-import org.slf4j.LoggerFactory
+import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 
 @Service
@@ -20,33 +23,15 @@ class DpmService(
     private val dpmOrderRepository: DpmOrderRepository,
     private val objectMapper: ObjectMapper
 ) {
-  companion object {
-    private val LOGGER = LoggerFactory.getLogger(DpmService::class.java)
-  }
-
-  fun getDpmGroups() = dpmGroupRepository.findAllByOrderByGroupName()
-
-  fun createGroup(name: String) =
-      dpmGroupRepository.save(DpmGroup().apply { this.groupName = name })
-
-  fun createDpm(name: String, points: Int, group: DpmGroup) =
-      dpmRepository.save(
-          Dpm().apply {
-            this.dpmName = name
-            this.points = points
-            this.dpmGroup = group
-          })
-
-  fun getDpmGroupList(): List<DpmGroupDto> {
-    val dpmGroups = dpmGroupRepository.findAll()
+  fun getDpmGroupList(): List<GetDpmGroupDto> {
+    val dpmGroups = dpmGroupRepository.findAllByActiveTrue()
     val order = dpmOrderRepository.findTopByOrderByUpdatedAtDesc()
     if (order == null) return dpmGroups.map { createUnorderedDpmGroupDto(it) }
 
     val typeReference = object : TypeReference<List<DpmGroupOrder>>() {}
     val groupOrder = objectMapper.readValue(order.dpmOrder!!, typeReference)
-    val outputOrder = mutableListOf<DpmGroupDto>()
+    val outputOrder = mutableListOf<GetDpmGroupDto>()
 
-    LOGGER.info("Iterating over groups")
     for (groupInfo in groupOrder) {
       val group = dpmGroups.find { it.id == groupInfo.group }
       if (group == null || group.dpms == null || group.dpms!!.isEmpty()) continue
@@ -56,19 +41,80 @@ class DpmService(
     return outputOrder
   }
 
-  private fun createDpmGroupDto(group: DpmGroup, order: DpmGroupOrder?): DpmGroupDto {
+  @Transactional
+  fun updateDpms(newGroups: List<PutDpmGroupDto>) {
+    val existingGroups = dpmGroupRepository.findAllByActiveTrue()
+    val existingDpms = dpmRepository.findAllByActiveTrue()
+
+    val activeGroups = mutableListOf<DpmGroup>()
+    val activeDpms = mutableListOf<Dpm>()
+
+    for (groupInfo in newGroups) {
+      val group = findOrCreateNewGroup(groupInfo.groupName, existingGroups)
+      activeGroups.add(group)
+
+      assert(group.dpms != null)
+
+      group.dpms?.clear()
+      for (dpmInfo in groupInfo.dpms) {
+        val foundDpm = findOrCreateNewDpm(dpmInfo, existingDpms)
+        group.dpms?.add(foundDpm)
+        activeDpms.add(foundDpm)
+        foundDpm.dpmGroup = group
+      }
+    }
+
+    val inactiveDpms = existingDpms.filter { !activeDpms.contains(it) }
+    inactiveDpms.forEach { it.active = false }
+
+    val inactiveGroups = existingGroups.filter { !activeGroups.contains(it) }
+    inactiveGroups.forEach { it.active = false }
+
+    dpmRepository.deactivateAllIn(inactiveDpms.map { it.id!! })
+    dpmGroupRepository.deactivateAllIn(inactiveGroups.map { it.id!! })
+
+    createDpmGroupOrder(dpmGroupRepository.saveAll(activeGroups))
+  }
+
+  private fun createDpmGroupOrder(groups: List<DpmGroup>) {
+    val dpmOrder = dpmOrderRepository.findTopByOrderByUpdatedAtDesc() ?: DpmOrder()
+    val orders = mutableListOf<DpmGroupOrder>()
+    for (group in groups) {
+      orders.add(DpmGroupOrder(group.id!!, group.dpms?.map { it.id!! } ?: emptyList()))
+    }
+
+    dpmOrder.dpmOrder = objectMapper.writeValueAsString(orders)
+    dpmOrderRepository.save(dpmOrder)
+  }
+
+  private fun findOrCreateNewDpm(dpm: PutDpmTypeDto, existingDpms: List<Dpm>): Dpm {
+    val existingDpm = existingDpms.find { it.dpmName == dpm.dpmType && it.points == dpm.points }
+    if (existingDpm != null) return existingDpm
+    return Dpm().apply {
+      this.dpmName = dpm.dpmType
+      this.points = dpm.points
+    }
+  }
+
+  private fun findOrCreateNewGroup(groupName: String, existingGroups: List<DpmGroup>): DpmGroup {
+    val existingGroup = existingGroups.find { it.groupName == groupName }
+    if (existingGroup != null) return existingGroup
+    return dpmGroupRepository.save(DpmGroup().apply { this.groupName = groupName })
+  }
+
+  private fun createDpmGroupDto(group: DpmGroup, order: DpmGroupOrder?): GetDpmGroupDto {
     if (order == null || group.dpms == null) return createUnorderedDpmGroupDto(group)
-    val orderList = mutableListOf<DpmTypeDto>()
+    val orderList = mutableListOf<GetDpmTypeDto>()
     val activeDpms = group.dpms!!.filter { it.active }
 
     for (id in order.dpms) {
       val dpm = activeDpms.find { it.id == id } ?: continue
-      orderList.add(DpmTypeDto.from(dpm))
+      orderList.add(GetDpmTypeDto.from(dpm))
     }
 
-    return DpmGroupDto(group.groupName, orderList)
+    return GetDpmGroupDto(group.groupName, orderList)
   }
 
   private fun createUnorderedDpmGroupDto(group: DpmGroup) =
-      DpmGroupDto(group.groupName, group.dpms?.map { DpmTypeDto.from(it) } ?: emptyList())
+      GetDpmGroupDto(group.groupName, group.dpms?.map { GetDpmTypeDto.from(it) } ?: emptyList())
 }

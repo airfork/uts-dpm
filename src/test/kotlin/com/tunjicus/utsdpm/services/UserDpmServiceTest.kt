@@ -2,11 +2,13 @@ package com.tunjicus.utsdpm.services
 
 import com.tunjicus.utsdpm.BaseIntegrationTest
 import com.tunjicus.utsdpm.dtos.PostDpmDto
+import com.tunjicus.utsdpm.entities.Dpm
+import com.tunjicus.utsdpm.entities.DpmGroup
 import com.tunjicus.utsdpm.entities.Role
 import com.tunjicus.utsdpm.entities.User
 import com.tunjicus.utsdpm.enums.RoleName
-import com.tunjicus.utsdpm.repositories.UserDpmRepository
 import com.tunjicus.utsdpm.repositories.RoleRepository
+import com.tunjicus.utsdpm.repositories.UserDpmRepository
 import com.tunjicus.utsdpm.repositories.UserRepository
 import jakarta.transaction.Transactional
 import org.assertj.core.api.Assertions.assertThat
@@ -84,6 +86,15 @@ class UserDpmServiceTest : BaseIntegrationTest() {
   @Test
   @Transactional
   fun `should create new DPM successfully`() {
+    val dpmGroup = dpmGroupRepository.save(DpmGroup().apply { groupName = "Test Group" })
+    val dpm =
+        dpmRepository.save(
+            Dpm().apply {
+              dpmName = "Test DPM"
+              points = 10
+              this.dpmGroup = dpmGroup
+            })
+
     val dateFormat = DateTimeFormatter.ofPattern("MM/dd/yyyy")
 
     // Given
@@ -96,7 +107,7 @@ class UserDpmServiceTest : BaseIntegrationTest() {
             driver = "${driver.firstname} ${driver.lastname}",
             block = "10",
             date = dateFormat.format(LocalDate.now()),
-            type = "Good! (+1 Point)",
+            type = dpm.id,
             location = "OFF",
             startTime = "1000",
             endTime = "1100",
@@ -110,12 +121,13 @@ class UserDpmServiceTest : BaseIntegrationTest() {
 
     // Then
     val savedDpms =
-        userDpmRepository.findAllByCreatedAfterAndCreatedBeforeOrderByCreatedDesc(lastWeek, tomorrow)
+        userDpmRepository.findAllByCreatedAfterAndCreatedBeforeOrderByCreatedDesc(
+            lastWeek, tomorrow)
     assertThat(savedDpms).hasSize(1)
 
     val savedDpm = savedDpms.first()
-    assertThat(savedDpm.dpmType).isEqualTo("Good!")
-    assertThat(savedDpm.points).isEqualTo(1)
+    assertThat(savedDpm.dpmType).isEqualTo(dpm)
+    assertThat(savedDpm.points).isEqualTo(10)
     assertThat(savedDpm.createdUser).isEqualTo(admin)
     assertThat(savedDpm.user).isEqualTo(driver)
   }

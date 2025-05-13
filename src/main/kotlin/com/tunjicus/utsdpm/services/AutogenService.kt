@@ -89,7 +89,7 @@ class AutogenService(
       autoSubmissionRepository.findMostRecent() ?: AutoSubmission.min()
 
   private fun autogen(): List<AutogenDpm> {
-    val w2wDpms = dpmRepository.findW2WDpms()
+    val w2wDpms = dpmRepository.findAllByActiveTrueAndW2wColorCodeNotNull()
 
     return getAssignedShifts()
         .filter { ShiftColor.from(it.colorId) != ShiftColor.UNTRACKED }
