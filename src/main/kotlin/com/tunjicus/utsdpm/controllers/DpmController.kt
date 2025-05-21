@@ -218,7 +218,7 @@ class DpmController(
                           Content(
                               schema = Schema(implementation = SecurityExceptionResponse::class))]),
           ])
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST', 'MANAGER', 'SUPERVISOR')")
   @GetMapping("/list")
   fun listDpms(): List<GetDpmGroupDto> = dpmService.getDpmGroupList()
 
