@@ -2,17 +2,16 @@ package com.tunjicus.utsdpm.services
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.tunjicus.utsdpm.dtos.GetDpmGroupDto
-import com.tunjicus.utsdpm.dtos.GetDpmTypeDto
-import com.tunjicus.utsdpm.dtos.PutDpmGroupDto
-import com.tunjicus.utsdpm.dtos.PutDpmTypeDto
+import com.tunjicus.utsdpm.dtos.*
 import com.tunjicus.utsdpm.entities.Dpm
 import com.tunjicus.utsdpm.entities.DpmGroup
 import com.tunjicus.utsdpm.entities.DpmOrder
+import com.tunjicus.utsdpm.exceptions.InvalidDpmGroupUpdateException
 import com.tunjicus.utsdpm.models.DpmGroupOrder
 import com.tunjicus.utsdpm.repositories.DpmGroupRepository
 import com.tunjicus.utsdpm.repositories.DpmOrderRepository
 import com.tunjicus.utsdpm.repositories.DpmRepository
+import com.tunjicus.utsdpm.repositories.W2WColorRepository
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 
@@ -21,6 +20,7 @@ class DpmService(
     private val dpmGroupRepository: DpmGroupRepository,
     private val dpmRepository: DpmRepository,
     private val dpmOrderRepository: DpmOrderRepository,
+    private val w2wColorRepository: W2WColorRepository,
     private val objectMapper: ObjectMapper
 ) {
   fun getDpmGroupList(): List<GetDpmGroupDto> {
@@ -43,21 +43,53 @@ class DpmService(
 
   @Transactional
   fun updateDpms(newGroups: List<PutDpmGroupDto>) {
+    if (newGroups.isEmpty()) return
+    if (newGroups.size > 50)
+        throw InvalidDpmGroupUpdateException("Cannot update more than 50 groups.")
+
     val existingGroups = dpmGroupRepository.findAllByActiveTrue()
     val existingDpms = dpmRepository.findAllByActiveTrue()
 
     val activeGroups = mutableListOf<DpmGroup>()
     val activeDpms = mutableListOf<Dpm>()
 
+    val colorsInUpdate = mutableSetOf<Int>()
+    val groupNames = mutableSetOf<String>()
+
     for (groupInfo in newGroups) {
+      if (!groupNames.add(groupInfo.groupName.lowercase().trim())) {
+        throw InvalidDpmGroupUpdateException(
+            "Group names must be unique; '${groupInfo.groupName}' was given twice.")
+      }
+
       val group = findOrCreateNewGroup(groupInfo.groupName, existingGroups)
       activeGroups.add(group)
-
       assert(group.dpms != null)
 
+      val dpmNames = mutableSetOf<String>()
       group.dpms?.clear()
       for (dpmInfo in groupInfo.dpms) {
+        if (!dpmNames.add(dpmInfo.dpmType.lowercase().trim())) {
+          throw InvalidDpmGroupUpdateException(
+              "DPM names must be unique inside of their group; '${dpmInfo.dpmType}' was given twice.")
+        }
+
         val foundDpm = findOrCreateNewDpm(dpmInfo, existingDpms)
+        if (dpmInfo.colorId != null) {
+          val color =
+              w2wColorRepository.findById(dpmInfo.colorId).orElseThrow {
+                InvalidDpmGroupUpdateException("Color id ${dpmInfo.colorId} does not exist.")
+              }
+
+          foundDpm.w2wColor = color
+          if (!colorsInUpdate.add(color.id!!)) {
+            throw InvalidDpmGroupUpdateException(
+                "A color can only be assigned to 1 DPM, but ${color.id} was assigned to multiple.")
+          }
+        } else {
+          foundDpm.w2wColor = null
+        }
+
         group.dpms?.add(foundDpm)
         activeDpms.add(foundDpm)
         foundDpm.dpmGroup = group
@@ -75,6 +107,12 @@ class DpmService(
 
     createDpmGroupOrder(dpmGroupRepository.saveAll(activeGroups))
   }
+
+  fun getColors(): List<GetW2WColors> =
+      w2wColorRepository
+          .findAllByActiveTrue()
+          .sortedBy { it.colorName }
+          .map { GetW2WColors.from(it) }
 
   private fun createDpmGroupOrder(groups: List<DpmGroup>) {
     val dpmOrder = dpmOrderRepository.findTopByOrderByUpdatedAtDesc() ?: DpmOrder()

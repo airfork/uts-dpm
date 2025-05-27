@@ -7,9 +7,6 @@ import com.tunjicus.utsdpm.entities.DpmGroup
 import com.tunjicus.utsdpm.entities.Role
 import com.tunjicus.utsdpm.entities.User
 import com.tunjicus.utsdpm.enums.RoleName
-import com.tunjicus.utsdpm.repositories.RoleRepository
-import com.tunjicus.utsdpm.repositories.UserDpmRepository
-import com.tunjicus.utsdpm.repositories.UserRepository
 import jakarta.transaction.Transactional
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -24,13 +21,6 @@ import java.time.format.DateTimeFormatter
 
 class UserDpmServiceTest : BaseIntegrationTest() {
   @Autowired private lateinit var userDpmService: UserDpmService
-
-  @Autowired private lateinit var userRepository: UserRepository
-
-  @Autowired private lateinit var userDpmRepository: UserDpmRepository
-
-  @Autowired private lateinit var roleRepository: RoleRepository
-
   @MockitoBean private lateinit var authService: AuthService
 
   @BeforeEach

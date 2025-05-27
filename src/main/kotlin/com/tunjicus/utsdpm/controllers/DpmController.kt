@@ -246,4 +246,28 @@ class DpmController(
   @PutMapping("/list")
   fun updateDpmGroups(@RequestBody @Valid updateGroups: List<PutDpmGroupDto>) =
       dpmService.updateDpms(updateGroups)
+
+  @Operation(
+      summary = "Gets the list of active colors",
+      responses =
+          [
+              ApiResponse(responseCode = "200", description = "Request completed successfully"),
+              ApiResponse(
+                  responseCode = "401",
+                  description = "Unauthorized, need to login",
+                  content =
+                      [
+                          Content(
+                              schema = Schema(implementation = SecurityExceptionResponse::class))]),
+              ApiResponse(
+                  responseCode = "403",
+                  description = "User does not have the correct permissions to perform this action",
+                  content =
+                      [
+                          Content(
+                              schema = Schema(implementation = SecurityExceptionResponse::class))]),
+          ])
+  @PreAuthorize("hasRole('ADMIN')")
+  @GetMapping("/colors")
+  fun getColors(): List<GetW2WColors> = dpmService.getColors()
 }
