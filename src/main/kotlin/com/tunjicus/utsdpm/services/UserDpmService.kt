@@ -15,6 +15,7 @@ import com.tunjicus.utsdpm.models.DpmReceivedEmail
 import com.tunjicus.utsdpm.repositories.DpmRepository
 import com.tunjicus.utsdpm.repositories.UserDpmRepository
 import com.tunjicus.utsdpm.repositories.UserRepository
+import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -43,11 +44,10 @@ class UserDpmService(
     dpm.dpmType = dpmType
     dpm.points = dpmType.points
 
-    LOGGER.info("Creating dpm: $dpm")
-
     userDpmRepository.save(dpm)
   }
 
+  @Transactional
   fun newDpm(autogenDpm: AutogenDpm, createdBy: User) {
     val driver =
         userRepository.findByFullName(autogenDpm.name)
@@ -56,8 +56,6 @@ class UserDpmService(
 
     dpm.user = driver
     dpm.createdUser = createdBy
-    LOGGER.info("Creating autogen dpm: $dpm")
-
     userDpmRepository.save(dpm)
   }
 

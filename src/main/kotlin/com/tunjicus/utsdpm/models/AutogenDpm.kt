@@ -2,7 +2,6 @@ package com.tunjicus.utsdpm.models
 
 import com.tunjicus.utsdpm.entities.Dpm
 import com.tunjicus.utsdpm.entities.UserDpm
-import com.tunjicus.utsdpm.enums.ShiftColor
 import com.tunjicus.utsdpm.helpers.FormatHelpers
 import com.tunjicus.utsdpm.services.TimeService
 
@@ -30,16 +29,10 @@ private constructor(
   }
 
   companion object {
-    fun hasAllColors(w2wDpms: List<Dpm>): Boolean {
-      val requiredColors = listOf(ShiftColor.GOLD, ShiftColor.RED)
-      return requiredColors.all { color -> w2wDpms.any { it.w2wColorCode == color.code } }
-    }
+    fun from(shift: Shift, colorDpmMap: Map<String, Dpm>): AutogenDpm? {
+      if (shift.colorId !in colorDpmMap) return null
 
-    fun from(shift: Shift, w2wDpms: List<Dpm>): AutogenDpm? {
-      val color = ShiftColor.from(shift.colorId)
-      if (color == ShiftColor.UNTRACKED || !hasAllColors(w2wDpms)) return null
-
-      val dpmType = w2wDpms.find { it.w2wColorCode == color.code }!!
+      val dpmType = colorDpmMap[shift.colorId]!!
       val name = "${shift.firstName} ${shift.lastName}".trim()
       val block = shift.block
       val startTime = FormatHelpers.convertW2WTime(shift.startTime)

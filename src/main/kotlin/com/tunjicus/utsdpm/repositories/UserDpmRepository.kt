@@ -4,40 +4,39 @@ import com.tunjicus.utsdpm.entities.User
 import com.tunjicus.utsdpm.entities.UserDpm
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.PagingAndSortingRepository
 import org.springframework.data.repository.query.Param
 import java.time.ZonedDateTime
 
-interface UserDpmRepository : PagingAndSortingRepository<UserDpm, Int>, CrudRepository<UserDpm, Int> {
+interface UserDpmRepository :
+    PagingAndSortingRepository<UserDpm, Int>, JpaRepository<UserDpm, Int> {
   @Query(
-    value =
-      "select * from user_dpms " +
-        "where user_id = :id and created >= :created " +
-        "and approved = true and ignored is distinct from true " +
-        "order by created desc",
-    nativeQuery = true
-  )
+      value =
+          "select * from user_dpms " +
+              "where user_id = :id and created >= :created " +
+              "and approved = true and ignored is distinct from true " +
+              "order by created desc",
+      nativeQuery = true)
   fun getCurrentDpms(
-    @Param("id") userId: Int,
-    @Param("created") created: ZonedDateTime
+      @Param("id") userId: Int,
+      @Param("created") created: ZonedDateTime
   ): Collection<UserDpm>
 
   @Query(
-    value =
-      "select * from user_dpms " +
-        "where approved is distinct from true " +
-        "and ignored is distinct from true " +
-        "order by created desc",
-    nativeQuery = true
-  )
+      value =
+          "select * from user_dpms " +
+              "where approved is distinct from true " +
+              "and ignored is distinct from true " +
+              "order by created desc",
+      nativeQuery = true)
   fun getUnapprovedDpms(pageable: Pageable): Page<UserDpm>
 
   @Query(
-    value =
-    """
+      value =
+          """
       select ud.user_dpm_id,
        ud.create_id,
        ud.user_id,
@@ -60,26 +59,24 @@ interface UserDpmRepository : PagingAndSortingRepository<UserDpm, Int>, CrudRepo
         and u.managerid = :managerId
       order by ud.created desc
     """,
-    nativeQuery = true
-  )
+      nativeQuery = true)
   fun getUnapprovedDpms(managerId: Int, pageable: Pageable): Page<UserDpm>
 
   fun findAllByCreatedAfterAndCreatedBeforeOrderByCreatedDesc(
-    after: ZonedDateTime,
-    before: ZonedDateTime
+      after: ZonedDateTime,
+      before: ZonedDateTime
   ): Collection<UserDpm>
 
   fun findAllByUserOrderByCreatedDesc(user: User, pageable: Pageable): Page<UserDpm>
 
   @Modifying
   @Query(
-    "UPDATE user_dpms d " +
-      "SET ignored = TRUE " +
-      "WHERE d.user_id IN " +
-      "(SELECT id FROM users WHERE fulltime = FALSE) " +
-      "AND d.approved = TRUE",
-    nativeQuery = true
-  )
+      "UPDATE user_dpms d " +
+          "SET ignored = TRUE " +
+          "WHERE d.user_id IN " +
+          "(SELECT id FROM users WHERE fulltime = FALSE) " +
+          "AND d.approved = TRUE",
+      nativeQuery = true)
   fun ignorePartTimerDpms()
 
   @Modifying fun deleteByUser(user: User)

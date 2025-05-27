@@ -1,6 +1,6 @@
 -- Code 14 for Good, 9 for DNS
-insert into public.dpms (dpm_group_id, name, points, w2w_color_code)
-values (1, 'Picked Up Block', 1, '14'),
+insert into public.dpms (dpm_group_id, name, points, w2w_color_id)
+values (1, 'Picked Up Block', 1, 15),
        (1, 'Good!', 1, null),
        (1, 'Voluntary Clinic/Road Test Passed', 2, null),
        (1, '200 Hours Safe', 2, null),
@@ -28,6 +28,6 @@ values (1, 'Picked Up Block', 1, '14'),
        (5, 'Safety Offense', -15, null),
        (5, 'Preventable Accident 1,2', -15, null),
        (5, 'Custom', -15, null),
-       (6, 'DNS/Did Not Show', -10, '9'),
+       (6, 'DNS/Did Not Show', -10, 10),
        (6, 'Preventable Accident 3,4', -20, null)
 ;

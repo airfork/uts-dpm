@@ -6,8 +6,6 @@ import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 
 interface DpmRepository : JpaRepository<Dpm, Int> {
-  fun findAllByActiveTrueAndW2wColorCodeNotNull(): List<Dpm>
-
   fun findAllByActiveTrue(): List<Dpm>
 
   @Modifying
