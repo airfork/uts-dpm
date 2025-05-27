@@ -16,9 +16,9 @@ interface UserDpmRepository :
   @Query(
       value =
           "select * from user_dpms " +
-              "where user_id = :id and created >= :created " +
+              "where user_id = :id and created_at >= :created " +
               "and approved = true and ignored is distinct from true " +
-              "order by created desc",
+              "order by created_at desc",
       nativeQuery = true)
   fun getCurrentDpms(
       @Param("id") userId: Int,
@@ -30,7 +30,7 @@ interface UserDpmRepository :
           "select * from user_dpms " +
               "where approved is distinct from true " +
               "and ignored is distinct from true " +
-              "order by created desc",
+              "order by created_at desc",
       nativeQuery = true)
   fun getUnapprovedDpms(pageable: Pageable): Page<UserDpm>
 
@@ -57,17 +57,17 @@ interface UserDpmRepository :
       where ud.approved is distinct from true
         and ud.ignored is distinct from true
         and u.managerid = :managerId
-      order by ud.created desc
+      order by ud.created_at desc
     """,
       nativeQuery = true)
   fun getUnapprovedDpms(managerId: Int, pageable: Pageable): Page<UserDpm>
 
-  fun findAllByCreatedAfterAndCreatedBeforeOrderByCreatedDesc(
+  fun findAllByCreatedAtAfterAndCreatedAtBeforeOrderByCreatedAtDesc(
       after: ZonedDateTime,
       before: ZonedDateTime
   ): Collection<UserDpm>
 
-  fun findAllByUserOrderByCreatedDesc(user: User, pageable: Pageable): Page<UserDpm>
+  fun findAllByUserOrderByCreatedAtDesc(user: User, pageable: Pageable): Page<UserDpm>
 
   @Modifying
   @Query(

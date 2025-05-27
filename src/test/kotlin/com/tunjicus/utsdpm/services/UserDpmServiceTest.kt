@@ -111,7 +111,7 @@ class UserDpmServiceTest : BaseIntegrationTest() {
 
     // Then
     val savedDpms =
-        userDpmRepository.findAllByCreatedAfterAndCreatedBeforeOrderByCreatedDesc(
+        userDpmRepository.findAllByCreatedAtAfterAndCreatedAtBeforeOrderByCreatedAtDesc(
             lastWeek, tomorrow)
     assertThat(savedDpms).hasSize(1)
 

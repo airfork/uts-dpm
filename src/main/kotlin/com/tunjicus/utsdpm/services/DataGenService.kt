@@ -59,7 +59,7 @@ class DataGenService(
   private fun getDpmsInRange(startDate: String?, endDate: String?): Collection<UserDpm> {
     val (start, end) = getStartAndEndDates(startDate, endDate)
     val currentUser = authService.getCurrentUser()
-    var dpms = userDpmRepository.findAllByCreatedAfterAndCreatedBeforeOrderByCreatedDesc(start, end)
+    var dpms = userDpmRepository.findAllByCreatedAtAfterAndCreatedAtBeforeOrderByCreatedAtDesc(start, end)
 
     if (currentUser.hasAnyRole(RoleName.MANAGER)) {
       dpms = dpms.filter { it.user?.manager?.id == currentUser.id }

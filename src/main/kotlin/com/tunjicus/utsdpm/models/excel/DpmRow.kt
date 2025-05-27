@@ -16,7 +16,7 @@ class DpmRow(userDpm: UserDpm) : ExcelRow {
   private val points = userDpm.points?.toString()
   private val notes = userDpm.notes
   private val status = MiscHelpers.generateDpmStatusMessage(userDpm.approved!!, userDpm.ignored!!)
-  private val createdAt = FormatHelpers.createdAtExcel(userDpm.created)
+  private val createdAt = FormatHelpers.createdAtExcel(userDpm.createdAt)
   private val createdBy =
       "${userDpm.createdUser?.firstname} ${userDpm.createdUser?.lastname}".trim()
 

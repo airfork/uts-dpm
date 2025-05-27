@@ -32,8 +32,8 @@ class UserDpm {
 
   @Column(name = "notes") var notes: String? = null
 
-  @Column(name = "created", updatable = false)
-  var created: ZonedDateTime = TimeService.getTodayZonedDateTime()
+  @Column(name = "created_at", updatable = false)
+  var createdAt: ZonedDateTime = TimeService.getTodayZonedDateTime()
 
   @Column(name = "approved") var approved: Boolean? = false
 
@@ -67,7 +67,7 @@ class UserDpm {
   final override fun toString(): String {
     return this::class.simpleName +
         "(id = $id, createdUser = ${createdUser?.id}, user = ${user?.id}, dpmType = ${dpmType?.dpmName}, " +
-        "block = $block, date = $date, points = $points, notes = $notes, created = $created, " +
+        "block = $block, date = $date, points = $points, notes = $notes, created = $createdAt, " +
         "approved = $approved, location = $location, startTime = $startTime, endTime = $endTime, ignored = $ignored)"
   }
 }

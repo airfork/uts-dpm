@@ -28,7 +28,7 @@ open class ApprovalDpmDto(
         location = userDpm.location!!,
         date = FormatHelpers.outboundDpmDate(userDpm.date),
         time = FormatHelpers.outboundDpmTime(userDpm.startTime, userDpm.endTime),
-        createdAt = FormatHelpers.createdAt(userDpm.created),
+        createdAt = FormatHelpers.createdAt(userDpm.createdAt),
         notes = userDpm.notes
       )
     }

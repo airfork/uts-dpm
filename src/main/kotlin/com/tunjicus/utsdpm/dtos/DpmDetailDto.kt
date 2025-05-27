@@ -32,7 +32,7 @@ class DpmDetailDto(
         location = userDpm.location!!,
         date = FormatHelpers.outboundDpmDate(userDpm.date),
         time = FormatHelpers.outboundDpmTime(userDpm.startTime, userDpm.endTime),
-        createdAt = FormatHelpers.createdAt(userDpm.created),
+        createdAt = FormatHelpers.createdAt(userDpm.createdAt),
         notes = userDpm.notes,
         status = MiscHelpers.generateDpmStatusMessage(userDpm.approved!!, userDpm.ignored!!),
         ignored = userDpm.ignored!!

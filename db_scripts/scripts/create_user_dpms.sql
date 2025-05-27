@@ -15,7 +15,7 @@ create table if not exists user_dpms
         constraint dpms_id_new_user_dpms_dpm_id_fk not null,
     points      smallint                                     not null,
     notes       text,
-    created     timestamp with time zone                     not null,
+    created_at  timestamp with time zone                     not null,
     approved    boolean     default false                    not null,
     location    varchar(10) default 'N/A'::character varying not null,
     start_time  time                                         not null,

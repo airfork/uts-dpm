@@ -108,7 +108,7 @@ class UserDpmService(
     val pageNumber = maxOf(page, 0)
 
     return userDpmRepository
-        .findAllByUserOrderByCreatedDesc(user, PageRequest.of(pageNumber, size))
+        .findAllByUserOrderByCreatedAtDesc(user, PageRequest.of(pageNumber, size))
         .map(DpmDetailDto::from)
   }
 
