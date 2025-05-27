@@ -26,8 +26,8 @@ values (1, 'Picked Up Block', 1, 15),
        (5, 'Failure to Report 10-50', -15, null),
        (5, 'Insubordination', -15, null),
        (5, 'Safety Offense', -15, null),
-       (5, 'Preventable Accident 1,2', -15, null),
+       (5, 'Preventable Accident 1, 2', -15, null),
        (5, 'Custom', -15, null),
        (6, 'DNS/Did Not Show', -10, 10),
-       (6, 'Preventable Accident 3,4', -20, null)
+       (6, 'Preventable Accident 3, 4', -20, null)
 ;
