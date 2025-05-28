@@ -6,26 +6,14 @@ import org.hibernate.proxy.HibernateProxy
 import java.time.ZonedDateTime
 
 @Entity
-@Table(name = "dpms")
-class Dpm {
+@Table(name = "dpm_order")
+class DpmOrder {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "dpm_id")
+  @Column(name = "dpm_order_id")
   var id: Int? = null
 
-  @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "dpm_group_id")
-  lateinit var dpmGroup: DpmGroup
-
-  @Column(name = "name", nullable = false, length = 255) lateinit var dpmName: String
-
-  @Column(name = "points", nullable = false, columnDefinition = "int2") var points: Int? = null
-
-  @Column(name = "active", nullable = false) var active: Boolean = true
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "w2w_color_id")
-  var w2wColor: W2WColor? = null
+  @Column(name = "dpm_order") var dpmOrder: String? = null
 
   @Column(name = "created_at", updatable = false)
   var createdAt: ZonedDateTime = TimeService.getTodayZonedDateTime()
@@ -59,6 +47,6 @@ class Dpm {
 
   final override fun toString(): String {
     return this::class.simpleName +
-        "(id = $id, dpmGroup = ${dpmGroup.groupName}, dpmName = $dpmName, points = $points, active = $active, createdAt = $createdAt, updatedAt = $updatedAt)"
+        "(id = $id, dpmOrder = $dpmOrder, createdAt = $createdAt, updatedAt = $updatedAt)"
   }
 }

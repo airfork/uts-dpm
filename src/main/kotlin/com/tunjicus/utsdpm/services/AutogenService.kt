@@ -5,18 +5,15 @@ import com.tunjicus.utsdpm.configs.AppProperties
 import com.tunjicus.utsdpm.dtos.AutogenDpmDto
 import com.tunjicus.utsdpm.dtos.AutogenWrapperDto
 import com.tunjicus.utsdpm.entities.AutoSubmission
-import com.tunjicus.utsdpm.enums.ShiftColor
 import com.tunjicus.utsdpm.exceptions.AutoSubmitAlreadyCalledException
 import com.tunjicus.utsdpm.exceptions.AutogenException
-import com.tunjicus.utsdpm.exceptions.NameNotFoundException
 import com.tunjicus.utsdpm.helpers.BlockComparator
 import com.tunjicus.utsdpm.helpers.FormatHelpers
 import com.tunjicus.utsdpm.models.AssignedShifts
 import com.tunjicus.utsdpm.models.AutogenDpm
 import com.tunjicus.utsdpm.models.Shift
 import com.tunjicus.utsdpm.repositories.AutoSubmissionRepository
-import java.time.format.DateTimeFormatter
-import java.util.concurrent.CopyOnWriteArrayList
+import com.tunjicus.utsdpm.repositories.W2WColorRepository
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.slf4j.LoggerFactory
@@ -24,14 +21,17 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.util.UriComponentsBuilder
+import java.time.format.DateTimeFormatter
+import java.util.concurrent.CopyOnWriteArrayList
 
 @Service
 class AutogenService(
     private val autoSubmissionRepository: AutoSubmissionRepository,
-    private val dpmService: DpmService,
+    private val userDpmService: UserDpmService,
     private val authService: AuthService,
     private val appProperties: AppProperties,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val w2wColorRepository: W2WColorRepository
 ) {
   fun autogenDtos(): AutogenWrapperDto {
     if (!alreadyCalledToday()) {
@@ -46,6 +46,7 @@ class AutogenService(
         autogenDpms)
   }
 
+  @Transactional
   fun autoSubmit() {
     if (alreadyCalledToday()) {
       throw AutoSubmitAlreadyCalledException()
@@ -55,9 +56,9 @@ class AutogenService(
     val currentUser = authService.getCurrentUser()
     for (dpm in dpms) {
       try {
-        dpmService.newDpm(dpm, currentUser)
-      } catch (ex: NameNotFoundException) {
-        LOGGER.warn(ex.localizedMessage)
+        userDpmService.newDpm(dpm, currentUser)
+      } catch (e: Exception) {
+        LOGGER.warn("Exception creating autogen dpm", e)
       }
     }
 
@@ -87,15 +88,25 @@ class AutogenService(
       autoSubmissionRepository.findMostRecent() ?: AutoSubmission.min()
 
   private fun autogen(): List<AutogenDpm> {
+    val dpmColorMap =
+        w2wColorRepository
+            .findAllActiveWithDpms()
+            .associate {
+              it.colorCode to
+                  it.dpms?.filter { dpm -> dpm.active }?.maxByOrNull { dpm -> dpm.updatedAt }
+            }
+            .filterValues { it != null }
+            .mapValues { it.value!! }
+
     return getAssignedShifts()
-        .filter { ShiftColor.from(it.colorId) != ShiftColor.UNTRACKED }
+        .filter { it.colorId in dpmColorMap }
         .filter { it.block.startsWith("[") }
         .filter { "Y".equals(it.published, true) }
-        .mapNotNull { AutogenDpm.from(it) }
+        .mapNotNull { AutogenDpm.from(it, dpmColorMap) }
         .sortedWith(BlockComparator())
   }
 
-  private fun getAssignedShifts(): List<Shift> {
+  fun getAssignedShifts(): List<Shift> {
     val today = DATE_FORMATTER.format(TimeService.getTodayDate())
     val url =
         UriComponentsBuilder.fromUriString(ASSIGNED_SHIFT_URL)

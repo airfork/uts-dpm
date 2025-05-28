@@ -26,7 +26,7 @@ class AppConfig(
         .addMapping("/**")
         .allowedOrigins(
             "http://localhost:4200",
-            "http://localhost:10000",
+            "http://localhost:4400",
             "https://utsdpm.com",
             "https://www.utsdpm.com")
         .allowedMethods("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")

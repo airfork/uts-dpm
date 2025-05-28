@@ -6,31 +6,28 @@ import org.hibernate.proxy.HibernateProxy
 import java.time.ZonedDateTime
 
 @Entity
-@Table(name = "dpms")
-class Dpm {
+@Table(name = "dpm_groups")
+class DpmGroup {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "dpm_id")
+  @Column(name = "dpm_group_id")
   var id: Int? = null
 
-  @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "dpm_group_id")
-  lateinit var dpmGroup: DpmGroup
-
-  @Column(name = "name", nullable = false, length = 255) lateinit var dpmName: String
-
-  @Column(name = "points", nullable = false, columnDefinition = "int2") var points: Int? = null
+  @Column(name = "group_name", nullable = false, length = 500) lateinit var groupName: String
 
   @Column(name = "active", nullable = false) var active: Boolean = true
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "w2w_color_id")
-  var w2wColor: W2WColor? = null
 
   @Column(name = "created_at", updatable = false)
   var createdAt: ZonedDateTime = TimeService.getTodayZonedDateTime()
 
   @Column(name = "updated_at") var updatedAt: ZonedDateTime = TimeService.getTodayZonedDateTime()
+
+  @OneToMany(
+      mappedBy = "dpmGroup",
+      fetch = FetchType.EAGER,
+      cascade = [CascadeType.ALL],
+  )
+  var dpms: MutableList<Dpm>? = mutableListOf()
 
   @PrePersist
   @PreUpdate
@@ -48,7 +45,7 @@ class Dpm {
         if (this is HibernateProxy) this.hibernateLazyInitializer.persistentClass
         else this.javaClass
     if (thisEffectiveClass != oEffectiveClass) return false
-    other as Dpm
+    other as DpmGroup
 
     return id != null && id == other.id
   }
@@ -59,6 +56,6 @@ class Dpm {
 
   final override fun toString(): String {
     return this::class.simpleName +
-        "(id = $id, dpmGroup = ${dpmGroup.groupName}, dpmName = $dpmName, points = $points, active = $active, createdAt = $createdAt, updatedAt = $updatedAt)"
+        "(id = $id, groupName = $groupName, dpmCount = ${dpms?.size}, createdAt = $createdAt, updatedAt = $updatedAt)"
   }
 }

@@ -23,11 +23,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 class SecurityAdapter(private val userDetailsService: UserDetailsService) {
   companion object {
     private val NO_AUTH_LIST =
-      arrayOf(
-        "/api/auth/login**",
-        "/v3/api-docs/**",
-        "/swagger-ui/**",
-      )
+        arrayOf(
+            "/api/auth/login**",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+        )
   }
 
   @Bean fun jwtAuthenticationFilter(): JwtAuthenticationFilter = JwtAuthenticationFilter()
@@ -37,39 +37,34 @@ class SecurityAdapter(private val userDetailsService: UserDetailsService) {
   @Bean
   fun filterChain(http: HttpSecurity): SecurityFilterChain {
     http
-      .cors { it.configure(http) }
-      .headers { headers ->
-        headers.frameOptions { frameOptions ->
-          frameOptions.sameOrigin()
+        .cors { it.configure(http) }
+        .headers { headers -> headers.frameOptions { frameOptions -> frameOptions.sameOrigin() } }
+        .csrf { it.disable() }
+        .authorizeHttpRequests { authorize ->
+          authorize
+              .requestMatchers(*NO_AUTH_LIST)
+              .permitAll()
+              .requestMatchers(HttpMethod.OPTIONS, "/**")
+              .permitAll()
+              .requestMatchers("/api/**")
+              .authenticated()
         }
-      }
-      .csrf { it.disable() }
-      .authorizeHttpRequests { authorize ->
-        authorize
-          .requestMatchers(*NO_AUTH_LIST).permitAll()
-          .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-          .requestMatchers("/api/**").authenticated()
-      }
-      .exceptionHandling { exceptionHandling ->
-        exceptionHandling.authenticationEntryPoint { _, response, authException ->
-          response.sendError(
-            HttpServletResponse.SC_UNAUTHORIZED,
-            "UNAUTHORIZED : " + authException.message
-          )
+        .exceptionHandling { exceptionHandling ->
+          exceptionHandling.authenticationEntryPoint { _, response, authException ->
+            response.sendError(
+                HttpServletResponse.SC_UNAUTHORIZED, "UNAUTHORIZED : " + authException.message)
+          }
         }
-      }
-      .sessionManagement { sessionManagement ->
-        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-      }
-      .addFilterBefore(
-        jwtAuthenticationFilter(),
-        UsernamePasswordAuthenticationFilter::class.java
-      )
-      .requiresChannel { channel ->
-        channel.requestMatchers({ request ->
-          request.getHeader("X-Forwarded-Proto") != null
-        }).requiresSecure()
-      }
+        .sessionManagement { sessionManagement ->
+          sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        }
+        .addFilterBefore(
+            jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter::class.java)
+        .requiresChannel { channel ->
+          channel
+              .requestMatchers({ request -> request.getHeader("X-Forwarded-Proto") != null })
+              .requiresSecure()
+        }
 
     return http.build()
   }
@@ -84,6 +79,6 @@ class SecurityAdapter(private val userDetailsService: UserDetailsService) {
 
   @Bean
   fun authenticationManager(
-    authenticationConfiguration: AuthenticationConfiguration
+      authenticationConfiguration: AuthenticationConfiguration
   ): AuthenticationManager = authenticationConfiguration.authenticationManager
 }

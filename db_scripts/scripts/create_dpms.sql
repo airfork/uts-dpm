@@ -1,28 +1,17 @@
 create table if not exists dpms
 (
-    id        serial
-        constraint dpms_pk
-            primary key,
-    createid  integer                                      not null
-        constraint users_id_dpms_createid_fk
-            references users,
-    userid    integer                                      not null
-        constraint users_id_dpms_userid
-            references users,
-    block     varchar(20)                                  not null,
-    date      date                                         not null,
-    dpmtype   text                                         not null,
-    points    smallint                                     not null,
-    notes     text,
-    created   timestamp with time zone                     not null,
-    approved  boolean     default false                    not null,
-    location  varchar(10) default 'N/A'::character varying not null,
-    starttime time                                         not null,
-    endtime   time                                         not null,
-    ignored   boolean     default false                    not null
+    dpm_id       serial
+        constraint dpms_table_pk primary key,
+    dpm_group_id integer                  not null
+        constraint dpm_groups_pk_dpm_id_fk references dpm_groups (dpm_group_id),
+    name         varchar(255)             not null,
+    points       smallint                 not null,
+    active       boolean                           default true not null,
+    w2w_color_id integer
+        constraint w2w_colors_pk_dpm_fk references w2w_colors (w2w_color_id),
+    created_at   timestamp with time zone not null default now(),
+    updated_at   timestamp with time zone not null default now()
 );
 
-comment on table dpms is 'Holds user dpms';
-
-create unique index dpms_id_uindex
-    on dpms (id);
+create unique index new_dpms_table_id_uindex
+    on dpms (dpm_id);

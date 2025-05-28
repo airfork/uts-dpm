@@ -7,7 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails
 
 class UserPrincipal
 private constructor(user: User, private val authorities: MutableCollection<GrantedAuthority>) :
-  UserDetails {
+    UserDetails {
   private var username: String
   private var password: String
 

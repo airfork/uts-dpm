@@ -81,3 +81,4 @@ build/
 !/config/*.example
 
 .fleet/
+_ignore*
