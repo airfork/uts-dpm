@@ -50,9 +50,9 @@ class UserService(
   fun updateUser(dto: UserDetailDto, id: Int) {
     val user = userRepository.findById(id).orElseThrow { UserNotFoundException(id) }
 
-    dto.email?.let { user.username = it }
-    dto.firstname?.let { user.firstname = it }
-    dto.lastname?.let { user.lastname = it }
+    dto.email?.let { user.username = it.trim() }
+    dto.firstname?.let { user.firstname = it.trim() }
+    dto.lastname?.let { user.lastname = it.trim() }
     dto.points?.let { user.points = it }
     dto.role?.let {
       val role = RoleName.from(it)
@@ -93,9 +93,9 @@ class UserService(
 
     val user =
       User().apply {
-        username = userDto.email
-        firstname = userDto.firstname
-        lastname = userDto.lastname
+        username = userDto.email?.trim()
+        firstname = userDto.firstname?.trim()
+        lastname = userDto.lastname?.trim()
         points = 0
         this.manager = manager
         this.role = role
