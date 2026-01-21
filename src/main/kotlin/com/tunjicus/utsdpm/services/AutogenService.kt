@@ -1,27 +1,19 @@
 package com.tunjicus.utsdpm.services
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.tunjicus.utsdpm.configs.AppProperties
 import com.tunjicus.utsdpm.dtos.AutogenDpmDto
 import com.tunjicus.utsdpm.dtos.AutogenWrapperDto
 import com.tunjicus.utsdpm.entities.AutoSubmission
 import com.tunjicus.utsdpm.exceptions.AutoSubmitAlreadyCalledException
-import com.tunjicus.utsdpm.exceptions.AutogenException
 import com.tunjicus.utsdpm.helpers.BlockComparator
 import com.tunjicus.utsdpm.helpers.FormatHelpers
-import com.tunjicus.utsdpm.models.AssignedShifts
 import com.tunjicus.utsdpm.models.AutogenDpm
 import com.tunjicus.utsdpm.models.Shift
 import com.tunjicus.utsdpm.repositories.AutoSubmissionRepository
 import com.tunjicus.utsdpm.repositories.W2WColorRepository
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.util.UriComponentsBuilder
-import java.time.format.DateTimeFormatter
 import java.util.concurrent.CopyOnWriteArrayList
 
 @Service
@@ -29,17 +21,25 @@ class AutogenService(
     private val autoSubmissionRepository: AutoSubmissionRepository,
     private val userDpmService: UserDpmService,
     private val authService: AuthService,
-    private val appProperties: AppProperties,
-    private val objectMapper: ObjectMapper,
-    private val w2wColorRepository: W2WColorRepository
+    private val w2wColorRepository: W2WColorRepository,
+    private val shiftProvider: ShiftProvider
 ) {
   fun autogenDtos(): AutogenWrapperDto {
+    LOGGER.debug("autogenDtos() called - checking if already submitted today")
+
     if (!alreadyCalledToday()) {
-      return AutogenWrapperDto(dpms = autogen().map(AutogenDpmDto::from))
+      LOGGER.debug("Not yet submitted today - generating new autogen DPMs")
+      val dpms = autogen().map(AutogenDpmDto::from)
+      LOGGER.debug("Generated {} autogen DPM DTOs", dpms.size)
+      return AutogenWrapperDto(dpms = dpms)
     }
 
+    LOGGER.debug("Already submitted today - returning cached/regenerated DPMs")
     // handle case where app restarts and DPMs have already been submitted
-    if (autogenDpms.isEmpty()) autogenDpms.addAll(autogen().map(AutogenDpmDto::from))
+    if (autogenDpms.isEmpty()) {
+      LOGGER.debug("Cache is empty after restart - regenerating DPMs")
+      autogenDpms.addAll(autogen().map(AutogenDpmDto::from))
+    }
     return AutogenWrapperDto(
         FormatHelpers.submittedAt(
             lastSubmission().submitted.withZoneSameInstant(TimeService.ZONE_ID)),
@@ -48,23 +48,41 @@ class AutogenService(
 
   @Transactional
   fun autoSubmit() {
+    LOGGER.debug("autoSubmit() called - checking if already submitted today")
+
     if (alreadyCalledToday()) {
+      LOGGER.warn("autoSubmit() called but already submitted today - throwing exception")
       throw AutoSubmitAlreadyCalledException()
     }
 
     val dpms = autogen()
+    LOGGER.info("Submitting {} autogen DPMs", dpms.size)
+
     val currentUser = authService.getCurrentUser()
+    LOGGER.debug("Current user for submission: {}", currentUser.username)
+
+    var successCount = 0
+    var failCount = 0
     for (dpm in dpms) {
       try {
+        LOGGER.debug("Creating DPM for user: {} {}, type: {}, block: {}",
+            dpm.name.split(" ").firstOrNull(), dpm.name.split(" ").lastOrNull(),
+            dpm.type.dpmName, dpm.block)
         userDpmService.newDpm(dpm, currentUser)
+        successCount++
       } catch (e: Exception) {
-        LOGGER.warn("Exception creating autogen dpm", e)
+        failCount++
+        LOGGER.warn("Exception creating autogen dpm for {}: {}", dpm.name, e.message, e)
       }
     }
+
+    LOGGER.info("AutoSubmit complete: {} succeeded, {} failed out of {} total",
+        successCount, failCount, dpms.size)
 
     autogenDpms.clear()
     autogenDpms.addAll(dpms.map(AutogenDpmDto::from))
     autoSubmissionRepository.save(AutoSubmission())
+    LOGGER.debug("AutoSubmission record saved")
   }
 
   // Run daily
@@ -88,6 +106,7 @@ class AutogenService(
       autoSubmissionRepository.findMostRecent() ?: AutoSubmission.min()
 
   private fun autogen(): List<AutogenDpm> {
+    LOGGER.debug("Building DPM color map from active W2W colors")
     val dpmColorMap =
         w2wColorRepository
             .findAllActiveWithDpms()
@@ -98,40 +117,39 @@ class AutogenService(
             .filterValues { it != null }
             .mapValues { it.value!! }
 
-    return getAssignedShifts()
-        .filter { it.colorId in dpmColorMap }
-        .filter { it.block.startsWith("[") }
-        .filter { "Y".equals(it.published, true) }
+    LOGGER.debug("DPM color map built with {} entries: {}",
+        dpmColorMap.size, dpmColorMap.keys)
+
+    LOGGER.debug("Fetching assigned shifts from provider")
+    val allShifts = getAssignedShifts()
+    LOGGER.debug("Retrieved {} total shifts", allShifts.size)
+
+    val filteredByColor = allShifts.filter { it.colorId in dpmColorMap }
+    LOGGER.debug("After color filter: {} shifts (filtered {} without matching color)",
+        filteredByColor.size, allShifts.size - filteredByColor.size)
+
+    val filteredByBlock = filteredByColor.filter { it.block.startsWith("[") }
+    LOGGER.debug("After block filter: {} shifts (filtered {} without '[' prefix)",
+        filteredByBlock.size, filteredByColor.size - filteredByBlock.size)
+
+    val filteredByPublished = filteredByBlock.filter { "Y".equals(it.published, true) }
+    LOGGER.debug("After published filter: {} shifts (filtered {} not published)",
+        filteredByPublished.size, filteredByBlock.size - filteredByPublished.size)
+
+    val result = filteredByPublished
         .mapNotNull { AutogenDpm.from(it, dpmColorMap) }
         .sortedWith(BlockComparator())
+
+    LOGGER.debug("Final autogen result: {} DPMs after sorting", result.size)
+    return result
   }
 
   fun getAssignedShifts(): List<Shift> {
-    val today = DATE_FORMATTER.format(TimeService.getTodayDate())
-    val url =
-        UriComponentsBuilder.fromUriString(ASSIGNED_SHIFT_URL)
-            .queryParam("start_date", today)
-            .queryParam("end_date", today)
-            .queryParam("key", appProperties.w2wKey)
-            .toUriString()
-
-    val request = Request.Builder().url(url).build()
-    CLIENT.newCall(request).execute().use {
-      if (!it.isSuccessful) {
-        throw AutogenException("When2Work assigned shift request failed with code ${it.code}")
-      }
-
-      return objectMapper.readValue(it.body?.string(), AssignedShifts::class.java)?.shifts
-          ?: emptyList()
-    }
+    return shiftProvider.getAssignedShifts()
   }
 
   companion object {
     private val LOGGER = LoggerFactory.getLogger(AutogenService::class.java)
-    private val CLIENT = OkHttpClient()
-    private const val ASSIGNED_SHIFT_URL =
-        "https://www7.whentowork.com/cgi-bin/w2wG.dll/api/AssignedShiftList"
-    private val DATE_FORMATTER = DateTimeFormatter.ofPattern("MM/dd/yyyy")
     private val autogenDpms = CopyOnWriteArrayList<AutogenDpmDto>()
   }
 }

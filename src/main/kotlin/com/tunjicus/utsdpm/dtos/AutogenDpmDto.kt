@@ -8,9 +8,17 @@ data class AutogenDpmDto(
   val startTime: String,
   val endTime: String,
   val type: String,
+  val positive: Boolean,
 ) {
   companion object {
     fun from(dpm: AutogenDpm) =
-      AutogenDpmDto(dpm.name, dpm.block, dpm.startTime, dpm.endTime, dpm.type.dpmName)
+      AutogenDpmDto(
+        dpm.name,
+        dpm.block,
+        dpm.startTime,
+        dpm.endTime,
+        dpm.type.dpmName,
+        (dpm.type.points ?: 0) > 0
+      )
   }
 }

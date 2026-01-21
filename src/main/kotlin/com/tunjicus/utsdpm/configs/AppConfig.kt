@@ -12,8 +12,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 @Component
 class AppConfig(
-    private val requestLoggingInterceptor: RequestLoggingInterceptor,
-    private val environment: Environment
+  private val requestLoggingInterceptor: RequestLoggingInterceptor,
+  private val environment: Environment
 ) : WebMvcConfigurer {
   override fun addInterceptors(registry: InterceptorRegistry) {
     if (environment.activeProfiles.contains("local")) {
@@ -23,19 +23,15 @@ class AppConfig(
 
   override fun addCorsMappings(registry: CorsRegistry) {
     registry
-        .addMapping("/**")
-        .allowedOrigins(
-            "http://localhost:4200",
-            "http://localhost:4400",
-            "https://utsdpm.com",
-            "https://www.utsdpm.com")
-        .allowedMethods("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-        .exposedHeaders("Content-Disposition")
+      .addMapping("/**")
+      .allowedOriginPatterns("http://localhost:*", "https://utsdpm.com", "https://www.utsdpm.com")
+      .allowedMethods("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+      .exposedHeaders("Content-Disposition")
   }
 
   @Bean
   fun getObjectMapper(): ObjectMapper =
-      ObjectMapper().apply {
-        configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).findAndRegisterModules()
-      }
+    ObjectMapper().apply {
+      configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).findAndRegisterModules()
+    }
 }

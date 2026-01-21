@@ -6,6 +6,7 @@ import com.tunjicus.utsdpm.enums.RoleName
 import com.tunjicus.utsdpm.models.Shift
 import com.tunjicus.utsdpm.repositories.AutoSubmissionRepository
 import jakarta.transaction.Transactional
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.doReturn
@@ -202,10 +203,12 @@ class AutogenServiceTest() : BaseIntegrationTest() {
       colorId: String,
       firstName: String,
       lastName: String,
-      description: String = ""
+      description: String = "",
+      block: String = "[EB]",
+      published: String = "Y"
   ): Shift {
     return Shift(
-        published = "Y",
+        published = published,
         firstName = firstName,
         lastName = lastName,
         startDate = "5/24/2025",
@@ -214,6 +217,196 @@ class AutogenServiceTest() : BaseIntegrationTest() {
         endTime = "12:00pm",
         description = description,
         colorId = colorId,
-        block = "[EB]")
+        block = block)
+  }
+
+  @Test
+  @Transactional
+  fun `should return empty list when no shifts match color map`() {
+    val activeColor = createColor("Active Color", "1")
+    val group = createGroup("Test Group")
+    createDpm("Test DPM", group, activeColor)
+
+    // Create shift with non-matching color
+    val mockShift = createShift("999", "Test", "User")
+    doReturn(listOf(mockShift)).`when`(autogenService).getAssignedShifts()
+
+    entityManager.flush()
+    entityManager.clear()
+
+    val result = autogenService.autogenDtos()
+    assertThat(result.dpms).isEmpty()
+  }
+
+  @Test
+  @Transactional
+  fun `should return empty list when all shifts have invalid block format`() {
+    val activeColor = createColor("Active Color", "1")
+    val group = createGroup("Test Group")
+    createDpm("Test DPM", group, activeColor)
+
+    // Create shift without bracket in block
+    val mockShift = createShift(activeColor.colorCode, "Test", "User", block = "EB")
+    doReturn(listOf(mockShift)).`when`(autogenService).getAssignedShifts()
+
+    entityManager.flush()
+    entityManager.clear()
+
+    val result = autogenService.autogenDtos()
+    assertThat(result.dpms).isEmpty()
+  }
+
+  @Test
+  @Transactional
+  fun `should filter out unpublished shifts`() {
+    val activeColor = createColor("Active Color", "1")
+    val group = createGroup("Test Group")
+    createDpm("Test DPM", group, activeColor)
+
+    val publishedShift = createShift(activeColor.colorCode, "Test", "User", published = "Y")
+    val unpublishedShift = createShift(activeColor.colorCode, "Test2", "User2", published = "N")
+    doReturn(listOf(publishedShift, unpublishedShift)).`when`(autogenService).getAssignedShifts()
+
+    entityManager.flush()
+    entityManager.clear()
+
+    val result = autogenService.autogenDtos()
+    assertThat(result.dpms).hasSize(1)
+    assertThat(result.dpms[0].name).isEqualTo("Test User")
+  }
+
+  @Test
+  @Transactional
+  fun `should handle empty shift list`() {
+    val activeColor = createColor("Active Color", "1")
+    val group = createGroup("Test Group")
+    createDpm("Test DPM", group, activeColor)
+
+    doReturn(emptyList<Shift>()).`when`(autogenService).getAssignedShifts()
+
+    entityManager.flush()
+    entityManager.clear()
+
+    val result = autogenService.autogenDtos()
+    assertThat(result.dpms).isEmpty()
+    assertThat(result.submitted).isNull()
+  }
+
+  @Test
+  @Transactional
+  fun `should process shifts with description containing notes`() {
+    val adminRole = roleRepository.save(Role().apply { roleName = RoleName.ADMIN })
+    val adminUser =
+        userRepository.save(
+            User().apply {
+              username = "admin@test.com"
+              firstname = "Admin"
+              lastname = "User"
+              fullTime = true
+              password = "<PASSWORD>"
+              role = adminRole
+            })
+
+    val driver =
+        userRepository.save(
+            User().apply {
+              username = "driver@test.com"
+              firstname = "John"
+              lastname = "Doe"
+              points = 0
+              fullTime = true
+              password = "<PASSWORD>"
+              manager = adminUser
+            })
+
+    val group = createGroup("Test Group")
+    val activeColor = createColor("Active Color", "1")
+    createDpm("Test DPM", group, activeColor)
+
+    `when`(authService.getCurrentUser()).thenReturn(adminUser)
+
+    val shiftWithNotes = createShift(
+        activeColor.colorCode,
+        driver.firstname!!,
+        driver.lastname!!,
+        description = "[1] {Driver arrived late}"
+    )
+    doReturn(listOf(shiftWithNotes)).`when`(autogenService).getAssignedShifts()
+
+    entityManager.flush()
+    entityManager.clear()
+
+    autogenService.autoSubmit()
+
+    entityManager.flush()
+    entityManager.clear()
+
+    val userDpms = userDpmRepository.findAll()
+    assertThat(userDpms).hasSize(1)
+    assertThat(userDpms[0].location).isEqualTo("OTR")
+    assertThat(userDpms[0].notes).isEqualTo("Driver arrived late")
+  }
+
+  @Test
+  @Transactional
+  fun `should sort shifts by block number`() {
+    val activeColor = createColor("Active Color", "1")
+    val group = createGroup("Test Group")
+    createDpm("Test DPM", group, activeColor)
+
+    val shift1 = createShift(activeColor.colorCode, "User", "One", block = "[EB3]")
+    val shift2 = createShift(activeColor.colorCode, "User", "Two", block = "[EB1]")
+    val shift3 = createShift(activeColor.colorCode, "User", "Three", block = "[EB2]")
+    doReturn(listOf(shift1, shift2, shift3)).`when`(autogenService).getAssignedShifts()
+
+    entityManager.flush()
+    entityManager.clear()
+
+    val result = autogenService.autogenDtos()
+    assertThat(result.dpms).hasSize(3)
+    // Should be sorted by block number
+    assertThat(result.dpms[0].block).isEqualTo("[EB1]")
+    assertThat(result.dpms[1].block).isEqualTo("[EB2]")
+    assertThat(result.dpms[2].block).isEqualTo("[EB3]")
+  }
+
+  @Test
+  @Transactional
+  fun `should indicate positive flag for positive and negative point DPMs`() {
+    val positiveColor = createColor("Positive Color", "1")
+    val negativeColor = createColor("Negative Color", "2")
+    val group = createGroup("Test Group")
+    createDpmWithPoints("Positive DPM", group, 5, positiveColor)
+    createDpmWithPoints("Negative DPM", group, -5, negativeColor)
+
+    val positiveShift = createShift(positiveColor.colorCode, "Positive", "User", block = "[EB1]")
+    val negativeShift = createShift(negativeColor.colorCode, "Negative", "User", block = "[EB2]")
+    doReturn(listOf(positiveShift, negativeShift)).`when`(autogenService).getAssignedShifts()
+
+    entityManager.flush()
+    entityManager.clear()
+
+    val result = autogenService.autogenDtos()
+    assertThat(result.dpms).hasSize(2)
+
+    val positiveDpm = result.dpms.find { it.type == "Positive DPM" }
+    val negativeDpm = result.dpms.find { it.type == "Negative DPM" }
+
+    assertThat(positiveDpm).isNotNull
+    assertThat(positiveDpm!!.positive).isTrue()
+
+    assertThat(negativeDpm).isNotNull
+    assertThat(negativeDpm!!.positive).isFalse()
+  }
+
+  @Transactional
+  fun createDpmWithPoints(name: String, group: DpmGroup, points: Int, color: W2WColor? = null): Dpm {
+    return dpmRepository.saveAndFlush(
+        Dpm().apply {
+          this.dpmName = name
+          this.points = points
+          this.dpmGroup = group
+          this.w2wColor = color
+        })
   }
 }

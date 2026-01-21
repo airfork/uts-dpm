@@ -9,4 +9,5 @@ data class AppProperties(
   val w2wPass: String,
   val w2wKey: String,
   val mailgunKey: String,
+  val autogenMockEnabled: Boolean = false,
 )
