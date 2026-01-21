@@ -10,6 +10,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.doReturn
+import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -61,31 +62,15 @@ class AutogenServiceTest() : BaseIntegrationTest() {
     LOGGER.info("Found ${colorsWithDpms.size} active colors with dpms")
     colorsWithDpms.forEach { LOGGER.info(it.toString()) }
 
-    assert(colorsWithDpms.size == 2) { "There should be 2 active colors" }
-    assert(colorsWithDpms.contains(activeColor1)) { "Color list should contain Active Color 1" }
-    assert(colorsWithDpms.contains(activeColor2)) { "Color list should contain Active Color 2" }
-    assert(!colorsWithDpms.contains(inactiveColor1)) {
-      "Color list should not contain Inactive Color 1"
-    }
-    assert(!colorsWithDpms.contains(inactiveColor2)) {
-      "Color list should not contain Inactive Color 2"
-    }
-    assert(colorsWithDpms.all { it.active }) { "All colors should be active" }
-    assert(colorsWithDpms.all { it.dpms?.isNotEmpty() == true }) {
-      "All colors should be associated with at least 1 dpm"
-    }
-    assert(colorsWithDpms.any { it.dpms?.contains(activeDpm1) == true }) {
-      "One of the colors should be associated with Active DPM 1"
-    }
-    assert(colorsWithDpms.any { it.dpms?.contains(activeDpm2) == true }) {
-      "One of the colors should be associated with Active DPM 2"
-    }
-    assert(colorsWithDpms.any { it.dpms?.contains(inactiveDpm1) == false }) {
-      "None of the colors should be associated with Inactive DPM 1"
-    }
-    assert(colorsWithDpms.any { it.dpms?.contains(inactiveDpm2) == false }) {
-      "None of the colors should be associated with Inactive DPM 2"
-    }
+    assertThat(colorsWithDpms).hasSize(2)
+    assertThat(colorsWithDpms).contains(activeColor1, activeColor2)
+    assertThat(colorsWithDpms).doesNotContain(inactiveColor1, inactiveColor2)
+    assertThat(colorsWithDpms).allMatch { it.active }
+    assertThat(colorsWithDpms).allMatch { it.dpms?.isNotEmpty() == true }
+    assertThat(colorsWithDpms).anyMatch { it.dpms?.contains(activeDpm1) == true }
+    assertThat(colorsWithDpms).anyMatch { it.dpms?.contains(activeDpm2) == true }
+    assertThat(colorsWithDpms).noneMatch { it.dpms?.contains(inactiveDpm1) == true }
+    assertThat(colorsWithDpms).noneMatch { it.dpms?.contains(inactiveDpm2) == true }
   }
 
   @Test
@@ -156,25 +141,19 @@ class AutogenServiceTest() : BaseIntegrationTest() {
     entityManager.clear()
 
     val userDpms = userDpmRepository.findAll()
-    assert(userDpms.size == 2) { "There should be 2 dpms in the database. Found ${userDpms.size}" }
+    assertThat(userDpms).hasSize(2)
+    verify(authService).getCurrentUser()
+
     val createdDpmTypes = userDpms.mapNotNull { it.dpmType }
 
-    assert(createdDpmTypes.any { it.id == dpmEntity1.id }) {
-      "UserDPM list should contain one for DPM ${dpmEntity1.dpmName}"
-    }
-    assert(createdDpmTypes.any { it.id == dpmEntity2.id }) {
-      "UserDPM list should contain one for DPM ${dpmEntity2.dpmName}"
-    }
+    assertThat(createdDpmTypes).anyMatch { it.id == dpmEntity1.id }
+    assertThat(createdDpmTypes).anyMatch { it.id == dpmEntity2.id }
 
     val actualDpm1Points = userDpms.find { it.dpmType == dpmEntity1 }?.points ?: Integer.MIN_VALUE
-    assert(actualDpm1Points == dpmEntity1.points) {
-      "Test DPM 1 should have the same points as the original DPM. Expected: ${dpmEntity1.points}, Actual: $actualDpm1Points"
-    }
+    assertThat(actualDpm1Points).isEqualTo(dpmEntity1.points)
 
     val actualDpm2Points = userDpms.find { it.dpmType == dpmEntity2 }?.points ?: Integer.MIN_VALUE
-    assert(actualDpm2Points == dpmEntity2.points) {
-      "Test DPM 2 should have the same points as the original DPM. Expected: ${dpmEntity2.points}, Actual: $actualDpm2Points"
-    }
+    assertThat(actualDpm2Points).isEqualTo(dpmEntity2.points)
   }
 
   @Transactional

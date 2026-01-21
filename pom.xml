@@ -46,6 +46,21 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-test-autoconfigure</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
@@ -74,6 +89,14 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-docker-compose</artifactId>
             <optional>true</optional>
+        </dependency>
+
+        <!-- Mockito Kotlin -->
+        <dependency>
+            <groupId>org.mockito.kotlin</groupId>
+            <artifactId>mockito-kotlin</artifactId>
+            <version>5.4.0</version>
+            <scope>test</scope>
         </dependency>
 
         <!-- Byte Buddy Agent dependency -->
@@ -221,8 +244,73 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine>-javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${bytebuddy.version}/byte-buddy-agent-${bytebuddy.version}.jar</argLine>
+                    <argLine>@{argLine} -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${bytebuddy.version}/byte-buddy-agent-${bytebuddy.version}.jar</argLine>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>check</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.80</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                            <excludes>
+                                <!-- Config classes -->
+                                <exclude>**/config/**</exclude>
+                                <exclude>**/configs/**</exclude>
+                                <exclude>**/TestContainersConfig*</exclude>
+                                <!-- Main application class -->
+                                <exclude>**/UtsDpmBackendApplication*</exclude>
+                                <!-- JPA entities (data classes) -->
+                                <exclude>**/entities/**</exclude>
+                                <!-- Exception classes (simple wrappers) -->
+                                <exclude>**/exceptions/**</exclude>
+                                <!-- Enums (pure data) -->
+                                <exclude>**/enums/**</exclude>
+                                <!-- Security infrastructure -->
+                                <exclude>**/security/**</exclude>
+                                <!-- Auth infrastructure -->
+                                <exclude>**/auth/**</exclude>
+                                <!-- Interceptors -->
+                                <exclude>**/interceptors/**</exclude>
+                                <!-- Excel models (data classes) -->
+                                <exclude>**/models/excel/**</exclude>
+                                <!-- External service integrations -->
+                                <exclude>**/services/EmailService*</exclude>
+                                <exclude>**/services/RealShiftProvider*</exclude>
+                                <exclude>**/services/DataGenService*</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
