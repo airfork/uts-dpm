@@ -1,9 +1,11 @@
-<mj-section>
-
+<mj-section padding="16px 0 24px 0">
   <mj-column>
-    <mj-text font-weight="600">
-      Copyright © ${year} University Transit Service. All rights reserved.
+    <mj-text
+      align="center"
+      color="#6b7280"
+      font-size="12px"
+      font-family="Poppins, Arial, 'Helvetica Neue', Helvetica, sans-serif">
+      &copy; ${year} University Transit Service. All rights reserved.
     </mj-text>
   </mj-column>
-
 </mj-section>

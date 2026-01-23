@@ -1,11 +1,12 @@
-<mj-section>
+<mj-section padding="24px 0 16px 0">
   <mj-column>
-    <mj-text  align="center"
-              color="#626262">
-      <h2>
-        University Transit Service
-      </h2>
-      
+    <mj-text
+      align="center"
+      color="#232d4b"
+      font-size="24px"
+      font-weight="600"
+      font-family="Poppins, Arial, 'Helvetica Neue', Helvetica, sans-serif">
+      UTS DPM
     </mj-text>
   </mj-column>
 </mj-section>

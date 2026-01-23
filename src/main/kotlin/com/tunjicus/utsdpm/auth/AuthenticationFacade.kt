@@ -6,6 +6,6 @@ import org.springframework.stereotype.Component
 
 @Component
 class AuthenticationFacade : IAuthenticationFacade {
-  override fun getAuthentication(): Authentication =
+  override fun getAuthentication(): Authentication? =
     SecurityContextHolder.getContext().authentication
 }

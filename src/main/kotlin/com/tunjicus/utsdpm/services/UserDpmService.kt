@@ -154,7 +154,6 @@ class UserDpmService(
       // DPM ignored, but previously approved
       // Adjust user's points
       if (dto.ignored && userDpm.ignored != true && userDpm.approved == true) {
-        userDpm.approved = false
         userDpm.ignored = true
 
         val adjustedPoints = (userDpm.points ?: 0) * -1

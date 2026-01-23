@@ -60,20 +60,14 @@ class SecurityAdapter(private val userDetailsService: UserDetailsService) {
         }
         .addFilterBefore(
             jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter::class.java)
-        .requiresChannel { channel ->
-          channel
-              .requestMatchers({ request -> request.getHeader("X-Forwarded-Proto") != null })
-              .requiresSecure()
-        }
 
     return http.build()
   }
 
   @Bean
   fun authenticationProvider(): DaoAuthenticationProvider {
-    return DaoAuthenticationProvider().apply {
+    return DaoAuthenticationProvider(userDetailsService).apply {
       setPasswordEncoder(passwordEncoder())
-      setUserDetailsService(userDetailsService)
     }
   }
 

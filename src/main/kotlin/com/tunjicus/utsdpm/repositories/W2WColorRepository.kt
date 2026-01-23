@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 
 interface W2WColorRepository : JpaRepository<W2WColor, Int> {
-  @Query("from W2WColor c join c.dpms d where c.active and d.active")
+  @Query("SELECT DISTINCT c FROM W2WColor c JOIN c.dpms d WHERE c.active = true AND d.active = true")
   fun findAllActiveWithDpms(): List<W2WColor>
 
   fun findAllByActiveTrue(): List<W2WColor>

@@ -10,6 +10,7 @@ import com.tunjicus.utsdpm.exceptions.InvalidDpmGroupUpdateException
 import com.tunjicus.utsdpm.models.DpmGroupOrder
 import com.tunjicus.utsdpm.repositories.DpmOrderRepository
 import jakarta.transaction.Transactional
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -39,12 +40,11 @@ class DpmServiceTest() : BaseIntegrationTest() {
   fun `should create new DPM Group successfully`() {
     val dpmGroup = createGroup("Test Group")
     val secondGroup = createGroup("Test Group 2")
-    assert(dpmGroup.id != null) { "DPM Group ID should not be null" }
+    assertThat(dpmGroup.id).isNotNull()
 
     val groups = dpmGroupRepository.findAllByActiveTrue()
-    assert(groups.size == 2) { "There should be 2 groups" }
-    assert(groups.contains(dpmGroup)) { "Group list should contain the new group" }
-    assert(groups.contains(secondGroup)) { "Group list should contain the second group" }
+    assertThat(groups).hasSize(2)
+    assertThat(groups).contains(dpmGroup, secondGroup)
   }
 
   @Test
@@ -58,15 +58,14 @@ class DpmServiceTest() : BaseIntegrationTest() {
     entityManager.flush()
     entityManager.clear()
 
-    assert(dpms.size == 2) { "There should be 2 dpms" }
-    assert(dpms.contains(dpm1)) { "DPM list should contain the first DPM" }
-    assert(dpms.contains(dpm2)) { "DPM list should contain the second DPM" }
+    assertThat(dpms).hasSize(2)
+    assertThat(dpms).contains(dpm1, dpm2)
 
     val groups = dpmGroupRepository.findAllByActiveTrue()
-    assert(groups.size == 1) { "There should be 1 group" }
-    assert(groups.contains(dpmGroup)) { "Group list should contain the new group" }
-    assert(groups[0].dpms?.size == 2) { "DPM Group should have 2 DPMs" }
-    assert(groups[0].dpms?.contains(dpm1) == true) { "DPM Group should contain the first DPM" }
+    assertThat(groups).hasSize(1)
+    assertThat(groups).contains(dpmGroup)
+    assertThat(groups[0].dpms).hasSize(2)
+    assertThat(groups[0].dpms).contains(dpm1)
   }
 
   @Test
@@ -78,25 +77,16 @@ class DpmServiceTest() : BaseIntegrationTest() {
     val dpm1 = createDpm("Test 1", 10, dpmGroup)
     val dpm2 = createDpm("Test 2", 10, dpmGroup)
 
-    // Clear persistence context to ensure fresh data
     entityManager.flush()
     entityManager.clear()
 
-    // Use the explicit fetch method
     val loadedGroup =
         dpmGroupRepository.findById(groupId).orElseThrow {
           AssertionError("Group with id $groupId not found")
         }
-    LOGGER.info("Loaded group: $loadedGroup with ${loadedGroup.dpms?.size} DPMs")
 
-    // Verify DPMs are present in the collection
-    assert(loadedGroup.dpms!!.any { it.id == dpm1.id }) {
-      "DPM Group should contain the first DPM (ID: ${dpm1.id})"
-    }
-
-    assert(loadedGroup.dpms!!.any { it.id == dpm2.id }) {
-      "DPM Group should contain the second DPM (ID: ${dpm2.id})"
-    }
+    assertThat(loadedGroup.dpms).anyMatch { it.id == dpm1.id }
+    assertThat(loadedGroup.dpms).anyMatch { it.id == dpm2.id }
   }
 
   @Test
@@ -107,26 +97,20 @@ class DpmServiceTest() : BaseIntegrationTest() {
     entityManager.clear()
 
     val activeGroups = dpmGroupRepository.findAllByActiveTrue().sortedBy { it.groupName }
-    assert(activeGroups.size == 2) { "There should be 2 groups" }
-    assert(activeGroups.first().dpms?.size == 2) { "The first group should have 2 DPMs" }
-    assert(activeGroups[1].dpms?.size == 1) { "The second group should have 1 DPM" }
+    assertThat(activeGroups).hasSize(2)
+    assertThat(activeGroups.first().dpms).hasSize(2)
+    assertThat(activeGroups[1].dpms).hasSize(1)
 
     val dpms = dpmRepository.findAllByActiveTrue().sortedBy { it.dpmName }
-    assert(dpms.size == 3) { "There should be 3 dpms" }
-    assert(dpms.any { it.dpmName == "Test 1" }) { "DPM list should contain the first DPM" }
+    assertThat(dpms).hasSize(3)
+    assertThat(dpms).anyMatch { it.dpmName == "Test 1" }
 
-    assert(dpms.take(2).all { it.dpmGroup == activeGroups.first() }) {
-      "The first two DPMs should be in the first group"
-    }
-    assert(dpms.drop(2).all { it.dpmGroup == activeGroups[1] }) {
-      "The remaining DPMs should be in the second group"
-    }
+    assertThat(dpms.take(2)).allMatch { it.dpmGroup == activeGroups.first() }
+    assertThat(dpms.drop(2)).allMatch { it.dpmGroup == activeGroups[1] }
 
     val colors = w2wColorRepository.findAllActiveWithDpms()
-    assert(colors.isNotEmpty()) {
-      "There should be at least active one color in the database associated to an active DPM"
-    }
-    assert(colors.any { it.colorCode == "9" }) { "There should be a color with code 9" }
+    assertThat(colors).isNotEmpty()
+    assertThat(colors).anyMatch { it.colorCode == "9" }
   }
 
   @Test

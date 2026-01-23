@@ -38,6 +38,7 @@ class AuthService(
 
   fun getCurrentUser(): User {
     val authentication = authenticationFacade.getAuthentication()
+      ?: throw UsernameNotFoundException("No authentication found")
     return userRepository.findByUsername(authentication.name)
       ?: throw UsernameNotFoundException("Failed to account for user: ${authentication.name}")
   }
@@ -74,7 +75,8 @@ class AuthService(
     fun getRole(authorities: Collection<GrantedAuthority>): String {
       if (authorities.isEmpty()) return "DRIVER"
       // prefix is ROLE_ (5 chars)
-      return authorities.first().authority.substring(5)
+      val authority = authorities.first().authority ?: return "DRIVER"
+      return authority.substring(5)
     }
   }
 }

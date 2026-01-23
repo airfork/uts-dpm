@@ -18,29 +18,31 @@ class JwtProvider(private val jwtProperties: JwtProperties) {
 
   private val encodedSecret = jwtProperties.secret.encodeToByteArray()
 
+  private val secretKey = Keys.hmacShaKeyFor(encodedSecret)
+
   fun generateToken(authentication: Authentication): String {
     val userPrincipal = authentication.principal as UserPrincipal
     val now = Date()
     val expiryDate = Date(now.time + jwtProperties.expirationMs)
 
     return Jwts.builder()
-        .setSubject(userPrincipal.username)
-        .setIssuedAt(now)
-        .setExpiration(expiryDate)
-        .signWith(Keys.hmacShaKeyFor(encodedSecret))
-        .addClaims(mapOf(Pair("role", AuthService.getRole(authentication.authorities))))
+        .subject(userPrincipal.username)
+        .issuedAt(now)
+        .expiration(expiryDate)
+        .signWith(secretKey)
+        .claims(mapOf(Pair("role", AuthService.getRole(authentication.authorities))))
         .compact()
   }
 
   fun getUserUsernameFromJWT(token: String): String {
     val claims =
-        Jwts.parserBuilder().setSigningKey(encodedSecret).build().parseClaimsJws(token).body
+        Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).payload
     return claims.subject
   }
 
   fun validateToken(token: String): Boolean {
     return try {
-      Jwts.parserBuilder().setSigningKey(encodedSecret).build().parseClaimsJws(token)
+      Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token)
       true
     } catch (_: ExpiredJwtException) {
       false
