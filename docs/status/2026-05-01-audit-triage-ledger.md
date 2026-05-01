@@ -30,18 +30,18 @@ status source for what has been fixed, what is still open, and where to resume.
 | When2Work parsing errors | `e7d8376` | n/a | Empty/malformed assigned-shift responses are wrapped with context. |
 | Manual DPM creation by driver ID | `89e1309` | `efbb238` | Backend requires `driverId`; frontend carries selected driver ID. |
 | Strict DPM date/time parsing | `5227e90` | n/a | Blank parse inputs now fail instead of defaulting to current clock. |
+| User manager assignment by ID | `8047347` | `b92a923` | User create/update now resolves managers by stable manager ID and returns manager options as `{id, name}` DTOs. |
 
 ## Open Items
 
 Recommended next order:
 
-1. Finish ID-based user writes by replacing manager full-name lookup in user create/update flows.
-2. Add an automated SQL bootstrap smoke test or move toward Flyway/Liquibase.
-3. Enforce Java 21 locally with `.sdkmanrc`, Maven Enforcer, or toolchain docs.
-4. Clean up `User` entity equality.
-5. Reduce DTO mapper force unwraps by making guaranteed fields non-nullable or adding explicit fallback/error behavior.
-6. Add a database-level partial unique constraint for one active DPM per W2W color.
-7. Revisit password reset design with reset tokens instead of emailed temporary passwords.
+1. Add an automated SQL bootstrap smoke test or move toward Flyway/Liquibase.
+2. Enforce Java 21 locally with `.sdkmanrc`, Maven Enforcer, or toolchain docs.
+3. Clean up `User` entity equality.
+4. Reduce DTO mapper force unwraps by making guaranteed fields non-nullable or adding explicit fallback/error behavior.
+5. Add a database-level partial unique constraint for one active DPM per W2W color.
+6. Revisit password reset design with reset tokens instead of emailed temporary passwords.
 
 ## Verification Snapshot
 
@@ -51,7 +51,7 @@ Most recent backend verification:
 ./mvnw verify
 ```
 
-Result: 122 tests passing, 0 failures/errors, coverage checks met.
+Result: 124 tests passing, 0 failures/errors, coverage checks met.
 
 Most recent frontend verification:
 
@@ -61,7 +61,7 @@ npm run lint
 npm run test:headless
 ```
 
-Result: typecheck and lint pass; 760 headless browser tests pass.
+Result: typecheck and lint pass; 761 headless browser tests pass.
 
 ## Environment Notes
 
