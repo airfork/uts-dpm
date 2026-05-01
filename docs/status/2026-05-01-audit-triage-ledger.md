@@ -32,16 +32,16 @@ status source for what has been fixed, what is still open, and where to resume.
 | Strict DPM date/time parsing | `5227e90` | n/a | Blank parse inputs now fail instead of defaulting to current clock. |
 | User manager assignment by ID | `8047347` | `b92a923` | User create/update now resolves managers by stable manager ID and returns manager options as `{id, name}` DTOs. |
 | SQL bootstrap smoke coverage | `2ef20b8` | n/a | Fresh Postgres init now runs under Testcontainers with Hibernate validation; the local migration helper lives outside the init script directory. |
+| Java 21 toolchain enforcement | `3897530` | n/a | Added `.sdkmanrc` and Maven Enforcer so Java 25 is rejected and Java 21 is the documented local path. |
 
 ## Open Items
 
 Recommended next order:
 
-1. Enforce Java 21 locally with `.sdkmanrc`, Maven Enforcer, or toolchain docs.
-2. Clean up `User` entity equality.
-3. Reduce DTO mapper force unwraps by making guaranteed fields non-nullable or adding explicit fallback/error behavior.
-4. Add a database-level partial unique constraint for one active DPM per W2W color.
-5. Revisit password reset design with reset tokens instead of emailed temporary passwords.
+1. Clean up `User` entity equality.
+2. Reduce DTO mapper force unwraps by making guaranteed fields non-nullable or adding explicit fallback/error behavior.
+3. Add a database-level partial unique constraint for one active DPM per W2W color.
+4. Revisit password reset design with reset tokens instead of emailed temporary passwords.
 
 ## Verification Snapshot
 
@@ -51,7 +51,7 @@ Most recent backend verification:
 ./mvnw verify
 ```
 
-Result: 125 tests passing, 0 failures/errors, coverage checks met.
+Result: 125 tests passing, 0 failures/errors, coverage checks met. This run used Java 21.0.6.
 
 Most recent frontend verification:
 
@@ -66,7 +66,6 @@ Result: typecheck and lint pass; 761 headless browser tests pass.
 ## Environment Notes
 
 - Docker is required for backend integration tests and compose DB checks.
-- The current local JDK is newer than the project target, so Maven output is
-  noisy with JaCoCo instrumentation warnings. The backend build still exits
-  successfully.
+- If the default shell points at a newer JDK, run `sdk env` before Maven commands.
+  Maven Enforcer now rejects non-Java-21 runtimes during `validate`.
 - Do not push these branches unless the user explicitly asks.
