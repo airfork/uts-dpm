@@ -64,6 +64,14 @@ script against the target database before starting the new application version:
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db_scripts/deployment/20260501_backend_audit_prad.sql
 ```
 
+If you do not have local `psql` access, run the same migration through a Heroku
+one-off dyno after the PR is built on Heroku and before promoting/restarting the
+new web dyno:
+
+```bash
+heroku run --app <heroku-app-name> 'java -jar target/uts-dpm-1.3.0.jar --spring.profiles.active=prod --server.port=0 --spring.jpa.hibernate.ddl-auto=none --app.deployment-migration=20260501-backend-audit-prad'
+```
+
 ## Running Tests
 
 Tests use Testcontainers with PostgreSQL. Docker must be running.
