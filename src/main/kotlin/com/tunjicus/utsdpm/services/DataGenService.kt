@@ -91,9 +91,9 @@ class DataGenService(
       val tempFile = File.createTempFile(prefix, ".xlsx")
       val fileLocation = tempFile.absolutePath
 
-      val outputStream = FileOutputStream(fileLocation)
-      workbook.write(outputStream)
-      workbook.close()
+      FileOutputStream(fileLocation).use { outputStream ->
+        workbook.use { it.write(outputStream) }
+      }
       return fileLocation
     }
 
