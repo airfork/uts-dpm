@@ -36,12 +36,13 @@ status source for what has been fixed, what is still open, and where to resume.
 | `User` entity equality | `3bbc2a7` | n/a | `User` now follows the Hibernate-safe persisted-ID equality pattern used by the other entities. |
 | DPM DTO mapper null handling | `0a6b10e` | n/a | Audited DPM DTO mappers now report contextual row/field errors instead of throwing anonymous `NullPointerException`s from `!!`. |
 | Active W2W color uniqueness | `73ec0e8` | n/a | Added a Postgres partial unique index so only one active DPM can own a non-null W2W color; inactive duplicates remain allowed. |
+| Tokenized password reset flow | `3f155db` | `a41ae50` | Admin reset now emails a one-time token link instead of a temporary password; backend stores only token hashes and the frontend exposes `/passwordReset?token=...`. |
 
 ## Open Items
 
-Recommended next order:
-
-1. Revisit password reset design with reset tokens instead of emailed temporary passwords.
+No open audit items remain from the 2026-05-01 audit triage queue. Future work
+should come from new findings, product decisions, or follow-up review rather than
+this audit's original open list.
 
 ## Verification Snapshot
 
@@ -51,17 +52,21 @@ Most recent backend verification:
 ./mvnw verify
 ```
 
-Result: 131 tests passing, 0 failures/errors, coverage checks met. This run used Java 21.0.6.
+Result: 136 tests passing, 0 failures/errors, coverage checks met. This run used Java 21.0.6.
 
 Most recent frontend verification:
 
 ```bash
 npm run typecheck
 npm run lint
+npm run format:check
 npm run test:headless
+npm run build
 ```
 
-Result: typecheck and lint pass; 761 headless browser tests pass.
+Result: typecheck, lint, and Prettier checks pass; 770 headless browser tests
+pass. Production build passes with the existing `edit-dpms.component.css`
+budget warning.
 
 ## Environment Notes
 
