@@ -258,7 +258,7 @@ class UserController(private val userService: UserService) {
       ]
   )
   @PreAuthorize("hasRole('ADMIN')")
-  @GetMapping("/{id}/points")
+  @PostMapping("/{id}/points")
   fun sendUserPointsEmail(@PathVariable id: Int) = userService.sendPointsEmail(id)
 
   @Operation(
@@ -287,7 +287,7 @@ class UserController(private val userService: UserService) {
       ]
   )
   @PreAuthorize("hasRole('ADMIN')")
-  @GetMapping("/{id}/reset")
+  @PostMapping("/{id}/reset")
   fun resetUserPassword(@PathVariable id: Int) = userService.resetPassword(id)
 
   @Operation(
@@ -311,6 +311,6 @@ class UserController(private val userService: UserService) {
       ]
   )
   @PreAuthorize("hasRole('ADMIN')")
-  @GetMapping("/points")
+  @PostMapping("/points")
   fun sendPointsEmailAll() = userService.sendPointsEmailAll()
 }

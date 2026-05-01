@@ -10,6 +10,7 @@ import com.tunjicus.utsdpm.services.UserService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
@@ -161,17 +162,37 @@ class UserControllerTest {
 
   @Test
   @WithMockUser(roles = ["ADMIN"])
-  fun `should send points email on GET users by id points`() {
-    mockMvc.perform(get("/api/users/1/points")).andExpect(status().isOk)
+  fun `should send points email on POST users by id points`() {
+    mockMvc.perform(post("/api/users/1/points")).andExpect(status().isOk)
 
     verify(userService).sendPointsEmail(1)
   }
 
   @Test
   @WithMockUser(roles = ["ADMIN"])
-  fun `should reset user password on GET users by id reset`() {
-    mockMvc.perform(get("/api/users/1/reset")).andExpect(status().isOk)
+  fun `should reset user password on POST users by id reset`() {
+    mockMvc.perform(post("/api/users/1/reset")).andExpect(status().isOk)
 
     verify(userService).resetPassword(1)
+  }
+
+  @Test
+  @WithMockUser(roles = ["ADMIN"])
+  fun `should send points email to all users on POST users points`() {
+    mockMvc.perform(post("/api/users/points")).andExpect(status().isOk)
+
+    verify(userService).sendPointsEmailAll()
+  }
+
+  @Test
+  @WithMockUser(roles = ["ADMIN"])
+  fun `should reject state changing user GET routes`() {
+    mockMvc.perform(get("/api/users/1/points")).andExpect(status().is4xxClientError)
+    mockMvc.perform(get("/api/users/1/reset")).andExpect(status().is4xxClientError)
+    mockMvc.perform(get("/api/users/points")).andExpect(status().is4xxClientError)
+
+    verify(userService, never()).sendPointsEmail(1)
+    verify(userService, never()).resetPassword(1)
+    verify(userService, never()).sendPointsEmailAll()
   }
 }
