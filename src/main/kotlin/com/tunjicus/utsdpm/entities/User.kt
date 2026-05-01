@@ -2,6 +2,7 @@ package com.tunjicus.utsdpm.entities
 
 import com.tunjicus.utsdpm.enums.RoleName
 import jakarta.persistence.*
+import org.hibernate.proxy.HibernateProxy
 
 @Entity
 @Table(name = "users")
@@ -43,43 +44,25 @@ class User {
             "firstname=$firstname, lastname=$lastname, fullTime=$fullTime, points=$points, role=$role)"
   }
 
-  override fun equals(other: Any?): Boolean {
+  final override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (javaClass != other?.javaClass) return false
+    if (other == null) return false
+    val oEffectiveClass =
+        if (other is HibernateProxy) other.hibernateLazyInitializer.persistentClass
+        else other.javaClass
+    val thisEffectiveClass =
+        if (this is HibernateProxy) this.hibernateLazyInitializer.persistentClass
+        else this.javaClass
+    if (thisEffectiveClass != oEffectiveClass) return false
 
     other as User
 
-    if (id != other.id) return false
-    if (manager != other.manager) return false
-    if (username != other.username) return false
-    if (password != other.password) return false
-    if (firstname != other.firstname) return false
-    if (lastname != other.lastname) return false
-    if (fullTime != other.fullTime) return false
-    if (changed != other.changed) return false
-    if (points != other.points) return false
-    if (createdUserDpms != other.createdUserDpms) return false
-    if (userDpms != other.userDpms) return false
-    if (role != other.role) return false
-
-    return true
+    return id != null && id == other.id
   }
 
-  override fun hashCode(): Int {
-    var result = id ?: 0
-    result = 31 * result + (manager?.hashCode() ?: 0)
-    result = 31 * result + (username?.hashCode() ?: 0)
-    result = 31 * result + (password?.hashCode() ?: 0)
-    result = 31 * result + (firstname?.hashCode() ?: 0)
-    result = 31 * result + (lastname?.hashCode() ?: 0)
-    result = 31 * result + (fullTime?.hashCode() ?: 0)
-    result = 31 * result + (changed?.hashCode() ?: 0)
-    result = 31 * result + (points ?: 0)
-    result = 31 * result + (createdUserDpms?.hashCode() ?: 0)
-    result = 31 * result + (userDpms?.hashCode() ?: 0)
-    result = 31 * result + (role?.hashCode() ?: 0)
-    return result
-  }
+  final override fun hashCode(): Int =
+      if (this is HibernateProxy) this.hibernateLazyInitializer.persistentClass.hashCode()
+      else javaClass.hashCode()
 
   fun hasAnyRole(vararg roles: RoleName): Boolean {
     // shadow role to avoid smart cast issues
