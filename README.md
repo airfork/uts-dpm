@@ -57,6 +57,13 @@ If you already have a local database volume and the schema changed, apply the lo
 ./scripts/migrate-local-db.sh
 ```
 
+For the backend audit PR deployment against PRAD, run the consolidated migration
+script against the target database before starting the new application version:
+
+```bash
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db_scripts/deployment/20260501_backend_audit_prad.sql
+```
+
 ## Running Tests
 
 Tests use Testcontainers with PostgreSQL. Docker must be running.

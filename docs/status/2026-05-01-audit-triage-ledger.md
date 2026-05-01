@@ -37,6 +37,7 @@ status source for what has been fixed, what is still open, and where to resume.
 | DPM DTO mapper null handling | `0a6b10e` | n/a | Audited DPM DTO mappers now report contextual row/field errors instead of throwing anonymous `NullPointerException`s from `!!`. |
 | Active W2W color uniqueness | `73ec0e8` | n/a | Added a Postgres partial unique index so only one active DPM can own a non-null W2W color; inactive duplicates remain allowed. |
 | Tokenized password reset flow | `3f155db` | `a41ae50` | Admin reset now emails a one-time token link instead of a temporary password; backend stores only token hashes and the frontend exposes `/passwordReset?token=...`. |
+| PRAD deployment SQL script | current branch | n/a | Added one consolidated deployment script at `db_scripts/deployment/20260501_backend_audit_prad.sql`; it covers the audit PR schema changes and can be run with `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db_scripts/deployment/20260501_backend_audit_prad.sql`. |
 
 ## Open Items
 
@@ -74,3 +75,5 @@ budget warning.
 - If the default shell points at a newer JDK, run `sdk env` before Maven commands.
   Maven Enforcer now rejects non-Java-21 runtimes during `validate`.
 - Do not push these branches unless the user explicitly asks.
+- PRAD deployment should run `db_scripts/deployment/20260501_backend_audit_prad.sql`
+  before starting the backend version from this PR.
