@@ -33,7 +33,9 @@ class UserDpmService(
   fun newDpm(dpmDto: PostDpmDto) {
     val createdBy = authService.getCurrentUser()
     val driver =
-        userRepository.findByFullName(dpmDto.driver!!) ?: throw NameNotFoundException(dpmDto.driver)
+        userRepository
+            .findById(dpmDto.driverId!!)
+            .orElseThrow { UserNotFoundException(dpmDto.driverId) }
     val dpm = dpmDto.toDpm()
 
     val dpmType =

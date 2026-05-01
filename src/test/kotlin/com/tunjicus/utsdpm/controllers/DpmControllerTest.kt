@@ -35,6 +35,7 @@ class DpmControllerTest {
     val postDto =
         PostDpmDto(
             driver = "John Doe",
+            driverId = 1,
             block = "[Block A]",
             date = "01/15/2025",
             type = 1,
@@ -51,6 +52,30 @@ class DpmControllerTest {
         .andExpect(status().isCreated)
 
     verify(userDpmService).newDpm(postDto)
+  }
+
+  @Test
+  @WithMockUser(roles = ["ADMIN"])
+  fun `should reject DPM creation without driver id`() {
+    val postDto =
+        PostDpmDto(
+            driver = "John Doe",
+            block = "[Block A]",
+            date = "01/15/2025",
+            type = 1,
+            location = "BOS",
+            startTime = "0800",
+            endTime = "1600",
+            notes = "Test note")
+
+    mockMvc
+        .perform(
+            post("/api/dpms")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(postDto)))
+        .andExpect(status().isBadRequest)
+
+    verifyNoInteractions(userDpmService)
   }
 
   @Test

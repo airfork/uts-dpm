@@ -104,6 +104,7 @@ class UserDpmServiceTest : BaseIntegrationTest() {
     val dpmDto =
         PostDpmDto(
             driver = "${driver.firstname} ${driver.lastname}",
+            driverId = driver.id,
             block = "10",
             date = dateFormat.format(LocalDate.now()),
             type = dpm.id,
@@ -127,6 +128,46 @@ class UserDpmServiceTest : BaseIntegrationTest() {
     assertThat(savedDpm.points).isEqualTo(10)
     assertThat(savedDpm.createdUser).isEqualTo(admin)
     assertThat(savedDpm.user).isEqualTo(driver)
+  }
+
+  @Test
+  @Transactional
+  fun `should create new DPM for selected driver id when full names collide`() {
+    val dpmGroup = dpmGroupRepository.save(DpmGroup().apply { groupName = "Test Group" })
+    val dpm =
+        dpmRepository.save(
+            Dpm().apply {
+              dpmName = "Test DPM"
+              points = 10
+              this.dpmGroup = dpmGroup
+            })
+
+    val firstDuplicate =
+        createUser("Shared", "Driver", "shared1@test.com", createRole(RoleName.ANALYST))
+    val selectedDriver =
+        createUser("Shared", "Driver", "shared2@test.com", createRole(RoleName.ANALYST))
+
+    val dpmDto =
+        PostDpmDto(
+            driver = "${selectedDriver.firstname} ${selectedDriver.lastname}",
+            driverId = selectedDriver.id,
+            block = "10",
+            date = DateTimeFormatter.ofPattern("MM/dd/yyyy").format(LocalDate.now()),
+            type = dpm.id,
+            location = "OFF",
+            startTime = "1000",
+            endTime = "1100",
+            notes = "Test comment")
+
+    userDpmService.newDpm(dpmDto)
+
+    entityManager.flush()
+    entityManager.clear()
+
+    val savedDpms = userDpmRepository.findAll().toList()
+    assertThat(savedDpms).hasSize(1)
+    assertThat(savedDpms.first().user?.id).isEqualTo(selectedDriver.id)
+    assertThat(savedDpms.first().user?.id).isNotEqualTo(firstDuplicate.id)
   }
 
   @Test
