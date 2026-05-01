@@ -5,6 +5,7 @@ import com.tunjicus.utsdpm.BaseIntegrationTest
 import com.tunjicus.utsdpm.dtos.PutDpmGroupDto
 import com.tunjicus.utsdpm.dtos.PutDpmTypeDto
 import com.tunjicus.utsdpm.entities.DpmGroup
+import com.tunjicus.utsdpm.entities.DpmOrder
 import com.tunjicus.utsdpm.entities.W2WColor
 import com.tunjicus.utsdpm.exceptions.InvalidDpmGroupUpdateException
 import com.tunjicus.utsdpm.models.DpmGroupOrder
@@ -303,6 +304,72 @@ class DpmServiceTest() : BaseIntegrationTest() {
             DpmGroupOrder(groups[1].id!!, groups[1].dpms!!.map { it.id!! }))
 
     assert(groupOrder == expectedOrder) { "DPM Order should be ${expectedOrder.joinToString()}" }
+  }
+
+  @Test
+  @Transactional
+  fun `should append active groups missing from saved dpm order`() {
+    val orderedGroup = createGroup("Ordered Group")
+    val missingGroup = createGroup("Missing Group")
+    val orderedDpm = createDpm("Ordered DPM", 10, orderedGroup)
+    val missingDpm = createDpm("Missing DPM", -10, missingGroup)
+
+    dpmOrderRepository.save(
+        DpmOrder().apply {
+          dpmOrder =
+              objectMapper.writeValueAsString(
+                  listOf(DpmGroupOrder(orderedGroup.id!!, listOf(orderedDpm.id!!))))
+        })
+
+    entityManager.flush()
+    entityManager.clear()
+
+    val groups = dpmService.getDpmGroupList()
+
+    assertThat(groups.map { it.groupName }).containsExactly("Ordered Group", "Missing Group")
+    assertThat(groups.first { it.groupName == "Missing Group" }.dpms.map { it.id })
+        .containsExactly(missingDpm.id)
+  }
+
+  @Test
+  @Transactional
+  fun `should append active dpms missing from saved dpm order`() {
+    val group = createGroup("Test Group")
+    val orderedDpm = createDpm("Ordered DPM", 10, group)
+    val missingDpm = createDpm("Missing DPM", -10, group)
+
+    dpmOrderRepository.save(
+        DpmOrder().apply {
+          dpmOrder =
+              objectMapper.writeValueAsString(
+                  listOf(DpmGroupOrder(group.id!!, listOf(orderedDpm.id!!))))
+        })
+
+    entityManager.flush()
+    entityManager.clear()
+
+    val groups = dpmService.getDpmGroupList()
+
+    assertThat(groups).hasSize(1)
+    assertThat(groups.first().dpms.map { it.id }).containsExactly(orderedDpm.id, missingDpm.id)
+  }
+
+  @Test
+  @Transactional
+  fun `should not return inactive dpms when no saved dpm order exists`() {
+    val group = createGroup("Test Group")
+    val activeDpm = createDpm("Active DPM", 10, group)
+    val inactiveDpm = createDpm("Inactive DPM", -10, group)
+    inactiveDpm.active = false
+    dpmRepository.save(inactiveDpm)
+
+    entityManager.flush()
+    entityManager.clear()
+
+    val groups = dpmService.getDpmGroupList()
+
+    assertThat(groups).hasSize(1)
+    assertThat(groups.first().dpms.map { it.id }).containsExactly(activeDpm.id)
   }
 
   @Test
