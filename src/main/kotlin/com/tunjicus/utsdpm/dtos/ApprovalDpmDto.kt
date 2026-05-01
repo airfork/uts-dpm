@@ -18,16 +18,22 @@ open class ApprovalDpmDto(
 ) {
   companion object {
     fun from(userDpm: UserDpm): ApprovalDpmDto {
+      val user = userDpm.required("user", userDpm.user)
+      val createdUser = userDpm.required("createdUser", userDpm.createdUser)
+      val dpmType = userDpm.required("dpmType", userDpm.dpmType)
+      val startTime = userDpm.required("startTime", userDpm.startTime)
+      val endTime = userDpm.required("endTime", userDpm.endTime)
+
       return ApprovalDpmDto(
-        id = userDpm.id!!,
-        driver = userDpm.user?.firstname!! + " " + userDpm.user?.lastname!!,
-        createdBy = userDpm.createdUser?.firstname!! + " " + userDpm.createdUser?.lastname,
-        type = userDpm.dpmType!!.dpmName,
-        points = userDpm.points!!,
-        block = userDpm.block!!,
-        location = userDpm.location!!,
-        date = FormatHelpers.outboundDpmDate(userDpm.date),
-        time = FormatHelpers.outboundDpmTime(userDpm.startTime, userDpm.endTime),
+        id = userDpm.required("id", userDpm.id),
+        driver = userDpm.fullName("user", user),
+        createdBy = userDpm.fullName("createdUser", createdUser),
+        type = dpmType.dpmName,
+        points = userDpm.required("points", userDpm.points),
+        block = userDpm.required("block", userDpm.block),
+        location = userDpm.required("location", userDpm.location),
+        date = FormatHelpers.outboundDpmDate(userDpm.required("date", userDpm.date)),
+        time = FormatHelpers.outboundDpmTime(startTime, endTime),
         createdAt = FormatHelpers.createdAt(userDpm.createdAt),
         notes = userDpm.notes
       )

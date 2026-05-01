@@ -22,20 +22,28 @@ class DpmDetailDto(
 
   companion object {
     fun from(userDpm: UserDpm): DpmDetailDto {
+      val user = userDpm.required("user", userDpm.user)
+      val createdUser = userDpm.required("createdUser", userDpm.createdUser)
+      val dpmType = userDpm.required("dpmType", userDpm.dpmType)
+      val startTime = userDpm.required("startTime", userDpm.startTime)
+      val endTime = userDpm.required("endTime", userDpm.endTime)
+      val approved = userDpm.required("approved", userDpm.approved)
+      val ignored = userDpm.required("ignored", userDpm.ignored)
+
       return DpmDetailDto(
-        id = userDpm.id!!,
-        driver = userDpm.user?.firstname!! + " " + userDpm.user?.lastname!!,
-        createdBy = userDpm.createdUser?.firstname!! + " " + userDpm.createdUser?.lastname,
-        type = userDpm.dpmType!!.dpmName,
-        points = userDpm.points!!,
-        block = userDpm.block!!,
-        location = userDpm.location!!,
-        date = FormatHelpers.outboundDpmDate(userDpm.date),
-        time = FormatHelpers.outboundDpmTime(userDpm.startTime, userDpm.endTime),
+        id = userDpm.required("id", userDpm.id),
+        driver = userDpm.fullName("user", user),
+        createdBy = userDpm.fullName("createdUser", createdUser),
+        type = dpmType.dpmName,
+        points = userDpm.required("points", userDpm.points),
+        block = userDpm.required("block", userDpm.block),
+        location = userDpm.required("location", userDpm.location),
+        date = FormatHelpers.outboundDpmDate(userDpm.required("date", userDpm.date)),
+        time = FormatHelpers.outboundDpmTime(startTime, endTime),
         createdAt = FormatHelpers.createdAt(userDpm.createdAt),
         notes = userDpm.notes,
-        status = MiscHelpers.generateDpmStatusMessage(userDpm.approved!!, userDpm.ignored!!),
-        ignored = userDpm.ignored!!
+        status = MiscHelpers.generateDpmStatusMessage(approved, ignored),
+        ignored = ignored
       )
     }
   }
