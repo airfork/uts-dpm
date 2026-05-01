@@ -15,12 +15,21 @@ When running locally, swagger docs can be accessed by visiting: http://localhost
 
 ### Setup
 
+Prerequisites:
+- Java 21
+- Docker Desktop
+
 1. Copy the environment template:
    ```bash
    cp .env.example .env
    ```
 
 2. Fill in the values in `.env` with your credentials
+
+3. Start the local database:
+   ```bash
+   docker compose up -d postgres
+   ```
 
 ### Start the Server
 
@@ -33,6 +42,13 @@ When running locally, swagger docs can be accessed by visiting: http://localhost
 ```
 
 The start script reads `.env` and passes the values as JVM system properties to Spring Boot.
+
+If the local database was partially initialized, reset it and let the init scripts run again:
+
+```bash
+docker compose down -v
+docker compose up -d postgres
+```
 
 ## Running Tests
 
