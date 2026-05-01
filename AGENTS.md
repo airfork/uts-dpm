@@ -96,7 +96,8 @@ When changing schema or seed data:
 
 - Update `db_scripts/init.sql` ordering if dependencies change.
 - Keep foreign keys aligned with JPA relationships.
-- Run a fresh DB bootstrap check, not only Hibernate `create-drop` tests.
+- Run the fresh DB bootstrap check, not only Hibernate `create-drop` tests:
+  `./mvnw test -Dtest=SqlBootstrapSmokeTest`.
 
 ## Autogen Flow
 
