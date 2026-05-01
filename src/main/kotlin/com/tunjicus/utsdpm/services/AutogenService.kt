@@ -4,6 +4,7 @@ import com.tunjicus.utsdpm.dtos.AutogenDpmDto
 import com.tunjicus.utsdpm.dtos.AutogenWrapperDto
 import com.tunjicus.utsdpm.entities.AutoSubmission
 import com.tunjicus.utsdpm.exceptions.AutoSubmitAlreadyCalledException
+import com.tunjicus.utsdpm.exceptions.AutogenException
 import com.tunjicus.utsdpm.helpers.BlockComparator
 import com.tunjicus.utsdpm.helpers.FormatHelpers
 import com.tunjicus.utsdpm.models.AutogenDpm
@@ -11,6 +12,7 @@ import com.tunjicus.utsdpm.models.Shift
 import com.tunjicus.utsdpm.repositories.AutoSubmissionRepository
 import com.tunjicus.utsdpm.repositories.W2WColorRepository
 import org.slf4j.LoggerFactory
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -54,6 +56,7 @@ class AutogenService(
       LOGGER.warn("autoSubmit() called but already submitted today - throwing exception")
       throw AutoSubmitAlreadyCalledException()
     }
+    reserveTodaySubmission()
 
     val dpms = autogen()
     LOGGER.info("Submitting {} autogen DPMs", dpms.size)
@@ -62,7 +65,6 @@ class AutogenService(
     LOGGER.debug("Current user for submission: {}", currentUser.username)
 
     var successCount = 0
-    var failCount = 0
     for (dpm in dpms) {
       try {
         LOGGER.debug("Creating DPM for user: {} {}, type: {}, block: {}",
@@ -71,17 +73,15 @@ class AutogenService(
         userDpmService.newDpm(dpm, currentUser)
         successCount++
       } catch (e: Exception) {
-        failCount++
         LOGGER.warn("Exception creating autogen dpm for {}: {}", dpm.name, e.message, e)
+        throw AutogenException("AutoSubmit failed while creating DPM for ${dpm.name}: ${e.message}")
       }
     }
 
-    LOGGER.info("AutoSubmit complete: {} succeeded, {} failed out of {} total",
-        successCount, failCount, dpms.size)
+    LOGGER.info("AutoSubmit complete: {} succeeded out of {} total", successCount, dpms.size)
 
     autogenDpms.clear()
     autogenDpms.addAll(dpms.map(AutogenDpmDto::from))
-    autoSubmissionRepository.save(AutoSubmission())
     LOGGER.debug("AutoSubmission record saved")
   }
 
@@ -98,12 +98,19 @@ class AutogenService(
   }
 
   private fun alreadyCalledToday(): Boolean =
-      TimeService.getTodayDate()
-          .isEqual(
-              lastSubmission().submitted.withZoneSameInstant(TimeService.ZONE_ID).toLocalDate())
+      autoSubmissionRepository.existsBySubmittedDate(TimeService.getTodayDate())
 
   private fun lastSubmission(): AutoSubmission =
       autoSubmissionRepository.findMostRecent() ?: AutoSubmission.min()
+
+  private fun reserveTodaySubmission() {
+    try {
+      autoSubmissionRepository.saveAndFlush(AutoSubmission())
+    } catch (e: DataIntegrityViolationException) {
+      LOGGER.warn("autoSubmit() duplicate same-day submission reservation", e)
+      throw AutoSubmitAlreadyCalledException()
+    }
+  }
 
   private fun autogen(): List<AutogenDpm> {
     LOGGER.debug("Building DPM color map from active W2W colors")

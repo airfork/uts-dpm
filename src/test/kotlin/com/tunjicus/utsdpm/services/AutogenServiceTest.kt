@@ -3,16 +3,20 @@ package com.tunjicus.utsdpm.services
 import com.tunjicus.utsdpm.BaseIntegrationTest
 import com.tunjicus.utsdpm.entities.*
 import com.tunjicus.utsdpm.enums.RoleName
+import com.tunjicus.utsdpm.exceptions.AutogenException
 import com.tunjicus.utsdpm.models.Shift
 import com.tunjicus.utsdpm.repositories.AutoSubmissionRepository
 import jakarta.transaction.Transactional
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.slf4j.LoggerFactory
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
@@ -30,8 +34,10 @@ class AutogenServiceTest() : BaseIntegrationTest() {
   @AfterEach
   @Transactional
   fun cleanUp() {
-    entityManager.flush()
-    entityManager.clear()
+    if (entityManager.isJoinedToTransaction) {
+      entityManager.flush()
+      entityManager.clear()
+    }
     userDpmRepository.deleteAll()
     dpmRepository.deleteAll()
     dpmGroupRepository.deleteAll()
@@ -154,6 +160,43 @@ class AutogenServiceTest() : BaseIntegrationTest() {
 
     val actualDpm2Points = userDpms.find { it.dpmType == dpmEntity2 }?.points ?: Integer.MIN_VALUE
     assertThat(actualDpm2Points).isEqualTo(dpmEntity2.points)
+  }
+
+  @Test
+  fun `autoSubmit should not record submission when a generated DPM cannot be created`() {
+    val adminRole = roleRepository.save(Role().apply { roleName = RoleName.ADMIN })
+    val adminUser =
+        userRepository.save(
+            User().apply {
+              username = "admin@user.com"
+              firstname = "Admin"
+              lastname = "User"
+              fullTime = true
+              password = "<PASSWORD>"
+              role = adminRole
+            })
+
+    val dpmGroup = createGroup("Test Group")
+    val activeColor = createColor("Active Color", "1")
+    createDpm("Test DPM", dpmGroup, activeColor)
+
+    `when`(authService.getCurrentUser()).thenReturn(adminUser)
+    doReturn(listOf(createShift(activeColor.colorCode, "Missing", "Driver")))
+        .`when`(autogenService)
+        .getAssignedShifts()
+
+    assertThrows<AutogenException> { autogenService.autoSubmit() }
+
+    assertThat(autoSubmissionRepository.count()).isZero()
+    assertThat(userDpmRepository.findAll()).isEmpty()
+  }
+
+  @Test
+  fun `auto submissions should reject duplicate records for the same local date`() {
+    autoSubmissionRepository.saveAndFlush(AutoSubmission())
+
+    assertThatThrownBy { autoSubmissionRepository.saveAndFlush(AutoSubmission()) }
+        .isInstanceOf(DataIntegrityViolationException::class.java)
   }
 
   @Transactional

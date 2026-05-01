@@ -14,6 +14,7 @@ import com.tunjicus.utsdpm.models.WelcomeEmail
 import com.tunjicus.utsdpm.repositories.UserDpmRepository
 import com.tunjicus.utsdpm.repositories.RoleRepository
 import com.tunjicus.utsdpm.repositories.UserRepository
+import java.security.SecureRandom
 import org.slf4j.LoggerFactory
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -145,6 +146,7 @@ class UserService(
 
   fun sendPointsEmailAll() = userRepository.findAll().forEach { sendPointsEmail(it.id!!) }
 
+  @Transactional
   fun resetPassword(id: Int) {
     val user = userRepository.findById(id).orElseThrow { UserNotFoundException(id) }
     val password = generateTempPassword()
@@ -153,7 +155,12 @@ class UserService(
     user.changed = false
     userRepository.save(user)
 
-    sendPasswordResetEmail(user, password)
+    try {
+      sendPasswordResetEmail(user, password).join()
+    } catch (e: RuntimeException) {
+      LOGGER.warn("Failed to send password reset email to ${user.username}", e)
+      throw PasswordChangeException("Failed to send password reset email; password was not changed")
+    }
   }
 
   private fun sendPasswordResetEmail(user: User, password: String) =
@@ -174,10 +181,15 @@ class UserService(
 
   companion object {
     private val LOGGER = LoggerFactory.getLogger(UserService::class.java)
+    private val SECURE_RANDOM = SecureRandom()
+    private const val TEMP_PASSWORD_LENGTH = 16
+    private const val TEMP_PASSWORD_CHARSET =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 
     private fun generateTempPassword(): String {
-      val charset = "ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz0123456789"
-      return (1..10).map { charset.random() }.joinToString("")
+      return (1..TEMP_PASSWORD_LENGTH)
+          .map { TEMP_PASSWORD_CHARSET[SECURE_RANDOM.nextInt(TEMP_PASSWORD_CHARSET.length)] }
+          .joinToString("")
     }
   }
 }

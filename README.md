@@ -50,6 +50,12 @@ docker compose down -v
 docker compose up -d postgres
 ```
 
+If you already have a local database volume and the schema changed, apply the local migrations instead:
+
+```bash
+./db_scripts/migrate-local.sh
+```
+
 ## Running Tests
 
 Tests use Testcontainers with PostgreSQL. Docker must be running.

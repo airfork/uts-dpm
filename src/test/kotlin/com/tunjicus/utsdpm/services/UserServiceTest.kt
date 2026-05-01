@@ -5,6 +5,7 @@ import com.tunjicus.utsdpm.dtos.CreateUserDto
 import com.tunjicus.utsdpm.dtos.UserDetailDto
 import com.tunjicus.utsdpm.enums.RoleName
 import com.tunjicus.utsdpm.exceptions.*
+import com.tunjicus.utsdpm.models.ResetEmail
 import jakarta.transaction.Transactional
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -12,10 +13,13 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.time.LocalTime
+import java.util.concurrent.CompletableFuture
 
 class UserServiceTest : BaseIntegrationTest() {
   @Autowired private lateinit var userService: UserService
@@ -310,6 +314,8 @@ class UserServiceTest : BaseIntegrationTest() {
   fun `resetPassword should generate new password and send email`() {
     val role = createRole(RoleName.ANALYST)
     val user = createUser("Test", "User", "test@test.com", role)
+    `when`(emailService.sendResetPasswordEmail(any(), any()))
+      .thenReturn(CompletableFuture.completedFuture(null))
 
     userService.resetPassword(user.id!!)
     entityManager.flush()
@@ -317,5 +323,35 @@ class UserServiceTest : BaseIntegrationTest() {
 
     val updatedUser = userRepository.findById(user.id!!).get()
     assertThat(updatedUser.changed).isFalse()
+  }
+
+  @Test
+  @Transactional
+  fun `resetPassword should email a strong temporary password`() {
+    val role = createRole(RoleName.ANALYST)
+    val user = createUser("Test", "User", "test@test.com", role)
+    `when`(emailService.sendResetPasswordEmail(any(), any()))
+      .thenReturn(CompletableFuture.completedFuture(null))
+
+    userService.resetPassword(user.id!!)
+
+    val resetEmail = argumentCaptor<ResetEmail>()
+    verify(emailService).sendResetPasswordEmail(eq("test@test.com"), resetEmail.capture())
+    assertThat(resetEmail.firstValue.password).hasSize(16)
+    assertThat(resetEmail.firstValue.password).matches("[A-Za-z0-9]+")
+  }
+
+  @Test
+  fun `resetPassword should keep existing password when reset email fails`() {
+    val role = createRole(RoleName.ANALYST)
+    val user = createUser("Test", "User", "test@test.com", role)
+    val originalPassword = user.password
+    `when`(emailService.sendResetPasswordEmail(any(), any()))
+      .thenReturn(CompletableFuture.failedFuture(RuntimeException("mail down")))
+
+    assertThrows<PasswordChangeException> { userService.resetPassword(user.id!!) }
+
+    val updatedUser = userRepository.findById(user.id!!).get()
+    assertThat(updatedUser.password).isEqualTo(originalPassword)
   }
 }
