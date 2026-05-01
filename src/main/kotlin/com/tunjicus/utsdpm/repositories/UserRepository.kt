@@ -1,6 +1,7 @@
 package com.tunjicus.utsdpm.repositories
 
 import com.tunjicus.utsdpm.entities.User
+import com.tunjicus.utsdpm.enums.RoleName
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
@@ -14,16 +15,8 @@ interface UserRepository : CrudRepository<User, Int> {
 
   @Query("FROM User ORDER BY lastname, firstname") fun findAllSorted(): Collection<User>
 
-  @Query(
-    "SELECT CONCAT(u.firstname, ' ', u.lastname) FROM users u " +
-      "INNER JOIN user_roles ur ON u.id = ur.user_id " +
-      "INNER JOIN roles r ON r.role_id = ur.role_id " +
-      "WHERE r.name = 'MANAGER' " +
-      "OR r.name = 'ADMIN' " +
-      "ORDER BY lastname, firstname",
-    nativeQuery = true
-  )
-  fun findAllManagers(): Collection<String>
+  @Query("FROM User u WHERE u.role.roleName IN :roleNames ORDER BY u.lastname, u.firstname")
+  fun findAllManagers(@Param("roleNames") roleNames: Collection<RoleName>): Collection<User>
 
   fun findByUsername(username: String): User?
 

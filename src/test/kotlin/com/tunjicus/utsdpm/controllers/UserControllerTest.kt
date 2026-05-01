@@ -63,9 +63,10 @@ class UserControllerTest {
             lastname = "Doe",
             points = 10,
             manager = "Manager Name",
+            managerId = 7,
             role = "DRIVER",
             fullTime = true,
-            managers = listOf("Manager Name"))
+            managers = listOf(UsernameDto(7, "Manager Name")))
 
     whenever(userService.findById(1)).thenReturn(userDetail)
 
@@ -90,6 +91,7 @@ class UserControllerTest {
           lastname = "UpdatedLast"
           role = "DRIVER"
           manager = "Manager"
+          managerId = 7
           fullTime = true
           points = 20
         }
@@ -114,6 +116,7 @@ class UserControllerTest {
           lastname = "User"
           role = "DRIVER"
           manager = "Manager"
+          managerId = 7
           fullTime = true
         }
 
@@ -138,7 +141,7 @@ class UserControllerTest {
   @Test
   @WithMockUser(roles = ["ADMIN"])
   fun `should return managers on GET users managers`() {
-    val managers = listOf("Manager One", "Manager Two")
+    val managers = listOf(UsernameDto(1, "Manager One"), UsernameDto(2, "Manager Two"))
 
     whenever(userService.getManagers()).thenReturn(managers)
 
@@ -146,8 +149,10 @@ class UserControllerTest {
         .perform(get("/api/users/managers"))
         .andExpect(status().isOk)
         .andExpect(jsonPath("$").isArray)
-        .andExpect(jsonPath("$[0]").value("Manager One"))
-        .andExpect(jsonPath("$[1]").value("Manager Two"))
+        .andExpect(jsonPath("$[0].id").value(1))
+        .andExpect(jsonPath("$[0].name").value("Manager One"))
+        .andExpect(jsonPath("$[1].id").value(2))
+        .andExpect(jsonPath("$[1].name").value("Manager Two"))
 
     verify(userService).getManagers()
   }

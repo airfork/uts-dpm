@@ -117,13 +117,14 @@ class UserController(private val userService: UserService) {
     userService.updateUser(dto, id)
 
   @Operation(
-    summary = "Gets the names of all of the managers",
+    summary = "Gets the ids and names of all of the managers",
     responses =
       [
         ApiResponse(
           responseCode = "200",
           description = "Managers retrieved successfully",
-          content = [Content(array = ArraySchema(schema = Schema(implementation = String::class)))]
+          content =
+            [Content(array = ArraySchema(schema = Schema(implementation = UsernameDto::class)))]
         ),
         ApiResponse(
           responseCode = "401",

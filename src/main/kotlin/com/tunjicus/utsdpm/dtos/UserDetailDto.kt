@@ -6,6 +6,7 @@ class UserDetailDto {
   var lastname: String? = null
   var points: Int? = null
   var manager: String? = null
+  var managerId: Int? = null
   var role: String? = null
   var fullTime: Boolean? = null
 }

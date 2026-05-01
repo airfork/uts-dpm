@@ -72,8 +72,10 @@ class UserServiceTest : BaseIntegrationTest() {
     assertThat(result.lastname).isEqualTo("Analyst")
     assertThat(result.points).isEqualTo(5)
     assertThat(result.manager).isEqualTo("Manager User")
+    assertThat(result.managerId).isEqualTo(manager.id)
     assertThat(result.role).isEqualTo("Analyst")
     assertThat(result.fullTime).isTrue()
+    assertThat(result.managers).extracting("id").contains(manager.id)
   }
 
   @Test
@@ -157,11 +159,37 @@ class UserServiceTest : BaseIntegrationTest() {
 
     val dto = UserDetailDto().apply {
       this.manager = "Nonexistent Manager"
+      managerId = 999
     }
 
     assertThrows<ManagerNotFoundException> {
       userService.updateUser(dto, user.id!!)
     }
+  }
+
+  @Test
+  @Transactional
+  fun `updateUser should use selected manager id when names collide`() {
+    val role = createRole(RoleName.ANALYST)
+    val managerRole = createRole(RoleName.MANAGER)
+    val currentManager = createUser("Current", "Manager", "current@test.com", managerRole)
+    val firstDuplicate = createUser("Shared", "Manager", "shared1@test.com", managerRole)
+    val selectedManager = createUser("Shared", "Manager", "shared2@test.com", managerRole)
+    val user = createUser("Test", "User", "test@test.com", role, currentManager)
+
+    val dto =
+        UserDetailDto().apply {
+          manager = "Shared Manager"
+          managerId = selectedManager.id
+        }
+
+    userService.updateUser(dto, user.id!!)
+    entityManager.flush()
+    entityManager.clear()
+
+    val updatedUser = userRepository.findById(user.id!!).get()
+    assertThat(updatedUser.manager?.id).isEqualTo(selectedManager.id)
+    assertThat(updatedUser.manager?.id).isNotEqualTo(firstDuplicate.id)
   }
 
   @Test
@@ -176,6 +204,7 @@ class UserServiceTest : BaseIntegrationTest() {
 
     val dto = UserDetailDto().apply {
       this.manager = "Not Manager"
+      managerId = nonManager.id
     }
 
     assertThrows<ManagerNotFoundException> {
@@ -185,15 +214,17 @@ class UserServiceTest : BaseIntegrationTest() {
 
   @Test
   @Transactional
-  fun `getManagers should return manager names`() {
+  fun `getManagers should return manager names with ids`() {
     val managerRole = createRole(RoleName.MANAGER)
     val adminRole = createRole(RoleName.ADMIN)
-    createUser("Manager", "One", "manager1@test.com", managerRole)
-    createUser("Admin", "User", "admin@test.com", adminRole)
+    val manager = createUser("Manager", "One", "manager1@test.com", managerRole)
+    val admin = createUser("Admin", "User", "admin@test.com", adminRole)
 
     val result = userService.getManagers()
 
     assertThat(result).isNotEmpty()
+    assertThat(result).extracting("id").contains(manager.id, admin.id)
+    assertThat(result).extracting("name").contains("Manager One", "Admin User")
   }
 
   @Test
@@ -207,6 +238,7 @@ class UserServiceTest : BaseIntegrationTest() {
       firstname = "New"
       lastname = "User"
       this.manager = "Manager User"
+      managerId = userRepository.findByUsername("manager@test.com")!!.id
       role = "Analyst"
       fullTime = true
     }
@@ -224,6 +256,33 @@ class UserServiceTest : BaseIntegrationTest() {
 
   @Test
   @Transactional
+  fun `createUser should use selected manager id when names collide`() {
+    val managerRole = createRole(RoleName.MANAGER)
+    val firstDuplicate = createUser("Shared", "Manager", "shared1@test.com", managerRole)
+    val selectedManager = createUser("Shared", "Manager", "shared2@test.com", managerRole)
+
+    val dto =
+        CreateUserDto().apply {
+          email = "newuser@test.com"
+          firstname = "New"
+          lastname = "User"
+          manager = "Shared Manager"
+          managerId = selectedManager.id
+          role = "Analyst"
+          fullTime = true
+        }
+
+    userService.createUser(dto)
+    entityManager.flush()
+    entityManager.clear()
+
+    val createdUser = userRepository.findByUsername("newuser@test.com")
+    assertThat(createdUser?.manager?.id).isEqualTo(selectedManager.id)
+    assertThat(createdUser?.manager?.id).isNotEqualTo(firstDuplicate.id)
+  }
+
+  @Test
+  @Transactional
   fun `createUser with duplicate email should throw UserAlreadyExistsException`() {
     val managerRole = createRole(RoleName.MANAGER)
     val manager = createUser("Manager", "User", "manager@test.com", managerRole)
@@ -235,6 +294,7 @@ class UserServiceTest : BaseIntegrationTest() {
       firstname = "New"
       lastname = "User"
       this.manager = "Manager User"
+      managerId = manager.id
       role = "Analyst"
       fullTime = true
     }
@@ -245,17 +305,18 @@ class UserServiceTest : BaseIntegrationTest() {
   }
 
   @Test
-  fun `createUser with invalid manager should throw NameNotFoundException`() {
+  fun `createUser with invalid manager should throw ManagerNotFoundException`() {
     val dto = CreateUserDto().apply {
       email = "newuser@test.com"
       firstname = "New"
       lastname = "User"
       manager = "Nonexistent Manager"
+      managerId = 999
       role = "Analyst"
       fullTime = true
     }
 
-    assertThrows<NameNotFoundException> {
+    assertThrows<ManagerNotFoundException> {
       userService.createUser(dto)
     }
   }
