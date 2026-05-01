@@ -42,15 +42,16 @@ Important services:
 ## Local Setup
 
 1. Use Java 21.
-2. Start Docker Desktop.
-3. Copy `.env.example` to `.env` and fill in local values.
-4. Start the local database:
+2. If SDKMAN is available, run `sdk env` from the repo root before Maven commands.
+3. Start Docker Desktop.
+4. Copy `.env.example` to `.env` and fill in local values.
+5. Start the local database:
 
 ```bash
 docker compose up -d postgres
 ```
 
-5. Start the backend with the local profile:
+6. Start the backend with the local profile:
 
 ```bash
 ./start.sh

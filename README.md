@@ -17,6 +17,7 @@ When running locally, swagger docs can be accessed by visiting: http://localhost
 
 Prerequisites:
 - Java 21
+- SDKMAN users can run `sdk env` from the repo root to select the pinned Java 21 runtime.
 - Docker Desktop
 
 1. Copy the environment template:
