@@ -31,17 +31,17 @@ status source for what has been fixed, what is still open, and where to resume.
 | Manual DPM creation by driver ID | `89e1309` | `efbb238` | Backend requires `driverId`; frontend carries selected driver ID. |
 | Strict DPM date/time parsing | `5227e90` | n/a | Blank parse inputs now fail instead of defaulting to current clock. |
 | User manager assignment by ID | `8047347` | `b92a923` | User create/update now resolves managers by stable manager ID and returns manager options as `{id, name}` DTOs. |
+| SQL bootstrap smoke coverage | `2ef20b8` | n/a | Fresh Postgres init now runs under Testcontainers with Hibernate validation; the local migration helper lives outside the init script directory. |
 
 ## Open Items
 
 Recommended next order:
 
-1. Add an automated SQL bootstrap smoke test or move toward Flyway/Liquibase.
-2. Enforce Java 21 locally with `.sdkmanrc`, Maven Enforcer, or toolchain docs.
-3. Clean up `User` entity equality.
-4. Reduce DTO mapper force unwraps by making guaranteed fields non-nullable or adding explicit fallback/error behavior.
-5. Add a database-level partial unique constraint for one active DPM per W2W color.
-6. Revisit password reset design with reset tokens instead of emailed temporary passwords.
+1. Enforce Java 21 locally with `.sdkmanrc`, Maven Enforcer, or toolchain docs.
+2. Clean up `User` entity equality.
+3. Reduce DTO mapper force unwraps by making guaranteed fields non-nullable or adding explicit fallback/error behavior.
+4. Add a database-level partial unique constraint for one active DPM per W2W color.
+5. Revisit password reset design with reset tokens instead of emailed temporary passwords.
 
 ## Verification Snapshot
 
@@ -51,7 +51,7 @@ Most recent backend verification:
 ./mvnw verify
 ```
 
-Result: 124 tests passing, 0 failures/errors, coverage checks met.
+Result: 125 tests passing, 0 failures/errors, coverage checks met.
 
 Most recent frontend verification:
 
