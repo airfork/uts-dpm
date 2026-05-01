@@ -36,7 +36,7 @@ class DpmOrder {
         if (this is HibernateProxy) this.hibernateLazyInitializer.persistentClass
         else this.javaClass
     if (thisEffectiveClass != oEffectiveClass) return false
-    other as Dpm
+    other as DpmOrder
 
     return id != null && id == other.id
   }

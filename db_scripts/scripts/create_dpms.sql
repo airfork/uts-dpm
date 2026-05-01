@@ -15,3 +15,7 @@ create table if not exists dpms
 
 create unique index new_dpms_table_id_uindex
     on dpms (dpm_id);
+
+create unique index dpms_active_w2w_color_id_uindex
+    on dpms (w2w_color_id)
+    where active and w2w_color_id is not null;

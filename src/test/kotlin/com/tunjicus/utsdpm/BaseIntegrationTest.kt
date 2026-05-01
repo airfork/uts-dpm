@@ -28,6 +28,7 @@ abstract class BaseIntegrationTest {
   @Autowired protected lateinit var roleRepository: RoleRepository
   @Autowired protected lateinit var userRepository: UserRepository
   @Autowired protected lateinit var userDpmRepository: UserDpmRepository
+  @Autowired protected lateinit var passwordResetTokenRepository: PasswordResetTokenRepository
   @Autowired protected lateinit var w2wColorRepository: W2WColorRepository
 
   @Autowired protected lateinit var objectMapper: ObjectMapper

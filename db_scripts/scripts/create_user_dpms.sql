@@ -11,8 +11,9 @@ create table if not exists user_dpms
             references users,
     block       varchar(20)                                  not null,
     date        date                                         not null,
-    dpm_id      integer
-        constraint dpms_id_new_user_dpms_dpm_id_fk not null,
+    dpm_id      integer                                      not null
+        constraint dpms_id_new_user_dpms_dpm_id_fk
+            references dpms (dpm_id),
     points      smallint                                     not null,
     notes       text,
     created_at  timestamp with time zone                     not null,

@@ -10,6 +10,7 @@ import com.tunjicus.utsdpm.services.UserService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
@@ -62,9 +63,10 @@ class UserControllerTest {
             lastname = "Doe",
             points = 10,
             manager = "Manager Name",
+            managerId = 7,
             role = "DRIVER",
             fullTime = true,
-            managers = listOf("Manager Name"))
+            managers = listOf(UsernameDto(7, "Manager Name")))
 
     whenever(userService.findById(1)).thenReturn(userDetail)
 
@@ -89,6 +91,7 @@ class UserControllerTest {
           lastname = "UpdatedLast"
           role = "DRIVER"
           manager = "Manager"
+          managerId = 7
           fullTime = true
           points = 20
         }
@@ -113,6 +116,7 @@ class UserControllerTest {
           lastname = "User"
           role = "DRIVER"
           manager = "Manager"
+          managerId = 7
           fullTime = true
         }
 
@@ -137,7 +141,7 @@ class UserControllerTest {
   @Test
   @WithMockUser(roles = ["ADMIN"])
   fun `should return managers on GET users managers`() {
-    val managers = listOf("Manager One", "Manager Two")
+    val managers = listOf(UsernameDto(1, "Manager One"), UsernameDto(2, "Manager Two"))
 
     whenever(userService.getManagers()).thenReturn(managers)
 
@@ -145,8 +149,10 @@ class UserControllerTest {
         .perform(get("/api/users/managers"))
         .andExpect(status().isOk)
         .andExpect(jsonPath("$").isArray)
-        .andExpect(jsonPath("$[0]").value("Manager One"))
-        .andExpect(jsonPath("$[1]").value("Manager Two"))
+        .andExpect(jsonPath("$[0].id").value(1))
+        .andExpect(jsonPath("$[0].name").value("Manager One"))
+        .andExpect(jsonPath("$[1].id").value(2))
+        .andExpect(jsonPath("$[1].name").value("Manager Two"))
 
     verify(userService).getManagers()
   }
@@ -161,17 +167,37 @@ class UserControllerTest {
 
   @Test
   @WithMockUser(roles = ["ADMIN"])
-  fun `should send points email on GET users by id points`() {
-    mockMvc.perform(get("/api/users/1/points")).andExpect(status().isOk)
+  fun `should send points email on POST users by id points`() {
+    mockMvc.perform(post("/api/users/1/points")).andExpect(status().isOk)
 
     verify(userService).sendPointsEmail(1)
   }
 
   @Test
   @WithMockUser(roles = ["ADMIN"])
-  fun `should reset user password on GET users by id reset`() {
-    mockMvc.perform(get("/api/users/1/reset")).andExpect(status().isOk)
+  fun `should reset user password on POST users by id reset`() {
+    mockMvc.perform(post("/api/users/1/reset")).andExpect(status().isOk)
 
     verify(userService).resetPassword(1)
+  }
+
+  @Test
+  @WithMockUser(roles = ["ADMIN"])
+  fun `should send points email to all users on POST users points`() {
+    mockMvc.perform(post("/api/users/points")).andExpect(status().isOk)
+
+    verify(userService).sendPointsEmailAll()
+  }
+
+  @Test
+  @WithMockUser(roles = ["ADMIN"])
+  fun `should reject state changing user GET routes`() {
+    mockMvc.perform(get("/api/users/1/points")).andExpect(status().is4xxClientError)
+    mockMvc.perform(get("/api/users/1/reset")).andExpect(status().is4xxClientError)
+    mockMvc.perform(get("/api/users/points")).andExpect(status().is4xxClientError)
+
+    verify(userService, never()).sendPointsEmail(1)
+    verify(userService, never()).resetPassword(1)
+    verify(userService, never()).sendPointsEmailAll()
   }
 }

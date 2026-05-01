@@ -14,6 +14,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
 import org.springframework.data.domain.Page
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -126,9 +128,12 @@ class DpmController(
   fun getUnapprovedDpms(
       @Parameter(description = "The page number for pagination")
       @RequestParam(defaultValue = "0")
+      @Min(value = 0, message = "Page number must be greater than or equal to 0")
       page: Int,
       @Parameter(description = "The page size for pagination")
       @RequestParam(defaultValue = "10")
+      @Min(value = 1, message = "Page size must be between 1 and 100")
+      @Max(value = 100, message = "Page size must be between 1 and 100")
       size: Int,
   ): Page<ApprovalDpmDto> = userDpmService.getUnapprovedDpms(page, size)
 
@@ -191,9 +196,12 @@ class DpmController(
   fun getAll(
       @Parameter(description = "The page number for pagination")
       @RequestParam(defaultValue = "0")
+      @Min(value = 0, message = "Page number must be greater than or equal to 0")
       page: Int,
       @Parameter(description = "The page size for pagination")
       @RequestParam(defaultValue = "10")
+      @Min(value = 1, message = "Page size must be between 1 and 100")
+      @Max(value = 100, message = "Page size must be between 1 and 100")
       size: Int,
       @Parameter(description = "The id of user") @PathVariable id: Int
   ): Page<DpmDetailDto> = userDpmService.getAll(id, page, size)

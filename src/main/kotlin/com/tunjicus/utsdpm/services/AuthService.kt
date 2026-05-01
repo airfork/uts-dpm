@@ -3,6 +3,7 @@ package com.tunjicus.utsdpm.services
 import com.tunjicus.utsdpm.auth.IAuthenticationFacade
 import com.tunjicus.utsdpm.dtos.ChangePasswordDto
 import com.tunjicus.utsdpm.dtos.ChangeRequiredDto
+import com.tunjicus.utsdpm.dtos.CompletePasswordResetDto
 import com.tunjicus.utsdpm.dtos.LoginDto
 import com.tunjicus.utsdpm.dtos.LoginResponseDto
 import com.tunjicus.utsdpm.entities.User
@@ -17,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class AuthService(
@@ -24,7 +26,8 @@ class AuthService(
   private val authenticationManager: AuthenticationManager,
   private val jwtProvider: JwtProvider,
   private val authenticationFacade: IAuthenticationFacade,
-  private val passwordEncoder: PasswordEncoder
+  private val passwordEncoder: PasswordEncoder,
+  private val passwordResetTokenService: PasswordResetTokenService
 ) {
   fun authenticateUser(dto: LoginDto): LoginResponseDto {
     val authentication =
@@ -69,6 +72,18 @@ class AuthService(
     currentUser.password = passwordEncoder.encode(dto.newPassword!!)
     currentUser.changed = true
     userRepository.save(currentUser)
+  }
+
+  @Transactional
+  fun completePasswordReset(dto: CompletePasswordResetDto) {
+    if (dto.newPassword!! != dto.confirmPassword!!) {
+      throw PasswordChangeException("Confirm password does not match the new password")
+    }
+
+    val user = passwordResetTokenService.consumeToken(dto.token!!)
+    user.password = passwordEncoder.encode(dto.newPassword!!)
+    user.changed = true
+    userRepository.save(user)
   }
 
   companion object {

@@ -2,6 +2,7 @@ package com.tunjicus.utsdpm.controllers
 
 import com.tunjicus.utsdpm.security.JwtProvider
 import com.tunjicus.utsdpm.services.DataGenService
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -26,25 +27,27 @@ class DataGenControllerTest {
   @Test
   @WithMockUser(roles = ["ADMIN"])
   fun `should generate DPM spreadsheet on GET datagen dpms`() {
-    val tempFile = File.createTempFile("dpms", ".xlsx")
-    tempFile.deleteOnExit()
+    val tempFile = createTempSpreadsheet("dpms")
 
     `when`(dataGenService.generateDpmSpreadSheet(null, null)).thenReturn(tempFile.absolutePath)
 
     mockMvc
         .perform(get("/api/datagen/dpms"))
         .andExpect(status().isOk)
-        .andExpect(content().contentType("application/octet-stream"))
+        .andExpect(
+            content()
+                .contentType(
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
         .andExpect(header().string("Content-Disposition", "attachment; filename=DPMs.xlsx"))
 
     verify(dataGenService).generateDpmSpreadSheet(null, null)
+    assertThat(tempFile).doesNotExist()
   }
 
   @Test
   @WithMockUser(roles = ["MANAGER"])
   fun `should generate DPM spreadsheet with date parameters`() {
-    val tempFile = File.createTempFile("dpms", ".xlsx")
-    tempFile.deleteOnExit()
+    val tempFile = createTempSpreadsheet("dpms")
     val startDate = "2025-01-01"
     val endDate = "2025-01-31"
 
@@ -53,26 +56,39 @@ class DataGenControllerTest {
     mockMvc
         .perform(get("/api/datagen/dpms").param("startDate", startDate).param("endDate", endDate))
         .andExpect(status().isOk)
-        .andExpect(content().contentType("application/octet-stream"))
+        .andExpect(
+            content()
+                .contentType(
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
 
     verify(dataGenService).generateDpmSpreadSheet(startDate, endDate)
+    assertThat(tempFile).doesNotExist()
   }
 
   @Test
   @WithMockUser(roles = ["ADMIN"])
   fun `should generate user spreadsheet on GET datagen users`() {
-    val tempFile = File.createTempFile("users", ".xlsx")
-    tempFile.deleteOnExit()
+    val tempFile = createTempSpreadsheet("users")
 
     `when`(dataGenService.generateUserSpreadSheet()).thenReturn(tempFile.absolutePath)
 
     mockMvc
         .perform(get("/api/datagen/users"))
         .andExpect(status().isOk)
-        .andExpect(content().contentType("application/octet-stream"))
+        .andExpect(
+            content()
+                .contentType(
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
         .andExpect(header().string("Content-Disposition", "attachment; filename=Users.xlsx"))
 
     verify(dataGenService).generateUserSpreadSheet()
+    assertThat(tempFile).doesNotExist()
   }
 
+  private fun createTempSpreadsheet(prefix: String): File {
+    val tempFile = File.createTempFile(prefix, ".xlsx")
+    tempFile.writeBytes(byteArrayOf(1, 2, 3))
+    tempFile.deleteOnExit()
+    return tempFile
+  }
 }

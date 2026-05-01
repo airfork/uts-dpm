@@ -14,6 +14,7 @@ import com.tunjicus.utsdpm.models.WelcomeEmail
 import com.tunjicus.utsdpm.repositories.UserDpmRepository
 import com.tunjicus.utsdpm.repositories.RoleRepository
 import com.tunjicus.utsdpm.repositories.UserRepository
+import java.security.SecureRandom
 import org.slf4j.LoggerFactory
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -27,23 +28,26 @@ class UserService(
   private val authService: AuthService,
   private val passwordEncoder: PasswordEncoder,
   private val emailService: EmailService,
+  private val passwordResetTokenService: PasswordResetTokenService,
   private val appProperties: AppProperties
 ) {
 
   fun getAllUserNames(): Collection<UsernameDto> {
+    return userRepository.findAllSorted().map { it.toUsernameDto() }
+  }
+
+  private fun User.toUsernameDto(): UsernameDto {
     val generateName =
       fun(first: String?, last: String?): String {
         return ((first ?: "") + " " + (last ?: "")).trim()
       }
 
-    return userRepository.findAllSorted().map {
-      UsernameDto(it.id ?: -1, generateName(it.firstname, it.lastname))
-    }
+    return UsernameDto(id ?: -1, generateName(firstname, lastname))
   }
 
   fun findById(id: Int): GetUserDetailDto {
     val user = userRepository.findById(id).orElseThrow { UserNotFoundException(id) }
-    return GetUserDetailDto.from(user, userRepository.findAllManagers().map { it.trim() })
+    return GetUserDetailDto.from(user, getManagers().toList())
   }
 
   @Transactional
@@ -68,21 +72,16 @@ class UserService(
       user.fullTime = it
     }
 
-    dto.manager?.let {
-      val manager = userRepository.findByFullName(it.trim()) ?: throw ManagerNotFoundException(it)
-      if (!manager.hasAnyRole(RoleName.MANAGER, RoleName.ADMIN)) throw ManagerNotFoundException(it)
-      user.manager = manager
-    }
+    dto.managerId?.let { user.manager = getManagerById(it) }
 
     userRepository.save(user)
   }
 
-  fun getManagers(): Collection<String> = userRepository.findAllManagers()
+  fun getManagers(): Collection<UsernameDto> =
+    userRepository.findAllManagers(listOf(RoleName.MANAGER, RoleName.ADMIN)).map { it.toUsernameDto() }
 
   fun createUser(userDto: CreateUserDto) {
-    val manager =
-      userRepository.findByFullName(userDto.manager ?: "")
-        ?: throw NameNotFoundException(userDto.manager ?: "")
+    val manager = getManagerById(userDto.managerId ?: throw ManagerNotFoundException(""))
     if (userRepository.existsByUsername(userDto.email!!)) {
       throw UserAlreadyExistsException()
     }
@@ -105,6 +104,14 @@ class UserService(
 
     userRepository.save(user)
     sendWelcomeEmail(user, password)
+  }
+
+  private fun getManagerById(id: Int): User {
+    val manager = userRepository.findById(id).orElseThrow { ManagerNotFoundException(id.toString()) }
+    if (!manager.hasAnyRole(RoleName.MANAGER, RoleName.ADMIN)) {
+      throw ManagerNotFoundException(id.toString())
+    }
+    return manager
   }
 
   // resets points of part-timers to 0
@@ -145,22 +152,24 @@ class UserService(
 
   fun sendPointsEmailAll() = userRepository.findAll().forEach { sendPointsEmail(it.id!!) }
 
+  @Transactional
   fun resetPassword(id: Int) {
     val user = userRepository.findById(id).orElseThrow { UserNotFoundException(id) }
-    val password = generateTempPassword()
+    val token = passwordResetTokenService.createToken(user)
 
-    user.password = passwordEncoder.encode(password)
-    user.changed = false
-    userRepository.save(user)
-
-    sendPasswordResetEmail(user, password)
+    try {
+      sendPasswordResetEmail(user, token).join()
+    } catch (e: RuntimeException) {
+      LOGGER.warn("Failed to send password reset email to ${user.username}", e)
+      throw PasswordChangeException("Failed to send password reset email; reset token was not created")
+    }
   }
 
-  private fun sendPasswordResetEmail(user: User, password: String) =
+  private fun sendPasswordResetEmail(user: User, token: String) =
     emailService
       .sendResetPasswordEmail(
         user.username!!,
-        ResetEmail(user.firstname!!, password, appProperties.baseUrl)
+        ResetEmail(user.firstname!!, "${appProperties.baseUrl}/passwordReset?token=$token")
       )
       .thenRun { LOGGER.info("Sent password reset email to ${user.username!!}") }
 
@@ -174,10 +183,15 @@ class UserService(
 
   companion object {
     private val LOGGER = LoggerFactory.getLogger(UserService::class.java)
+    private val SECURE_RANDOM = SecureRandom()
+    private const val TEMP_PASSWORD_LENGTH = 16
+    private const val TEMP_PASSWORD_CHARSET =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 
     private fun generateTempPassword(): String {
-      val charset = "ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz0123456789"
-      return (1..10).map { charset.random() }.joinToString("")
+      return (1..TEMP_PASSWORD_LENGTH)
+          .map { TEMP_PASSWORD_CHARSET[SECURE_RANDOM.nextInt(TEMP_PASSWORD_CHARSET.length)] }
+          .joinToString("")
     }
   }
 }

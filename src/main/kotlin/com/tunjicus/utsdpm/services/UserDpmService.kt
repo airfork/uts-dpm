@@ -33,7 +33,9 @@ class UserDpmService(
   fun newDpm(dpmDto: PostDpmDto) {
     val createdBy = authService.getCurrentUser()
     val driver =
-        userRepository.findByFullName(dpmDto.driver!!) ?: throw NameNotFoundException(dpmDto.driver)
+        userRepository
+            .findById(dpmDto.driverId!!)
+            .orElseThrow { UserNotFoundException(dpmDto.driverId) }
     val dpm = dpmDto.toDpm()
 
     val dpmType =
@@ -82,6 +84,7 @@ class UserDpmService(
     }
   }
 
+  @Transactional
   fun updateDpm(id: Int, dto: PatchDpmDto) {
     val dpm = userDpmRepository.findById(id).orElseThrow { DpmNotFoundException(id) }
     val currentUser = authService.getCurrentUser()
@@ -94,13 +97,24 @@ class UserDpmService(
       throw UserNotAuthorizedException()
     }
 
-    // always update points if present
-    if (dto.points != null) dpm.points = dto.points
+    val oldContribution = pointsContribution(dpm)
+    val wasApproved = dpm.approved == true
 
-    updateApproved(dto, dpm)
-    updateIgnored(dto, dpm)
+    if (dto.points != null) dpm.points = dto.points
+    if (dto.approved != null) dpm.approved = dto.approved
+    if (dto.ignored != null) dpm.ignored = dto.ignored
+
+    val delta = pointsContribution(dpm) - oldContribution
+    if (delta != 0) {
+      val user = dpm.user!!
+      user.points = (user.points ?: 0) + delta
+    }
 
     userDpmRepository.save(dpm)
+
+    if (!wasApproved && dpm.approved == true && dpm.ignored != true) {
+      sendDpmEmail(dpm)
+    }
   }
 
   fun getAll(id: Int, page: Int, size: Int): Page<DpmDetailDto> {
@@ -112,22 +126,8 @@ class UserDpmService(
         .map(DpmDetailDto::from)
   }
 
-  private fun updateApproved(dto: PatchDpmDto, userDpm: UserDpm) {
-    if (dto.approved == null) return
-
-    // DPM approved, update points for user
-    // don't allow approved = true and ignored = true to happen at the same time
-    if (dto.approved && userDpm.approved != true && userDpm.ignored != true) {
-      userDpm.user?.points = userDpm.user?.points?.plus(userDpm.points ?: 0)
-      userDpm.approved = true
-      sendDpmEmail(userDpm)
-    }
-
-    // Just change the value
-    else if (!dto.approved) {
-      userDpm.approved = false
-    }
-  }
+  private fun pointsContribution(userDpm: UserDpm): Int =
+      if (userDpm.approved == true && userDpm.ignored != true) userDpm.points ?: 0 else 0
 
   private fun sendDpmEmail(userDpm: UserDpm) {
     val user = userDpm.user!!
@@ -147,23 +147,5 @@ class UserDpmService(
 
   companion object {
     private val LOGGER = LoggerFactory.getLogger(UserDpmService::class.java)
-
-    private fun updateIgnored(dto: PatchDpmDto, userDpm: UserDpm) {
-      if (dto.ignored == null) return
-
-      // DPM ignored, but previously approved
-      // Adjust user's points
-      if (dto.ignored && userDpm.ignored != true && userDpm.approved == true) {
-        userDpm.ignored = true
-
-        val adjustedPoints = (userDpm.points ?: 0) * -1
-        userDpm.user?.points = userDpm.user?.points?.plus(adjustedPoints)
-      }
-
-      // else, just change the value
-      else {
-        userDpm.ignored = dto.ignored
-      }
-    }
   }
 }

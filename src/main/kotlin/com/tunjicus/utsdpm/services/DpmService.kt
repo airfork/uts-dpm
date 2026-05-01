@@ -31,12 +31,17 @@ class DpmService(
     val typeReference = object : TypeReference<List<DpmGroupOrder>>() {}
     val groupOrder = objectMapper.readValue(order.dpmOrder!!, typeReference)
     val outputOrder = mutableListOf<GetDpmGroupDto>()
+    val orderedGroupIds = mutableSetOf<Int>()
 
     for (groupInfo in groupOrder) {
       val group = dpmGroups.find { it.id == groupInfo.group }
       if (group == null || group.dpms == null || group.dpms!!.isEmpty()) continue
+      orderedGroupIds.add(group.id!!)
       outputOrder.add(createDpmGroupDto(group, groupOrder.find { it.group == group.id }))
     }
+
+    val unorderedGroups = dpmGroups.filter { it.id !in orderedGroupIds }.sortedBy { it.groupName }
+    outputOrder.addAll(unorderedGroups.map { createUnorderedDpmGroupDto(it) })
 
     return outputOrder
   }
@@ -150,9 +155,16 @@ class DpmService(
       orderList.add(GetDpmTypeDto.from(dpm))
     }
 
+    val orderedDpmIds = order.dpms.toSet()
+    activeDpms.filter { it.id !in orderedDpmIds }.sortedBy { it.dpmName }.forEach {
+      orderList.add(GetDpmTypeDto.from(it))
+    }
+
     return GetDpmGroupDto(group.groupName, orderList)
   }
 
   private fun createUnorderedDpmGroupDto(group: DpmGroup) =
-      GetDpmGroupDto(group.groupName, group.dpms?.map { GetDpmTypeDto.from(it) } ?: emptyList())
+      GetDpmGroupDto(
+          group.groupName, group.dpms?.filter { it.active }?.map { GetDpmTypeDto.from(it) }
+              ?: emptyList())
 }

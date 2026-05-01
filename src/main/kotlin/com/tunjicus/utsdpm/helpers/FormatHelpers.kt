@@ -24,12 +24,12 @@ object FormatHelpers {
   }
 
   fun inboundDpmDate(date: String?): LocalDate {
-    if (date.isNullOrBlank()) return LocalDate.now()
+    require(!date.isNullOrBlank()) { "DPM date is required" }
     return LocalDate.parse(date, DATE_FORMAT)
   }
 
   fun inboundDpmTime(time: String?): LocalTime {
-    if (time.isNullOrBlank()) return LocalTime.now()
+    require(!time.isNullOrBlank()) { "DPM time is required" }
     return LocalTime.parse(time, INBOUND_TIME_FORMAT)
   }
 

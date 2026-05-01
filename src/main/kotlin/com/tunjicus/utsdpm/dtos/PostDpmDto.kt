@@ -9,7 +9,8 @@ import jakarta.validation.constraints.Pattern
 import org.hibernate.validator.constraints.Length
 
 data class PostDpmDto(
-    @field:NotBlank(message = "driver cannot be blank") val driver: String?,
+    val driver: String?,
+    @field:NotNull(message = "driverId cannot be null") val driverId: Int? = null,
     @field:NotBlank(message = "block cannot be blank") val block: String?,
     @field:NotBlank(message = "date cannot be blank")
     @field:ValidDateFormat(

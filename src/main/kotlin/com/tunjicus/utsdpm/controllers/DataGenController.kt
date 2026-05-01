@@ -34,7 +34,11 @@ class DataGenController(private val dataGenService: DataGenService) {
         ApiResponse(
           responseCode = "200",
           description = "Successful request",
-          content = [Content(mediaType = "Application/vnd.ms-excel")]
+          content =
+              [
+                  Content(
+                      mediaType =
+                          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
         ),
         ApiResponse(
           responseCode = "400",
@@ -67,7 +71,11 @@ class DataGenController(private val dataGenService: DataGenService) {
         ApiResponse(
           responseCode = "200",
           description = "Successful request",
-          content = [Content(mediaType = "Application/vnd.ms-excel")]
+          content =
+              [
+                  Content(
+                      mediaType =
+                          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
         ),
         ApiResponse(
           responseCode = "401",
@@ -94,12 +102,20 @@ class DataGenController(private val dataGenService: DataGenService) {
       header.add("Expires", "0")
 
       val path: Path = Paths.get(file.absolutePath)
-      val resource = ByteArrayResource(Files.readAllBytes(path))
+      val bytes =
+          try {
+            Files.readAllBytes(path)
+          } finally {
+            Files.deleteIfExists(path)
+          }
+      val resource = ByteArrayResource(bytes)
 
       return ResponseEntity.ok()
         .headers(header)
-        .contentLength(file.length())
-        .contentType(MediaType.parseMediaType("application/octet-stream"))
+        .contentLength(bytes.size.toLong())
+        .contentType(
+            MediaType.parseMediaType(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
         .body(resource)
     }
   }

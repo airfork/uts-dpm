@@ -1,6 +1,7 @@
 package com.tunjicus.utsdpm.exceptions
 
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -41,6 +42,7 @@ class GlobalAdviceHandler(private val request: HttpServletRequest) {
   }
 
   @ExceptionHandler(
+      ConstraintViolationException::class,
       InvalidDataGenDateException::class,
       UserRoleNotFoundException::class,
       ManagerNotFoundException::class,

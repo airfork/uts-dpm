@@ -117,13 +117,14 @@ class UserController(private val userService: UserService) {
     userService.updateUser(dto, id)
 
   @Operation(
-    summary = "Gets the names of all of the managers",
+    summary = "Gets the ids and names of all of the managers",
     responses =
       [
         ApiResponse(
           responseCode = "200",
           description = "Managers retrieved successfully",
-          content = [Content(array = ArraySchema(schema = Schema(implementation = String::class)))]
+          content =
+            [Content(array = ArraySchema(schema = Schema(implementation = UsernameDto::class)))]
         ),
         ApiResponse(
           responseCode = "401",
@@ -258,7 +259,7 @@ class UserController(private val userService: UserService) {
       ]
   )
   @PreAuthorize("hasRole('ADMIN')")
-  @GetMapping("/{id}/points")
+  @PostMapping("/{id}/points")
   fun sendUserPointsEmail(@PathVariable id: Int) = userService.sendPointsEmail(id)
 
   @Operation(
@@ -287,7 +288,7 @@ class UserController(private val userService: UserService) {
       ]
   )
   @PreAuthorize("hasRole('ADMIN')")
-  @GetMapping("/{id}/reset")
+  @PostMapping("/{id}/reset")
   fun resetUserPassword(@PathVariable id: Int) = userService.resetPassword(id)
 
   @Operation(
@@ -311,6 +312,6 @@ class UserController(private val userService: UserService) {
       ]
   )
   @PreAuthorize("hasRole('ADMIN')")
-  @GetMapping("/points")
+  @PostMapping("/points")
   fun sendPointsEmailAll() = userService.sendPointsEmailAll()
 }

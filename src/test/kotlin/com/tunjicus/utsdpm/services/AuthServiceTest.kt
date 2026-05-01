@@ -3,6 +3,7 @@ package com.tunjicus.utsdpm.services
 import com.tunjicus.utsdpm.BaseIntegrationTest
 import com.tunjicus.utsdpm.auth.IAuthenticationFacade
 import com.tunjicus.utsdpm.dtos.ChangePasswordDto
+import com.tunjicus.utsdpm.dtos.CompletePasswordResetDto
 import com.tunjicus.utsdpm.dtos.LoginDto
 import com.tunjicus.utsdpm.enums.RoleName
 import com.tunjicus.utsdpm.exceptions.PasswordChangeException
@@ -25,6 +26,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 class AuthServiceTest : BaseIntegrationTest() {
   @Autowired private lateinit var authService: AuthService
+  @Autowired private lateinit var passwordResetTokenService: PasswordResetTokenService
 
   @MockitoBean private lateinit var authenticationManager: AuthenticationManager
   @MockitoBean private lateinit var jwtProvider: JwtProvider
@@ -215,5 +217,83 @@ class AuthServiceTest : BaseIntegrationTest() {
         }
 
     assertThrows<PasswordChangeException> { authService.changePassword(changePasswordDto) }
+  }
+
+  @Test
+  @Transactional
+  fun `should complete password reset with valid token`() {
+    val role = createRole(RoleName.ADMIN)
+    val user = createUser("Reset", "User", "reset@test.com", role, changed = false)
+    val token = passwordResetTokenService.createToken(user)
+
+    `when`(passwordEncoder.encode("newPass123")).thenReturn("encodedNewPass")
+
+    authService.completePasswordReset(
+        CompletePasswordResetDto().apply {
+          this.token = token
+          newPassword = "newPass123"
+          confirmPassword = "newPass123"
+        })
+
+    entityManager.flush()
+    entityManager.clear()
+
+    val updatedUser = userRepository.findById(user.id!!).get()
+    assertThat(updatedUser.password).isEqualTo("encodedNewPass")
+    assertThat(updatedUser.changed).isTrue()
+    assertThat(passwordResetTokenRepository.findAll().single().usedAt).isNotNull()
+  }
+
+  @Test
+  fun `should reject password reset when token is invalid`() {
+    assertThrows<PasswordChangeException> {
+      authService.completePasswordReset(
+          CompletePasswordResetDto().apply {
+            token = "not-a-real-token"
+            newPassword = "newPass123"
+            confirmPassword = "newPass123"
+          })
+    }
+  }
+
+  @Test
+  @Transactional
+  fun `should reject password reset when token was already used`() {
+    val role = createRole(RoleName.ADMIN)
+    val user = createUser("Reset", "User", "reset-used@test.com", role, changed = false)
+    val token = passwordResetTokenService.createToken(user)
+
+    `when`(passwordEncoder.encode("newPass123")).thenReturn("encodedNewPass")
+
+    val resetDto =
+        CompletePasswordResetDto().apply {
+          this.token = token
+          newPassword = "newPass123"
+          confirmPassword = "newPass123"
+        }
+
+    authService.completePasswordReset(resetDto)
+
+    assertThrows<PasswordChangeException> { authService.completePasswordReset(resetDto) }
+  }
+
+  @Test
+  @Transactional
+  fun `should reject password reset when token is expired`() {
+    val role = createRole(RoleName.ADMIN)
+    val user = createUser("Reset", "User", "reset-expired@test.com", role, changed = false)
+    val token = passwordResetTokenService.createToken(user)
+
+    passwordResetTokenRepository.findAll().single().expiresAt =
+        TimeService.getTodayZonedDateTime().minusMinutes(1)
+
+    assertThrows<PasswordChangeException> {
+      authService.completePasswordReset(
+          CompletePasswordResetDto().apply {
+            this.token = token
+            newPassword = "newPass123"
+            confirmPassword = "newPass123"
+          })
+    }
   }
 }

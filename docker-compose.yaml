@@ -1,8 +1,6 @@
-version: '3.1'
-
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:16
     container_name: uts-dpm-db
     healthcheck:
       test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres" ]
@@ -15,8 +13,12 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=uts_dpm
     volumes:
-      - ./db_scripts:/docker-entrypoint-initdb.d/
+      - postgres-data:/var/lib/postgresql/data
+      - ./db_scripts:/docker-entrypoint-initdb.d/:ro
     ports:
       - "5432:5432"
     labels:
       org.springframework.boot.service-connection: postgres
+
+volumes:
+  postgres-data:

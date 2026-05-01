@@ -38,19 +38,20 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 @EnableScheduling
 @EnableAsync
 @EnableConfigurationProperties(AppProperties::class, EmailProperties::class, JwtProperties::class)
-class UtsDpmBackendApplication
+class UtsDpmBackendApplication {
+
+  @Bean
+  fun taskExecutor(): Executor {
+    val executor = ThreadPoolTaskExecutor()
+    executor.corePoolSize = 2
+    executor.maxPoolSize = 5
+    executor.queueCapacity = 500
+    executor.setThreadNamePrefix("EmailThread-")
+    executor.initialize()
+    return executor
+  }
+}
 
 fun main(args: Array<String>) {
   runApplication<UtsDpmBackendApplication>(*args)
-}
-
-@Bean
-fun taskExecutor(): Executor {
-  val executor = ThreadPoolTaskExecutor()
-  executor.corePoolSize = 2
-  executor.maxPoolSize = 5
-  executor.queueCapacity = 500
-  executor.setThreadNamePrefix("EmailThread-")
-  executor.initialize()
-  return executor
 }

@@ -104,6 +104,7 @@ class UserDpmServiceTest : BaseIntegrationTest() {
     val dpmDto =
         PostDpmDto(
             driver = "${driver.firstname} ${driver.lastname}",
+            driverId = driver.id,
             block = "10",
             date = dateFormat.format(LocalDate.now()),
             type = dpm.id,
@@ -127,6 +128,46 @@ class UserDpmServiceTest : BaseIntegrationTest() {
     assertThat(savedDpm.points).isEqualTo(10)
     assertThat(savedDpm.createdUser).isEqualTo(admin)
     assertThat(savedDpm.user).isEqualTo(driver)
+  }
+
+  @Test
+  @Transactional
+  fun `should create new DPM for selected driver id when full names collide`() {
+    val dpmGroup = dpmGroupRepository.save(DpmGroup().apply { groupName = "Test Group" })
+    val dpm =
+        dpmRepository.save(
+            Dpm().apply {
+              dpmName = "Test DPM"
+              points = 10
+              this.dpmGroup = dpmGroup
+            })
+
+    val firstDuplicate =
+        createUser("Shared", "Driver", "shared1@test.com", createRole(RoleName.ANALYST))
+    val selectedDriver =
+        createUser("Shared", "Driver", "shared2@test.com", createRole(RoleName.ANALYST))
+
+    val dpmDto =
+        PostDpmDto(
+            driver = "${selectedDriver.firstname} ${selectedDriver.lastname}",
+            driverId = selectedDriver.id,
+            block = "10",
+            date = DateTimeFormatter.ofPattern("MM/dd/yyyy").format(LocalDate.now()),
+            type = dpm.id,
+            location = "OFF",
+            startTime = "1000",
+            endTime = "1100",
+            notes = "Test comment")
+
+    userDpmService.newDpm(dpmDto)
+
+    entityManager.flush()
+    entityManager.clear()
+
+    val savedDpms = userDpmRepository.findAll().toList()
+    assertThat(savedDpms).hasSize(1)
+    assertThat(savedDpms.first().user?.id).isEqualTo(selectedDriver.id)
+    assertThat(savedDpms.first().user?.id).isNotEqualTo(firstDuplicate.id)
   }
 
   @Test
@@ -288,6 +329,108 @@ class UserDpmServiceTest : BaseIntegrationTest() {
 
     val updatedDriver = userRepository.findById(driver.id!!).get()
     assertThat(updatedDriver.points).isEqualTo(initialPoints - 10)
+  }
+
+  @Test
+  @Transactional
+  fun `should subtract points when approved DPM is unapproved`() {
+    val admin = userRepository.findByUsername("admin@test.com")!!
+    val driver = userRepository.findByUsername("driver@test.com")!!
+    whenever(authService.getCurrentUser()).thenReturn(admin)
+
+    val dpmGroup = createGroup("Test Group")
+    val dpmType = createDpm("Test DPM", 10, dpmGroup)
+
+    val userDpm =
+        createUserDpm(
+            user = driver,
+            createdBy = admin,
+            dpmType = dpmType,
+            points = 10,
+            approved = true)
+
+    driver.points = 10
+    userRepository.save(driver)
+
+    entityManager.flush()
+    entityManager.clear()
+
+    userDpmService.updateDpm(userDpm.id!!, PatchDpmDto(points = null, approved = false, ignored = null))
+
+    entityManager.flush()
+    entityManager.clear()
+
+    val updatedDriver = userRepository.findById(driver.id!!).get()
+    assertThat(updatedDriver.points).isEqualTo(0)
+  }
+
+  @Test
+  @Transactional
+  fun `should restore points when approved ignored DPM is unignored`() {
+    val admin = userRepository.findByUsername("admin@test.com")!!
+    val driver = userRepository.findByUsername("driver@test.com")!!
+    whenever(authService.getCurrentUser()).thenReturn(admin)
+
+    val dpmGroup = createGroup("Test Group")
+    val dpmType = createDpm("Test DPM", 10, dpmGroup)
+
+    val userDpm =
+        createUserDpm(
+            user = driver,
+            createdBy = admin,
+            dpmType = dpmType,
+            points = 10,
+            approved = true,
+            ignored = true)
+
+    driver.points = 0
+    userRepository.save(driver)
+
+    entityManager.flush()
+    entityManager.clear()
+
+    userDpmService.updateDpm(userDpm.id!!, PatchDpmDto(points = null, approved = null, ignored = false))
+
+    entityManager.flush()
+    entityManager.clear()
+
+    val updatedDriver = userRepository.findById(driver.id!!).get()
+    assertThat(updatedDriver.points).isEqualTo(10)
+  }
+
+  @Test
+  @Transactional
+  fun `should adjust user points when approved DPM points change`() {
+    val admin = userRepository.findByUsername("admin@test.com")!!
+    val driver = userRepository.findByUsername("driver@test.com")!!
+    whenever(authService.getCurrentUser()).thenReturn(admin)
+
+    val dpmGroup = createGroup("Test Group")
+    val dpmType = createDpm("Test DPM", 10, dpmGroup)
+
+    val userDpm =
+        createUserDpm(
+            user = driver,
+            createdBy = admin,
+            dpmType = dpmType,
+            points = 10,
+            approved = true)
+
+    driver.points = 10
+    userRepository.save(driver)
+
+    entityManager.flush()
+    entityManager.clear()
+
+    userDpmService.updateDpm(userDpm.id!!, PatchDpmDto(points = 15, approved = null, ignored = null))
+
+    entityManager.flush()
+    entityManager.clear()
+
+    val updatedDpm = userDpmRepository.findById(userDpm.id!!).get()
+    val updatedDriver = userRepository.findById(driver.id!!).get()
+    assertThat(updatedDpm.points).isEqualTo(15)
+    assertThat(updatedDriver.points).isEqualTo(15)
   }
 
   @Test

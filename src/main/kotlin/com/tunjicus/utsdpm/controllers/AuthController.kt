@@ -2,6 +2,7 @@ package com.tunjicus.utsdpm.controllers
 
 import com.tunjicus.utsdpm.dtos.ChangePasswordDto
 import com.tunjicus.utsdpm.dtos.ChangeRequiredDto
+import com.tunjicus.utsdpm.dtos.CompletePasswordResetDto
 import com.tunjicus.utsdpm.dtos.LoginDto
 import com.tunjicus.utsdpm.dtos.LoginResponseDto
 import com.tunjicus.utsdpm.exceptions.ExceptionResponse
@@ -89,4 +90,25 @@ class AuthController(private val authService: AuthService) {
   )
   @PatchMapping("/changePassword")
   fun changePassword(@Valid @RequestBody dto: ChangePasswordDto) = authService.changePassword(dto)
+
+  @Operation(
+    summary = "Completes a password reset using a one-time reset token",
+    responses =
+      [
+        ApiResponse(responseCode = "200", description = "Password was successfully reset"),
+        ApiResponse(
+          responseCode = "400",
+          description = "Validation failed on the request body",
+          content = [Content(schema = Schema(implementation = ExceptionResponses::class))]
+        ),
+        ApiResponse(
+          responseCode = "422",
+          description = "The reset token is invalid, expired, already used, or password fields do not match",
+          content = [Content(schema = Schema(implementation = ExceptionResponse::class))]
+        ),
+      ]
+  )
+  @PostMapping("/resetPassword")
+  fun completePasswordReset(@Valid @RequestBody dto: CompletePasswordResetDto) =
+      authService.completePasswordReset(dto)
 }

@@ -14,13 +14,17 @@ data class HomeDpmDto(
 ) {
   companion object {
     fun from(userDpm: UserDpm): HomeDpmDto {
+      val dpmType = userDpm.required("dpmType", userDpm.dpmType)
+      val startTime = userDpm.required("startTime", userDpm.startTime)
+      val endTime = userDpm.required("endTime", userDpm.endTime)
+
       return HomeDpmDto(
-        userDpm.dpmType!!.dpmName,
-        userDpm.points!!,
-        userDpm.block!!,
-        userDpm.location!!,
-        FormatHelpers.outboundDpmDate(userDpm.date),
-        FormatHelpers.outboundDpmTime(userDpm.startTime, userDpm.endTime),
+        dpmType.dpmName,
+        userDpm.required("points", userDpm.points),
+        userDpm.required("block", userDpm.block),
+        userDpm.required("location", userDpm.location),
+        FormatHelpers.outboundDpmDate(userDpm.required("date", userDpm.date)),
+        FormatHelpers.outboundDpmTime(startTime, endTime),
         userDpm.notes
       )
     }

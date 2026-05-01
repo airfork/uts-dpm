@@ -15,12 +15,22 @@ When running locally, swagger docs can be accessed by visiting: http://localhost
 
 ### Setup
 
+Prerequisites:
+- Java 21
+- SDKMAN users can run `sdk env` from the repo root to select the pinned Java 21 runtime.
+- Docker Desktop
+
 1. Copy the environment template:
    ```bash
    cp .env.example .env
    ```
 
 2. Fill in the values in `.env` with your credentials
+
+3. Start the local database:
+   ```bash
+   docker compose up -d postgres
+   ```
 
 ### Start the Server
 
@@ -33,6 +43,34 @@ When running locally, swagger docs can be accessed by visiting: http://localhost
 ```
 
 The start script reads `.env` and passes the values as JVM system properties to Spring Boot.
+
+If the local database was partially initialized, reset it and let the init scripts run again:
+
+```bash
+docker compose down -v
+docker compose up -d postgres
+```
+
+If you already have a local database volume and the schema changed, apply the local migrations instead:
+
+```bash
+./scripts/migrate-local-db.sh
+```
+
+For the backend audit PR deployment against PRAD, run the consolidated migration
+script against the target database before starting the new application version:
+
+```bash
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db_scripts/deployment/20260501_backend_audit_prad.sql
+```
+
+If you do not have local `psql` access, run the same migration through a Heroku
+one-off dyno after the PR is built on Heroku and before promoting/restarting the
+new web dyno:
+
+```bash
+heroku run --app <heroku-app-name> 'java -jar target/uts-dpm-1.3.0.jar --spring.profiles.active=prod --server.port=0 --spring.jpa.hibernate.ddl-auto=none --app.deployment-migration=20260501-backend-audit-prad'
+```
 
 ## Running Tests
 

@@ -5,6 +5,7 @@ import com.tunjicus.utsdpm.dtos.CreateUserDto
 import com.tunjicus.utsdpm.dtos.UserDetailDto
 import com.tunjicus.utsdpm.enums.RoleName
 import com.tunjicus.utsdpm.exceptions.*
+import com.tunjicus.utsdpm.models.ResetEmail
 import jakarta.transaction.Transactional
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -12,10 +13,13 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.time.LocalTime
+import java.util.concurrent.CompletableFuture
 
 class UserServiceTest : BaseIntegrationTest() {
   @Autowired private lateinit var userService: UserService
@@ -26,6 +30,7 @@ class UserServiceTest : BaseIntegrationTest() {
   fun cleanUp() {
     try {
       userDpmRepository.deleteAll()
+      passwordResetTokenRepository.deleteAll()
       val users = userRepository.findAll()
       users.forEach { it.manager = null }
       userRepository.saveAll(users)
@@ -68,8 +73,10 @@ class UserServiceTest : BaseIntegrationTest() {
     assertThat(result.lastname).isEqualTo("Analyst")
     assertThat(result.points).isEqualTo(5)
     assertThat(result.manager).isEqualTo("Manager User")
+    assertThat(result.managerId).isEqualTo(manager.id)
     assertThat(result.role).isEqualTo("Analyst")
     assertThat(result.fullTime).isTrue()
+    assertThat(result.managers).extracting("id").contains(manager.id)
   }
 
   @Test
@@ -153,11 +160,37 @@ class UserServiceTest : BaseIntegrationTest() {
 
     val dto = UserDetailDto().apply {
       this.manager = "Nonexistent Manager"
+      managerId = 999
     }
 
     assertThrows<ManagerNotFoundException> {
       userService.updateUser(dto, user.id!!)
     }
+  }
+
+  @Test
+  @Transactional
+  fun `updateUser should use selected manager id when names collide`() {
+    val role = createRole(RoleName.ANALYST)
+    val managerRole = createRole(RoleName.MANAGER)
+    val currentManager = createUser("Current", "Manager", "current@test.com", managerRole)
+    val firstDuplicate = createUser("Shared", "Manager", "shared1@test.com", managerRole)
+    val selectedManager = createUser("Shared", "Manager", "shared2@test.com", managerRole)
+    val user = createUser("Test", "User", "test@test.com", role, currentManager)
+
+    val dto =
+        UserDetailDto().apply {
+          manager = "Shared Manager"
+          managerId = selectedManager.id
+        }
+
+    userService.updateUser(dto, user.id!!)
+    entityManager.flush()
+    entityManager.clear()
+
+    val updatedUser = userRepository.findById(user.id!!).get()
+    assertThat(updatedUser.manager?.id).isEqualTo(selectedManager.id)
+    assertThat(updatedUser.manager?.id).isNotEqualTo(firstDuplicate.id)
   }
 
   @Test
@@ -172,6 +205,7 @@ class UserServiceTest : BaseIntegrationTest() {
 
     val dto = UserDetailDto().apply {
       this.manager = "Not Manager"
+      managerId = nonManager.id
     }
 
     assertThrows<ManagerNotFoundException> {
@@ -181,15 +215,17 @@ class UserServiceTest : BaseIntegrationTest() {
 
   @Test
   @Transactional
-  fun `getManagers should return manager names`() {
+  fun `getManagers should return manager names with ids`() {
     val managerRole = createRole(RoleName.MANAGER)
     val adminRole = createRole(RoleName.ADMIN)
-    createUser("Manager", "One", "manager1@test.com", managerRole)
-    createUser("Admin", "User", "admin@test.com", adminRole)
+    val manager = createUser("Manager", "One", "manager1@test.com", managerRole)
+    val admin = createUser("Admin", "User", "admin@test.com", adminRole)
 
     val result = userService.getManagers()
 
     assertThat(result).isNotEmpty()
+    assertThat(result).extracting("id").contains(manager.id, admin.id)
+    assertThat(result).extracting("name").contains("Manager One", "Admin User")
   }
 
   @Test
@@ -203,6 +239,7 @@ class UserServiceTest : BaseIntegrationTest() {
       firstname = "New"
       lastname = "User"
       this.manager = "Manager User"
+      managerId = userRepository.findByUsername("manager@test.com")!!.id
       role = "Analyst"
       fullTime = true
     }
@@ -220,6 +257,33 @@ class UserServiceTest : BaseIntegrationTest() {
 
   @Test
   @Transactional
+  fun `createUser should use selected manager id when names collide`() {
+    val managerRole = createRole(RoleName.MANAGER)
+    val firstDuplicate = createUser("Shared", "Manager", "shared1@test.com", managerRole)
+    val selectedManager = createUser("Shared", "Manager", "shared2@test.com", managerRole)
+
+    val dto =
+        CreateUserDto().apply {
+          email = "newuser@test.com"
+          firstname = "New"
+          lastname = "User"
+          manager = "Shared Manager"
+          managerId = selectedManager.id
+          role = "Analyst"
+          fullTime = true
+        }
+
+    userService.createUser(dto)
+    entityManager.flush()
+    entityManager.clear()
+
+    val createdUser = userRepository.findByUsername("newuser@test.com")
+    assertThat(createdUser?.manager?.id).isEqualTo(selectedManager.id)
+    assertThat(createdUser?.manager?.id).isNotEqualTo(firstDuplicate.id)
+  }
+
+  @Test
+  @Transactional
   fun `createUser with duplicate email should throw UserAlreadyExistsException`() {
     val managerRole = createRole(RoleName.MANAGER)
     val manager = createUser("Manager", "User", "manager@test.com", managerRole)
@@ -231,6 +295,7 @@ class UserServiceTest : BaseIntegrationTest() {
       firstname = "New"
       lastname = "User"
       this.manager = "Manager User"
+      managerId = manager.id
       role = "Analyst"
       fullTime = true
     }
@@ -241,17 +306,18 @@ class UserServiceTest : BaseIntegrationTest() {
   }
 
   @Test
-  fun `createUser with invalid manager should throw NameNotFoundException`() {
+  fun `createUser with invalid manager should throw ManagerNotFoundException`() {
     val dto = CreateUserDto().apply {
       email = "newuser@test.com"
       firstname = "New"
       lastname = "User"
       manager = "Nonexistent Manager"
+      managerId = 999
       role = "Analyst"
       fullTime = true
     }
 
-    assertThrows<NameNotFoundException> {
+    assertThrows<ManagerNotFoundException> {
       userService.createUser(dto)
     }
   }
@@ -307,15 +373,52 @@ class UserServiceTest : BaseIntegrationTest() {
 
   @Test
   @Transactional
-  fun `resetPassword should generate new password and send email`() {
+  fun `resetPassword should create reset link without changing password`() {
     val role = createRole(RoleName.ANALYST)
-    val user = createUser("Test", "User", "test@test.com", role)
+    val user = createUser("Test", "User", "test@test.com", role, changed = true)
+    val originalPassword = user.password
+    `when`(emailService.sendResetPasswordEmail(any(), any()))
+      .thenReturn(CompletableFuture.completedFuture(null))
 
     userService.resetPassword(user.id!!)
     entityManager.flush()
     entityManager.clear()
 
     val updatedUser = userRepository.findById(user.id!!).get()
-    assertThat(updatedUser.changed).isFalse()
+    assertThat(updatedUser.password).isEqualTo(originalPassword)
+    assertThat(updatedUser.changed).isTrue()
+    assertThat(passwordResetTokenRepository.findAll()).hasSize(1)
+  }
+
+  @Test
+  @Transactional
+  fun `resetPassword should email a one time reset link`() {
+    val role = createRole(RoleName.ANALYST)
+    val user = createUser("Test", "User", "test@test.com", role)
+    `when`(emailService.sendResetPasswordEmail(any(), any()))
+      .thenReturn(CompletableFuture.completedFuture(null))
+
+    userService.resetPassword(user.id!!)
+
+    val resetEmail = argumentCaptor<ResetEmail>()
+    verify(emailService).sendResetPasswordEmail(eq("test@test.com"), resetEmail.capture())
+    val emailModel = resetEmail.firstValue.toMap()
+    assertThat(emailModel).doesNotContainKey("password")
+    assertThat(emailModel["resetUrl"]).startsWith("http://localhost:4200/passwordReset?token=")
+  }
+
+  @Test
+  fun `resetPassword should not leave reset token when reset email fails`() {
+    val role = createRole(RoleName.ANALYST)
+    val user = createUser("Test", "User", "test@test.com", role)
+    val originalPassword = user.password
+    `when`(emailService.sendResetPasswordEmail(any(), any()))
+      .thenReturn(CompletableFuture.failedFuture(RuntimeException("mail down")))
+
+    assertThrows<PasswordChangeException> { userService.resetPassword(user.id!!) }
+
+    val updatedUser = userRepository.findById(user.id!!).get()
+    assertThat(updatedUser.password).isEqualTo(originalPassword)
+    assertThat(passwordResetTokenRepository.findAll()).isEmpty()
   }
 }
