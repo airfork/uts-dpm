@@ -30,6 +30,7 @@ class UserServiceTest : BaseIntegrationTest() {
   fun cleanUp() {
     try {
       userDpmRepository.deleteAll()
+      passwordResetTokenRepository.deleteAll()
       val users = userRepository.findAll()
       users.forEach { it.manager = null }
       userRepository.saveAll(users)
@@ -372,9 +373,10 @@ class UserServiceTest : BaseIntegrationTest() {
 
   @Test
   @Transactional
-  fun `resetPassword should generate new password and send email`() {
+  fun `resetPassword should create reset link without changing password`() {
     val role = createRole(RoleName.ANALYST)
-    val user = createUser("Test", "User", "test@test.com", role)
+    val user = createUser("Test", "User", "test@test.com", role, changed = true)
+    val originalPassword = user.password
     `when`(emailService.sendResetPasswordEmail(any(), any()))
       .thenReturn(CompletableFuture.completedFuture(null))
 
@@ -383,12 +385,14 @@ class UserServiceTest : BaseIntegrationTest() {
     entityManager.clear()
 
     val updatedUser = userRepository.findById(user.id!!).get()
-    assertThat(updatedUser.changed).isFalse()
+    assertThat(updatedUser.password).isEqualTo(originalPassword)
+    assertThat(updatedUser.changed).isTrue()
+    assertThat(passwordResetTokenRepository.findAll()).hasSize(1)
   }
 
   @Test
   @Transactional
-  fun `resetPassword should email a strong temporary password`() {
+  fun `resetPassword should email a one time reset link`() {
     val role = createRole(RoleName.ANALYST)
     val user = createUser("Test", "User", "test@test.com", role)
     `when`(emailService.sendResetPasswordEmail(any(), any()))
@@ -398,12 +402,13 @@ class UserServiceTest : BaseIntegrationTest() {
 
     val resetEmail = argumentCaptor<ResetEmail>()
     verify(emailService).sendResetPasswordEmail(eq("test@test.com"), resetEmail.capture())
-    assertThat(resetEmail.firstValue.password).hasSize(16)
-    assertThat(resetEmail.firstValue.password).matches("[A-Za-z0-9]+")
+    val emailModel = resetEmail.firstValue.toMap()
+    assertThat(emailModel).doesNotContainKey("password")
+    assertThat(emailModel["resetUrl"]).startsWith("http://localhost:4200/passwordReset?token=")
   }
 
   @Test
-  fun `resetPassword should keep existing password when reset email fails`() {
+  fun `resetPassword should not leave reset token when reset email fails`() {
     val role = createRole(RoleName.ANALYST)
     val user = createUser("Test", "User", "test@test.com", role)
     val originalPassword = user.password
@@ -414,5 +419,6 @@ class UserServiceTest : BaseIntegrationTest() {
 
     val updatedUser = userRepository.findById(user.id!!).get()
     assertThat(updatedUser.password).isEqualTo(originalPassword)
+    assertThat(passwordResetTokenRepository.findAll()).isEmpty()
   }
 }

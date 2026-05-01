@@ -28,6 +28,7 @@ class UserService(
   private val authService: AuthService,
   private val passwordEncoder: PasswordEncoder,
   private val emailService: EmailService,
+  private val passwordResetTokenService: PasswordResetTokenService,
   private val appProperties: AppProperties
 ) {
 
@@ -154,25 +155,21 @@ class UserService(
   @Transactional
   fun resetPassword(id: Int) {
     val user = userRepository.findById(id).orElseThrow { UserNotFoundException(id) }
-    val password = generateTempPassword()
-
-    user.password = passwordEncoder.encode(password)
-    user.changed = false
-    userRepository.save(user)
+    val token = passwordResetTokenService.createToken(user)
 
     try {
-      sendPasswordResetEmail(user, password).join()
+      sendPasswordResetEmail(user, token).join()
     } catch (e: RuntimeException) {
       LOGGER.warn("Failed to send password reset email to ${user.username}", e)
-      throw PasswordChangeException("Failed to send password reset email; password was not changed")
+      throw PasswordChangeException("Failed to send password reset email; reset token was not created")
     }
   }
 
-  private fun sendPasswordResetEmail(user: User, password: String) =
+  private fun sendPasswordResetEmail(user: User, token: String) =
     emailService
       .sendResetPasswordEmail(
         user.username!!,
-        ResetEmail(user.firstname!!, password, appProperties.baseUrl)
+        ResetEmail(user.firstname!!, "${appProperties.baseUrl}/passwordReset?token=$token")
       )
       .thenRun { LOGGER.info("Sent password reset email to ${user.username!!}") }
 

@@ -3,6 +3,7 @@ package com.tunjicus.utsdpm.controllers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.tunjicus.utsdpm.dtos.ChangePasswordDto
 import com.tunjicus.utsdpm.dtos.ChangeRequiredDto
+import com.tunjicus.utsdpm.dtos.CompletePasswordResetDto
 import com.tunjicus.utsdpm.dtos.LoginDto
 import com.tunjicus.utsdpm.dtos.LoginResponseDto
 import com.tunjicus.utsdpm.exceptions.UserAuthFailedException
@@ -97,5 +98,24 @@ class AuthControllerTest {
         .andExpect(status().isOk)
 
     verify(authService).changePassword(any())
+  }
+
+  @Test
+  fun `should return 200 on successful token password reset`() {
+    val resetPasswordDto =
+        CompletePasswordResetDto().apply {
+          token = "reset-token"
+          newPassword = "newPassword123"
+          confirmPassword = "newPassword123"
+        }
+
+    mockMvc
+        .perform(
+            post("/api/auth/resetPassword")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(resetPasswordDto)))
+        .andExpect(status().isOk)
+
+    verify(authService).completePasswordReset(any())
   }
 }

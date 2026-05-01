@@ -25,6 +25,7 @@ class SecurityAdapter(private val userDetailsService: UserDetailsService) {
     private val NO_AUTH_LIST =
         arrayOf(
             "/api/auth/login**",
+            "/api/auth/resetPassword",
             "/v3/api-docs/**",
             "/swagger-ui/**",
         )

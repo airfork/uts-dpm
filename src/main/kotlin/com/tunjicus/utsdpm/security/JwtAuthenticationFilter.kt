@@ -45,7 +45,8 @@ class JwtAuthenticationFilter : OncePerRequestFilter() {
         if (user != null && !user.changed!!) {
           if (
             !request.requestURL.contains("/changePassword", true) &&
-              !request.requestURL.contains("/changeCheck", true)
+              !request.requestURL.contains("/changeCheck", true) &&
+              !request.requestURL.contains("/resetPassword", true)
           ) {
             response.status = HttpStatus.SEE_OTHER.value()
             response.contentType = MediaType.APPLICATION_JSON_VALUE

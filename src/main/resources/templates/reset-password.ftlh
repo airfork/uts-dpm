@@ -143,17 +143,12 @@
                               </tr>
                               <tr>
                                 <td align="left" style="font-size:0px;padding:10px 25px;padding-bottom:20px;word-break:break-word;">
-                                  <div style="font-family:Poppins, Arial, 'Helvetica Neue', Helvetica, sans-serif;font-size:14px;line-height:1.5;text-align:left;color:#333333;">Your password has been reset. Use the temporary password below to sign in and set a new password.</div>
+                                  <div style="font-family:Poppins, Arial, 'Helvetica Neue', Helvetica, sans-serif;font-size:14px;line-height:1.5;text-align:left;color:#333333;">A password reset was requested for your account. Use the one-time link below to set a new password.</div>
                                 </td>
                               </tr>
                               <tr>
                                 <td align="left" style="font-size:0px;padding:10px 25px;padding-bottom:8px;word-break:break-word;">
-                                  <div style="font-family:Poppins, Arial, 'Helvetica Neue', Helvetica, sans-serif;font-size:12px;letter-spacing:0.5px;line-height:1.5;text-align:left;text-transform:uppercase;color:#6b7280;">Temporary Password</div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <td align="center" class="password-box" style="font-size:0px;padding:16px;word-break:break-word;">
-                                  <div style="font-family:'Courier New', monospace;font-size:16px;font-weight:600;line-height:1.5;text-align:center;color:#333333;">${password}</div>
+                                  <div style="font-family:Poppins, Arial, 'Helvetica Neue', Helvetica, sans-serif;font-size:13px;line-height:1.5;text-align:left;color:#6b7280;">This link expires in one hour and can only be used once.</div>
                                 </td>
                               </tr>
                               <tr>
@@ -162,7 +157,7 @@
                                     <tbody>
                                       <tr>
                                         <td align="center" bgcolor="#232d4b" role="presentation" style="border:none;border-radius:8px;cursor:auto;mso-padding-alt:14px 28px;background:#232d4b;" valign="middle">
-                                          <a href="${url}" style="display:inline-block;background:#232d4b;color:#ffffff;font-family:Poppins, Arial, 'Helvetica Neue', Helvetica, sans-serif;font-size:14px;font-weight:600;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:14px 28px;mso-padding-alt:0px;border-radius:8px;" target="_blank"> Sign In </a>
+                                          <a href="${resetUrl}" style="display:inline-block;background:#232d4b;color:#ffffff;font-family:Poppins, Arial, 'Helvetica Neue', Helvetica, sans-serif;font-size:14px;font-weight:600;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:14px 28px;mso-padding-alt:0px;border-radius:8px;" target="_blank"> Reset Password </a>
                                         </td>
                                       </tr>
                                     </tbody>
