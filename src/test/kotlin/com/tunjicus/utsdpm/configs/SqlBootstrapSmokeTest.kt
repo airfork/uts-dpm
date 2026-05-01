@@ -2,7 +2,9 @@ package com.tunjicus.utsdpm.configs
 
 import java.nio.file.Path
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.ApplicationContextInitializer
@@ -42,6 +44,42 @@ class SqlBootstrapSmokeTest {
     assertThat(roleCount).isGreaterThanOrEqualTo(4)
     assertThat(dpmCount).isGreaterThan(0)
     assertThat(submittedDateColumnCount).isEqualTo(1)
+  }
+
+  @Test
+  fun `compose db scripts enforce one active dpm per w2w color`() {
+    val existingColorId =
+      jdbcTemplate.queryForObject(
+        """
+          select w2w_color_id
+          from dpms
+          where active
+            and w2w_color_id is not null
+          limit 1
+        """
+          .trimIndent(),
+        Int::class.java)
+
+    assertThat(existingColorId).isNotNull
+
+    jdbcTemplate.update(
+      """
+        insert into dpms (dpm_group_id, name, points, w2w_color_id, active)
+        values (1, 'Inactive duplicate color smoke test', 1, ?, false)
+      """
+        .trimIndent(),
+      existingColorId)
+
+    assertThatThrownBy {
+        jdbcTemplate.update(
+          """
+            insert into dpms (dpm_group_id, name, points, w2w_color_id, active)
+            values (1, 'Active duplicate color smoke test', 1, ?, true)
+          """
+            .trimIndent(),
+          existingColorId)
+      }
+      .isInstanceOf(DataIntegrityViolationException::class.java)
   }
 
   class BootstrapDatabaseInitializer :
