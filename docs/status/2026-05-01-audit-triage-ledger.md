@@ -35,13 +35,13 @@ status source for what has been fixed, what is still open, and where to resume.
 | Java 21 toolchain enforcement | `3897530` | n/a | Added `.sdkmanrc` and Maven Enforcer so Java 25 is rejected and Java 21 is the documented local path. |
 | `User` entity equality | `3bbc2a7` | n/a | `User` now follows the Hibernate-safe persisted-ID equality pattern used by the other entities. |
 | DPM DTO mapper null handling | `0a6b10e` | n/a | Audited DPM DTO mappers now report contextual row/field errors instead of throwing anonymous `NullPointerException`s from `!!`. |
+| Active W2W color uniqueness | `73ec0e8` | n/a | Added a Postgres partial unique index so only one active DPM can own a non-null W2W color; inactive duplicates remain allowed. |
 
 ## Open Items
 
 Recommended next order:
 
-1. Add a database-level partial unique constraint for one active DPM per W2W color.
-2. Revisit password reset design with reset tokens instead of emailed temporary passwords.
+1. Revisit password reset design with reset tokens instead of emailed temporary passwords.
 
 ## Verification Snapshot
 
@@ -51,7 +51,7 @@ Most recent backend verification:
 ./mvnw verify
 ```
 
-Result: 130 tests passing, 0 failures/errors, coverage checks met. This run used Java 21.0.6.
+Result: 131 tests passing, 0 failures/errors, coverage checks met. This run used Java 21.0.6.
 
 Most recent frontend verification:
 
