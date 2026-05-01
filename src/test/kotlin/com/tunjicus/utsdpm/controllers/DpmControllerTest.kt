@@ -7,6 +7,7 @@ import com.tunjicus.utsdpm.services.DpmService
 import com.tunjicus.utsdpm.services.UserDpmService
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
@@ -109,6 +110,24 @@ class DpmControllerTest {
 
   @Test
   @WithMockUser(roles = ["MANAGER"])
+  fun `should reject invalid approvals pagination params`() {
+    mockMvc
+        .perform(get("/api/dpms/approvals").param("page", "-1").param("size", "10"))
+        .andExpect(status().isBadRequest)
+
+    mockMvc
+        .perform(get("/api/dpms/approvals").param("page", "0").param("size", "0"))
+        .andExpect(status().isBadRequest)
+
+    mockMvc
+        .perform(get("/api/dpms/approvals").param("page", "0").param("size", "101"))
+        .andExpect(status().isBadRequest)
+
+    verifyNoInteractions(userDpmService)
+  }
+
+  @Test
+  @WithMockUser(roles = ["MANAGER"])
   fun `should update DPM on PATCH dpms id`() {
     val patchDto = PatchDpmDto(points = 15, approved = true, ignored = false)
 
@@ -152,6 +171,24 @@ class DpmControllerTest {
         .andExpect(jsonPath("$.content[0].status").value("Approved"))
 
     verify(userDpmService).getAll(1, 0, 10)
+  }
+
+  @Test
+  @WithMockUser(roles = ["ADMIN"])
+  fun `should reject invalid user dpm pagination params`() {
+    mockMvc
+        .perform(get("/api/dpms/user/1").param("page", "-1").param("size", "10"))
+        .andExpect(status().isBadRequest)
+
+    mockMvc
+        .perform(get("/api/dpms/user/1").param("page", "0").param("size", "0"))
+        .andExpect(status().isBadRequest)
+
+    mockMvc
+        .perform(get("/api/dpms/user/1").param("page", "0").param("size", "101"))
+        .andExpect(status().isBadRequest)
+
+    verifyNoInteractions(userDpmService)
   }
 
   @Test
