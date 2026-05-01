@@ -33,15 +33,15 @@ status source for what has been fixed, what is still open, and where to resume.
 | User manager assignment by ID | `8047347` | `b92a923` | User create/update now resolves managers by stable manager ID and returns manager options as `{id, name}` DTOs. |
 | SQL bootstrap smoke coverage | `2ef20b8` | n/a | Fresh Postgres init now runs under Testcontainers with Hibernate validation; the local migration helper lives outside the init script directory. |
 | Java 21 toolchain enforcement | `3897530` | n/a | Added `.sdkmanrc` and Maven Enforcer so Java 25 is rejected and Java 21 is the documented local path. |
+| `User` entity equality | `3bbc2a7` | n/a | `User` now follows the Hibernate-safe persisted-ID equality pattern used by the other entities. |
 
 ## Open Items
 
 Recommended next order:
 
-1. Clean up `User` entity equality.
-2. Reduce DTO mapper force unwraps by making guaranteed fields non-nullable or adding explicit fallback/error behavior.
-3. Add a database-level partial unique constraint for one active DPM per W2W color.
-4. Revisit password reset design with reset tokens instead of emailed temporary passwords.
+1. Reduce DTO mapper force unwraps by making guaranteed fields non-nullable or adding explicit fallback/error behavior.
+2. Add a database-level partial unique constraint for one active DPM per W2W color.
+3. Revisit password reset design with reset tokens instead of emailed temporary passwords.
 
 ## Verification Snapshot
 
@@ -51,7 +51,7 @@ Most recent backend verification:
 ./mvnw verify
 ```
 
-Result: 125 tests passing, 0 failures/errors, coverage checks met. This run used Java 21.0.6.
+Result: 128 tests passing, 0 failures/errors, coverage checks met. This run used Java 21.0.6.
 
 Most recent frontend verification:
 
