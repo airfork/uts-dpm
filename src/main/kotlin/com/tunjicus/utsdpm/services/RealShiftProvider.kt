@@ -1,5 +1,6 @@
 package com.tunjicus.utsdpm.services
 
+import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.tunjicus.utsdpm.configs.AppProperties
 import com.tunjicus.utsdpm.exceptions.AutogenException
@@ -33,10 +34,22 @@ class RealShiftProvider(
         throw AutogenException("When2Work assigned shift request failed with code ${response.code}")
       }
 
-      val body = response.body?.string()
-      val shifts = objectMapper.readValue(body, AssignedShifts::class.java)?.shifts ?: emptyList()
+      val shifts = parseAssignedShifts(response.body.string(), today)
       LOGGER.debug("Retrieved {} shifts from When2Work API", shifts.size)
       return shifts
+    }
+  }
+
+  internal fun parseAssignedShifts(body: String, requestDate: String): List<Shift> {
+    if (body.isBlank()) {
+      throw AutogenException("When2Work assigned shift response was empty for $requestDate")
+    }
+
+    return try {
+      objectMapper.readValue(body, AssignedShifts::class.java).shifts
+    } catch (ex: JsonProcessingException) {
+      throw AutogenException(
+          "Failed to parse When2Work assigned shifts for $requestDate: ${ex.originalMessage}")
     }
   }
 
