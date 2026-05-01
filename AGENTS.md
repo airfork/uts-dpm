@@ -158,3 +158,29 @@ docs/reviews/2026-05-01-code-quality-audit.md
 ```
 
 Read it before doing larger cleanup or quality work.
+
+## Plans, Audits, And Status Ledgers
+
+When working through a multi-step plan, audit, review, or cleanup sequence, keep a
+repo-local status ledger so another assistant can resume without relying on chat
+history.
+
+Use `docs/status/` for these ledgers. Name files by date and task, for example:
+
+```text
+docs/status/2026-05-01-audit-triage-ledger.md
+```
+
+Each ledger should include:
+
+- The source plan/audit/review document being worked from.
+- The active backend branch, and any companion frontend branch.
+- Completed items with commit hashes when available.
+- In-progress or next recommended item.
+- Open items deliberately left for later.
+- Verification commands already run and their results.
+- Any known local environment caveats, such as required services or noisy-but-passing tool output.
+
+Update the ledger before stopping, before switching tasks, and after each
+meaningful commit. If a source audit becomes stale because fixes were committed,
+do not rewrite history silently; record the current status in the ledger.
